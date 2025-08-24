@@ -27,6 +27,7 @@ def main():
     tabview = CTkTabview(master=win, width=650, height=400, corner_radius=15)
     tabview.pack(padx=20, pady=20, fill="both", expand=True)
 
+
     tab1 = tabview.add("Création voyage")
     tab2 = tabview.add("Autre")
     tab3 = tabview.add("Paramètres")
