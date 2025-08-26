@@ -7,7 +7,7 @@ def main():
     win.title("menu")
     win.geometry("1000x800")
 
-    tabview = CTkTabview(master=win, width=950, height=750, corner_radius=15, tab_position="left")
+    tabview = CTkTabview(master=win, width=950, height=750, corner_radius=15)
     tabview.grid(row=0, column=0, columnspan=3, padx=20, pady=20, sticky="nsew")
 
 
