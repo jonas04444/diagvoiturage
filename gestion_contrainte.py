@@ -110,7 +110,7 @@ def bus_schedule_with_pause():
     print(f"\n🔎 Status : {solver.StatusName(status)}")
     print(f"✅ Nombre de solutions trouvées : {printer.solution_count}")
 
-#bus_schedule_with_pause()
+bus_schedule_with_pause()
 
 #from ortools.sat.python import cp_model
 
@@ -173,4 +173,4 @@ trajets = [
     {"IDtrajet": 4, "heure_debut": "08:50", "duree": 20},
 ]
 
-planifier_trajets(trajets)
+#<planifier_trajets(trajets)

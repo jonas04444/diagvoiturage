@@ -3,9 +3,6 @@ import sqlite3
 
 import re
 
-import re
-
-
 def convert_to_minutes(horaire_str):
     horaire_str = horaire_str.strip()
 
@@ -21,7 +18,7 @@ def voiturage_ia():
 
     #ici on met les voyages
     trips = [
-        (383, 418),     #6h23-6h58
+        (383, 418),  # 6h23-6h58
         (390, 420),  # 6h30–7h00
         (425, 455),  # 7h05–7h35
         (460, 490),  # 7h40–8h10
@@ -32,3 +29,11 @@ def voiturage_ia():
     num_services_max = 3
 
     assignments = [model.NewIntVar(0, num_services_max -1, f"service_{i}") for i in range(num_trips)]
+
+    for i in range(num_trips):
+        for j in range(i + 1, num_trips):
+            start_i , end_i = trips[i]
+            start_j , end_j = trips[j]
+            if start_i < end_j and start_j < end_i:
+                model.add(assignments[i] != assignments[j])
+
