@@ -26,7 +26,7 @@ def add_line(donnees_ligne):
             cur.execute("""
                     INSERT INTO Version_linge (
                         num_ligne, Version_ligne
-                    ) VALUES (?, ?, ?)
+                    ) VALUES (?, ?)
                 """, (
                     version["num_ligne"],
                     version["Version_ligne"]
@@ -34,3 +34,4 @@ def add_line(donnees_ligne):
 
     conn.commit()
     conn.close()
+
