@@ -42,5 +42,19 @@ def add_trajet(donnees_trajet):
     for trajet in donnees_trajet:
         cur.execute("""
                     SELECT 1 FROM 
+                    WHERE  
+                """, (trajet[""], trajet[""]))
+
+        existe = cur.fetchone()
+
+        if existe:
+            msgbox.showwarning(
+                "Doublon détecté",
+                f"le trajet {trajet[]} existe déjà."
+            )
+        else:
+            cur.execute("""
+                        INSERT INTO trajet
             
-            """)
+            
+            """),(trajet[], trajet[])
