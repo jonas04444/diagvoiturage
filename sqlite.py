@@ -35,3 +35,12 @@ def add_line(donnees_ligne):
     conn.commit()
     conn.close()
 
+def add_trajet(donnees_trajet):
+    conn = sqlite3.connect("dbdiaggrantt.db")
+    cur = conn.cursor()
+
+    for trajet in donnees_trajet:
+        cur.execute("""
+                    SELECT 1 FROM 
+            
+            """)
