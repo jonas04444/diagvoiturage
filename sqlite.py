@@ -41,20 +41,81 @@ def add_trajet(donnees_trajet):
 
     for trajet in donnees_trajet:
         cur.execute("""
-                    SELECT 1 FROM 
-                    WHERE  
-                """, (trajet[""], trajet[""]))
+                    SELECT 1 FROM trajet
+                    WHERE Num_ligne = ? AND Num_trajet = ? AND variant = ?
+                """, (
+                trajet["Num_ligne"],
+                trajet["Num_trajet"],
+                trajet["variant"]
+                ))
 
         existe = cur.fetchone()
 
         if existe:
             msgbox.showwarning(
                 "Doublon détecté",
-                f"le trajet {trajet[]} existe déjà."
+                f"Le trajet ligne {trajet['Num_ligne']} numéro {trajet['Num_trajet']} (variant {trajet['variant']}) existe déjà."
             )
         else:
             cur.execute("""
-                        INSERT INTO trajet
-            
-            
-            """),(trajet[], trajet[])
+                        INSERT INTO trajet (
+                            Num_ligne, Num_trajet, variant,
+                            DP_arret, DR_arret, Duree
+                        ) VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                trajet["Num_ligne"],
+                trajet["Num_trajet"],
+                trajet["variant"],
+                trajet["DP_arret"],
+                trajet["DR_arret"],
+                trajet["Duree"]
+            ))
+            msgbox.showinfo("bien éffectué")
+    conn.commit()
+    conn.close()
+
+def add_lieux(donnees_lieux):
+    conn = sqlite3.connect("dbdiaggrantt.db")
+    cur = conn.cursor()
+
+    for lieux in donnees_lieux:
+        cur.execute("""
+                    SELECT 1 FROM lieux
+                    WHERE id_lieux = ? 
+            """,(
+            lieux["id_lieux"]
+            ))
+
+        existe = cur.fetchone()
+
+        if existe:
+            msgbox.showwarning(
+                "Doublon détecté",
+                f"Le lieux {lieux['id_lieux']} existe déjà"
+            )
+        else:
+            cur.execute("""
+                        INSERT INTO lieux (
+                            id_lieux, description, zone
+                        ) VALUES (?,?,?)
+                    """,(
+                    lieux["id_lieux"],
+                    lieux["description"],
+                    lieux["zone"]
+                ))
+            msgbox.showinfo("bien éffectué")
+    conn.commit()
+    conn.close()
+
+donnees_trajet = [
+    {
+        "Num_ligne": 63,
+        "Num_trajet": 1,
+        "variant": 1,
+        "DP_arret": "CTLEE",
+        "DR_arret": "CTLAA",
+        "Duree": 50
+    }
+]
+
+#add_trajet(donnees_trajet)
