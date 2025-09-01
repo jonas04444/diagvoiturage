@@ -83,7 +83,7 @@ def add_lieux(donnees_lieux):
                     SELECT 1 FROM lieux
                     WHERE id_lieux = ? 
             """,(
-            lieux["id_lieux"]
+            lieux["id_lieux"],
             ))
 
         existe = cur.fetchone()
@@ -96,15 +96,31 @@ def add_lieux(donnees_lieux):
         else:
             cur.execute("""
                         INSERT INTO lieux (
-                            id_lieux, description, zone
-                        ) VALUES (?,?,?)
+                            id_lieux, commune, description, zone
+                        ) VALUES (?,?,?,?)
                     """,(
                     lieux["id_lieux"],
+                    lieux["commune"],
                     lieux["description"],
                     lieux["zone"]
                 ))
             msgbox.showinfo("bien éffectué")
     conn.commit()
+    conn.close()
+
+def verif_lieux(test_lieux):
+    conn = sqlite3.connect("dbdiaggrantt.db")
+    cur = conn.cursor()
+
+    cur.execute("""
+                SELECT 1 FROM lieux
+                WHERE id_lieux = ?
+        """,(
+        test_lieux,
+        ))
+    existe = cur.fetchone()
+    if not existe:
+        msgbox.showwarning("lieu introuvebale","Ce lieux n'existe pas")
     conn.close()
 
 donnees_trajet = [
@@ -117,5 +133,15 @@ donnees_trajet = [
         "Duree": 50
     }
 ]
-
+donnees_lieux = [
+    {
+        "id_lieux" : "CHMON",
+        "commune" : "Charleroi",
+        "description" : "route de mons",
+        "zone" : 1
+    }
+]
 #add_trajet(donnees_trajet)
+#add_lieux(donnees_lieux)
+test = "CHMpN"
+verif_lieux(test)
