@@ -1,10 +1,6 @@
 import sqlite3
 import tkinter.messagebox as msgbox
 
-conn = sqlite3.connect("dbdiaggrantt.db")
-cur = conn.cursor()
-conn.close()
-
 def add_line(donnees_ligne):
     conn = sqlite3.connect("dbdiaggrantt.db")
     cur =  conn.cursor()
@@ -143,5 +139,5 @@ donnees_lieux = [
 ]
 #add_trajet(donnees_trajet)
 #add_lieux(donnees_lieux)
-test = "CHMpN"
+test = "CHMON"
 verif_lieux(test)
