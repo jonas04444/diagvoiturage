@@ -110,7 +110,7 @@ def bus_schedule_with_pause():
     print(f"\n🔎 Status : {solver.StatusName(status)}")
     print(f"✅ Nombre de solutions trouvées : {printer.solution_count}")
 
-bus_schedule_with_pause()
+#bus_schedule_with_pause()
 
 #from ortools.sat.python import cp_model
 
