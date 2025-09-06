@@ -299,11 +299,20 @@ def voiturage_ia():
 
     # Données d'exemple
     trips = [
-        {"start": 383, "end": 418, "from": "A", "to": "B"},  # Trajet-0
-        {"start": 390, "end": 420, "from": "B", "to": "A"},  # Trajet-1
-        {"start": 425, "end": 455, "from": "A", "to": "C"},  # Trajet-2
-        {"start": 460, "end": 490, "from": "C", "to": "D"},  # Trajet-3
-        {"start": 500, "end": 530, "from": "D", "to": "A"},  # Trajet-4
+        # === Trajets originaux ===
+        {"start": 383, "end": 418, "from": "A", "to": "B"},  # Trajet-0 (06h23-06h58)
+        {"start": 390, "end": 420, "from": "B", "to": "A"},  # Trajet-1 (06h30-07h00) - CONFLIT avec 0
+        {"start": 425, "end": 455, "from": "A", "to": "C"},  # Trajet-2 (07h05-07h35)
+        {"start": 460, "end": 490, "from": "C", "to": "D"},  # Trajet-3 (07h40-08h10)
+        {"start": 500, "end": 530, "from": "D", "to": "A"},  # Trajet-4 (08h20-08h50)
+
+
+        # Chaîne alternative longue
+        {"start": 420, "end": 440, "from": "A", "to": "H"},  # Trajet-11 (07h00-07h20)
+        {"start": 445, "end": 465, "from": "H", "to": "I"},  # Trajet-12 (07h25-07h45) → chaîne avec 11
+        {"start": 470, "end": 500, "from": "I", "to": "J"},  # Trajet-13 (07h50-08h20) → chaîne avec 12
+        {"start": 505, "end": 525, "from": "J", "to": "A"},  # Trajet-14 (08h25-08h45) → chaîne avec 13
+
     ]
 
     # Affichage des trajets d'origine pour référence
@@ -315,7 +324,7 @@ def voiturage_ia():
         print(f"  Trajet-{i}: {trip['from']} → {trip['to']} ({start}–{end}, {duration}min)")
 
     num_trips = len(trips)
-    num_services_max = 2
+    num_services_max = 5
 
     # Création du modèle et des variables
     model = cp_model.CpModel()
