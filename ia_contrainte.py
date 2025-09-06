@@ -6,10 +6,12 @@ from typing import List, Dict, Any
 # ===== CONSTANTES =====
 # Rend le code plus lisible et maintenable
 MIN_PAUSE_MINUTES = 5
+MAX_PAUSE_MINUTES = 55
 PAUSE_WORK_RATIO_PERCENT = 20  # 20% du temps de travail minimum en pause
 RATIO_MULTIPLIER = 100  # Pour éviter les décimaux dans les contraintes
 MAX_SOLVER_TIME_SECONDS = 10
 MAX_MINUTES_PER_DAY = 1440
+MIN_SERVICE_DURATION_FOR_PAUSE_RULES = 360  # 6 heures en minutes
 
 
 def minutes_to_time(minutes: int) -> str:
@@ -65,11 +67,16 @@ class BusSchedulePrinter(cp_model.CpSolverSolutionCallback):
 
     def _display_solution(self, service_trips: Dict[int, List[tuple]]):
         """
-        Affiche une solution de manière lisible.
-        CORRIGÉ : trip_index est l'index original du trajet, order_val est son ordre d'exécution.
+        Affiche une solution de manière lisible avec durée de prestation.
         """
         for service in sorted(service_trips.keys()):
-            print(f"  🔧 Service {service}:")
+            # Calcule la durée de prestation pour ce service
+            trip_indices = [trip_index for _, trip_index in service_trips[service]]
+            service_start = min(self.trips[i]["start"] for i in trip_indices)
+            service_end = max(self.trips[i]["end"] for i in trip_indices)
+            service_duration = service_end - service_start
+
+            print(f"  🔧 Service {service} (prestation: {minutes_to_time(service_duration)}):")
             for order_val, trip_index in sorted(service_trips[service]):
                 trip = self.trips[trip_index]
                 start = minutes_to_time(trip["start"])
@@ -188,8 +195,8 @@ def add_chaining_constraints(model: cp_model.CpModel, assignments: List,
 def add_overlap_constraints(model: cp_model.CpModel, assignments: List,
                             trips: List[Dict]):
     """
-    Empêche les chevauchements temporels sur le même service.
-    Amélioration : fonction séparée avec logique claire.
+    Empêche les chevauchements temporels sur le même service ET
+    les pauses excessives entre trajets consécutifs.
     """
     num_trips = len(trips)
 
@@ -203,12 +210,22 @@ def add_overlap_constraints(model: cp_model.CpModel, assignments: List,
                 # Force les trajets qui se chevauchent sur des services différents
                 model.Add(assignments[i] != assignments[j])
 
+    # NOUVELLE CONTRAINTE : Empêche les pauses excessives (> 55min) sur TOUS les services
+    for i in range(num_trips):
+        for j in range(num_trips):
+            if i != j and trips[i]["end"] <= trips[j]["start"]:
+                pause_duration = trips[j]["start"] - trips[i]["end"]
+
+                # Si pause > 55min, alors les trajets ne peuvent pas être sur le même service
+                if pause_duration > MAX_PAUSE_MINUTES:
+                    model.Add(assignments[i] != assignments[j])
+
 
 def add_service_constraints(model: cp_model.CpModel, assignments: List,
                             trips: List[Dict], num_services_max: int):
     """
     Ajoute les contraintes par service (durées, pauses, etc.).
-    CORRIGÉ : Gestion des services à trajet unique.
+    NOUVEAU : Contraintes de pause seulement pour services >= 6h de prestation continue.
     """
     num_trips = len(trips)
 
@@ -225,19 +242,107 @@ def add_service_constraints(model: cp_model.CpModel, assignments: List,
         nb_trips_on_service = model.NewIntVar(0, num_trips, f"nb_trips_service_{service_id}")
         model.Add(nb_trips_on_service == sum(trip_assignments))
 
-        # Calcule le temps total de travail
+        # Calcule la durée totale de prestation continue (du premier au dernier trajet)
+        service_duration = _calculate_service_duration(model, trips, trip_assignments, service_id)
+
+        # Calcule le temps total de travail effectif
         total_work = _calculate_total_work_time(model, trips, trip_assignments, service_id)
 
         # Calcule le temps total de pause
         total_pause = _calculate_total_pause_time(model, trips, trip_assignments, service_id)
 
-        # CORRECTION : Applique la contrainte de pause SEULEMENT si service a 2+ trajets
+        # NOUVELLE LOGIQUE : Contraintes seulement pour services longs
+        # 1. Service doit avoir 2+ trajets ET 6+ heures de prestation
+        needs_pause_rules = model.NewBoolVar(f"needs_pause_rules_service_{service_id}")
         has_multiple_trips = model.NewBoolVar(f"multiple_trips_service_{service_id}")
+        is_long_service = model.NewBoolVar(f"long_service_{service_id}")
+
+        # Conditions
         model.Add(nb_trips_on_service >= 2).OnlyEnforceIf(has_multiple_trips)
         model.Add(nb_trips_on_service <= 1).OnlyEnforceIf(has_multiple_trips.Not())
 
-        # Contrainte de pause seulement pour les services multi-trajets
-        model.Add(total_pause * RATIO_MULTIPLIER >= total_work * PAUSE_WORK_RATIO_PERCENT).OnlyEnforceIf(has_multiple_trips)
+        model.Add(service_duration >= MIN_SERVICE_DURATION_FOR_PAUSE_RULES).OnlyEnforceIf(is_long_service)
+        model.Add(service_duration < MIN_SERVICE_DURATION_FOR_PAUSE_RULES).OnlyEnforceIf(is_long_service.Not())
+
+        # Les règles s'appliquent SI (2+ trajets) ET (6+ heures)
+        model.AddBoolAnd([has_multiple_trips, is_long_service]).OnlyEnforceIf(needs_pause_rules)
+        model.AddBoolOr([has_multiple_trips.Not(), is_long_service.Not()]).OnlyEnforceIf(needs_pause_rules.Not())
+
+        # Contraintes de pause seulement pour les services qui en ont besoin
+        # 1. Pause minimale de 5min entre trajets
+        _add_minimum_pause_constraints(model, trips, trip_assignments, service_id, needs_pause_rules)
+
+        # 2. Contrainte 20% temps travail/pause
+        model.Add(total_pause * RATIO_MULTIPLIER >= total_work * PAUSE_WORK_RATIO_PERCENT).OnlyEnforceIf(
+            needs_pause_rules)
+
+
+def _calculate_service_duration(model: cp_model.CpModel, trips: List[Dict],
+                                trip_assignments: List, service_id: int):
+    """
+    Calcule la durée totale de prestation continue pour un service.
+    = temps écoulé du début du premier trajet à la fin du dernier trajet.
+    """
+    num_trips = len(trips)
+
+    # Variables pour le premier et dernier trajet du service
+    first_trip_start = model.NewIntVar(0, MAX_MINUTES_PER_DAY, f"first_start_s{service_id}")
+    last_trip_end = model.NewIntVar(0, MAX_MINUTES_PER_DAY, f"last_end_s{service_id}")
+
+    # Trouve le début du premier trajet
+    min_starts = []
+    for i in range(num_trips):
+        conditional_start = model.NewIntVar(0, MAX_MINUTES_PER_DAY, f"cond_start_{i}_s{service_id}")
+        model.Add(conditional_start == trips[i]["start"]).OnlyEnforceIf(trip_assignments[i])
+        model.Add(conditional_start == MAX_MINUTES_PER_DAY).OnlyEnforceIf(trip_assignments[i].Not())
+        min_starts.append(conditional_start)
+
+    model.AddMinEquality(first_trip_start, min_starts)
+
+    # Trouve la fin du dernier trajet
+    max_ends = []
+    for i in range(num_trips):
+        conditional_end = model.NewIntVar(0, MAX_MINUTES_PER_DAY, f"cond_end_{i}_s{service_id}")
+        model.Add(conditional_end == trips[i]["end"]).OnlyEnforceIf(trip_assignments[i])
+        model.Add(conditional_end == 0).OnlyEnforceIf(trip_assignments[i].Not())
+        max_ends.append(conditional_end)
+
+    model.AddMaxEquality(last_trip_end, max_ends)
+
+    # Durée de service = fin du dernier - début du premier
+    service_duration = model.NewIntVar(0, MAX_MINUTES_PER_DAY, f"duration_s{service_id}")
+    model.Add(service_duration == last_trip_end - first_trip_start)
+
+    return service_duration
+
+
+def _add_minimum_pause_constraints(model: cp_model.CpModel, trips: List[Dict],
+                                   trip_assignments: List, service_id: int,
+                                   needs_pause_rules):
+    """
+    Ajoute les contraintes de pause minimale entre trajets consécutifs.
+    """
+    num_trips = len(trips)
+
+    for i in range(num_trips):
+        for j in range(num_trips):
+            if i != j and trips[i]["end"] <= trips[j]["start"]:
+                # Si les deux trajets sont sur ce service
+                both_assigned = model.NewBoolVar(f"both_assigned_{i}_{j}_s{service_id}")
+                model.AddBoolAnd([trip_assignments[i], trip_assignments[j]]).OnlyEnforceIf(both_assigned)
+                model.AddBoolOr([trip_assignments[i].Not(), trip_assignments[j].Not()]).OnlyEnforceIf(
+                    both_assigned.Not())
+
+                # Pause entre les trajets
+                pause_duration = trips[j]["start"] - trips[i]["end"]
+
+                # Contrainte pause minimale seulement si service a besoin des règles
+                constraint_applies = model.NewBoolVar(f"pause_constraint_{i}_{j}_s{service_id}")
+                model.AddBoolAnd([both_assigned, needs_pause_rules]).OnlyEnforceIf(constraint_applies)
+                model.AddBoolOr([both_assigned.Not(), needs_pause_rules.Not()]).OnlyEnforceIf(constraint_applies.Not())
+
+                # Si la contrainte s'applique, pause doit être >= 5min
+                model.Add(pause_duration >= MIN_PAUSE_MINUTES).OnlyEnforceIf(constraint_applies)
 
 
 def _calculate_total_work_time(model: cp_model.CpModel, trips: List[Dict],
@@ -276,7 +381,6 @@ def _calculate_total_pause_time(model: cp_model.CpModel, trips: List[Dict],
 
                 # Calcule la pause et applique la contrainte minimum
                 model.Add(pause_duration == trips[j]["start"] - trips[i]["end"]).OnlyEnforceIf(both_assigned)
-                model.Add(pause_duration >= MIN_PAUSE_MINUTES).OnlyEnforceIf(both_assigned)
                 model.Add(pause_duration == 0).OnlyEnforceIf(both_assigned.Not())
 
                 pause_durations.append(pause_duration)
@@ -306,13 +410,11 @@ def voiturage_ia():
         {"start": 460, "end": 490, "from": "C", "to": "D"},  # Trajet-3 (07h40-08h10)
         {"start": 500, "end": 530, "from": "D", "to": "A"},  # Trajet-4 (08h20-08h50)
 
-
         # Chaîne alternative longue
-        {"start": 420, "end": 440, "from": "A", "to": "H"},  # Trajet-11 (07h00-07h20)
-        {"start": 445, "end": 465, "from": "H", "to": "I"},  # Trajet-12 (07h25-07h45) → chaîne avec 11
-        {"start": 470, "end": 500, "from": "I", "to": "J"},  # Trajet-13 (07h50-08h20) → chaîne avec 12
-        {"start": 505, "end": 525, "from": "J", "to": "A"},  # Trajet-14 (08h25-08h45) → chaîne avec 13
-
+        {"start": 420, "end": 440, "from": "A", "to": "H"},  # Trajet-5 (07h00-07h20)
+        {"start": 445, "end": 465, "from": "H", "to": "I"},  # Trajet-6 (07h25-07h45) → chaîne avec 5
+        {"start": 470, "end": 500, "from": "I", "to": "J"},  # Trajet-7 (07h50-08h20) → chaîne avec 6
+        {"start": 505, "end": 525, "from": "J", "to": "A"},  # Trajet-8 (08h25-08h45) → chaîne avec 7
     ]
 
     # Affichage des trajets d'origine pour référence
