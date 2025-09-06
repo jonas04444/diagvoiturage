@@ -9,9 +9,15 @@ MIN_PAUSE_MINUTES = 5
 MAX_PAUSE_MINUTES = 55
 PAUSE_WORK_RATIO_PERCENT = 20  # 20% du temps de travail minimum en pause
 RATIO_MULTIPLIER = 100  # Pour éviter les décimaux dans les contraintes
-MAX_SOLVER_TIME_SECONDS = 10
+MAX_SOLVER_TIME_SECONDS = 30  # AJUSTEMENT : Plus de temps pour explorer les solutions
 MAX_MINUTES_PER_DAY = 1440
 MIN_SERVICE_DURATION_FOR_PAUSE_RULES = 360  # 6 heures en minutes
+
+
+def time_to_minutes(time_str):
+    """Convertit une heure au format HH:MM en minutes depuis minuit."""
+    h, m = map(int, time_str.split(':'))
+    return h * 60 + m
 
 
 def minutes_to_time(minutes: int) -> str:
@@ -82,8 +88,11 @@ class BusSchedulePrinter(cp_model.CpSolverSolutionCallback):
                 start = minutes_to_time(trip["start"])
                 end = minutes_to_time(trip["end"])
                 duration = trip["end"] - trip["start"]
+
+                # AJUSTEMENT : Indication spéciale pour trajets internes (A → A)
+                internal_marker = " [INTERNE]" if trip["from"] == trip["to"] else ""
                 print(f"    Trajet-{trip_index} [ordre:{order_val}]: {trip['from']} → {trip['to']} "
-                      f"({start}–{end}, {duration}min)")
+                      f"({start}–{end}, {duration}min){internal_marker}")
 
 
 def create_model_variables(model: cp_model.CpModel, num_trips: int,
@@ -147,7 +156,7 @@ def add_chaining_constraints(model: cp_model.CpModel, assignments: List,
                              order: List, trips: List[Dict], is_first: List):
     """
     Ajoute les contraintes de chaînage (un trajet peut suivre un autre).
-    CORRIGÉ : Logique de chaînage renforcée pour garantir la continuité.
+    AJUSTEMENT : Traitement spécial des trajets internes A → A.
     """
     num_trips = len(trips)
 
@@ -157,9 +166,19 @@ def add_chaining_constraints(model: cp_model.CpModel, assignments: List,
         # Pour chaque trajet j, trouvons tous ses prédécesseurs possibles
         for i in range(num_trips):
             if i != j:
-                # Vérifie si i peut précéder j (destination i = origine j + temps compatible)
-                can_chain = (trips[i]["to"] == trips[j]["from"] and
-                             trips[i]["end"] <= trips[j]["start"])
+                # AJUSTEMENT : Gestion spéciale des trajets internes
+                if trips[i]["from"] == trips[i]["to"]:
+                    # Un trajet interne peut être suivi par n'importe quel trajet partant du même arrêt
+                    can_chain = (trips[i]["to"] == trips[j]["from"] and
+                                 trips[i]["end"] <= trips[j]["start"])
+                elif trips[j]["from"] == trips[j]["to"]:
+                    # Un trajet interne peut suivre n'importe quel trajet arrivant au même arrêt
+                    can_chain = (trips[i]["to"] == trips[j]["from"] and
+                                 trips[i]["end"] <= trips[j]["start"])
+                else:
+                    # Cas normal : destination i = origine j
+                    can_chain = (trips[i]["to"] == trips[j]["from"] and
+                                 trips[i]["end"] <= trips[j]["start"])
 
                 if can_chain:
                     # Contraintes pour le chaînage valide
@@ -401,20 +420,67 @@ def voiturage_ia():
     """
     print("🚀 Démarrage de l'optimisation des trajets...")
 
-    # Données d'exemple
+    # Données d'exemple avec les trajets réels
     trips = [
-        # === Trajets originaux ===
-        {"start": 383, "end": 418, "from": "A", "to": "B"},  # Trajet-0 (06h23-06h58)
-        {"start": 390, "end": 420, "from": "B", "to": "A"},  # Trajet-1 (06h30-07h00) - CONFLIT avec 0
-        {"start": 425, "end": 455, "from": "A", "to": "C"},  # Trajet-2 (07h05-07h35)
-        {"start": 460, "end": 490, "from": "C", "to": "D"},  # Trajet-3 (07h40-08h10)
-        {"start": 500, "end": 530, "from": "D", "to": "A"},  # Trajet-4 (08h20-08h50)
+        # Trajet 0: CTSN2 → CTSN1 (05:32-06:28) - A → A (même arrêt CTSN)
+        {"start": time_to_minutes("05:32"), "end": time_to_minutes("06:28"), "from": "A", "to": "A"},
 
-        # Chaîne alternative longue
-        {"start": 420, "end": 440, "from": "A", "to": "H"},  # Trajet-5 (07h00-07h20)
-        {"start": 445, "end": 465, "from": "H", "to": "I"},  # Trajet-6 (07h25-07h45) → chaîne avec 5
-        {"start": 470, "end": 500, "from": "I", "to": "J"},  # Trajet-7 (07h50-08h20) → chaîne avec 6
-        {"start": 505, "end": 525, "from": "J", "to": "A"},  # Trajet-8 (08h25-08h45) → chaîne avec 7
+        # Trajet 1: GYGAZ → CTSN1 (05:40-07:10)
+        {"start": time_to_minutes("05:40"), "end": time_to_minutes("07:10"), "from": "B", "to": "A"},
+
+        # Trajet 2: FLCHE → GYSOA (05:30-06:08)
+        {"start": time_to_minutes("05:30"), "end": time_to_minutes("06:08"), "from": "C", "to": "D"},
+
+        # Trajet 3: CTSN1 → CHPA0 (06:50-08:14)
+        {"start": time_to_minutes("06:50"), "end": time_to_minutes("08:14"), "from": "A", "to": "E"},
+
+        # Trajet 4: CTSN1 → GYGAZ (06:24-07:59)
+        {"start": time_to_minutes("06:24"), "end": time_to_minutes("07:59"), "from": "A", "to": "B"},
+
+        # Trajet 5: GYGAZ → GYSOD (05:33-06:10) - B → D (GYGA vers GYSO)
+        {"start": time_to_minutes("05:33"), "end": time_to_minutes("06:10"), "from": "B", "to": "D"},
+
+        # Trajet 6: FLCHE → CHPA9 (06:11-07:29) - C → E (FLCH vers CHPA)
+        {"start": time_to_minutes("06:11"), "end": time_to_minutes("07:29"), "from": "C", "to": "E"},
+
+        # Trajet 7: CTSN1 → FLCHE (06:22-07:15)
+        {"start": time_to_minutes("06:22"), "end": time_to_minutes("07:15"), "from": "A", "to": "C"},
+
+        # Trajet 8: CTSRO → GYGAZ (06:31-08:06)
+        {"start": time_to_minutes("06:31"), "end": time_to_minutes("08:06"), "from": "F", "to": "B"},
+
+        # Trajet 9: CTSN1 → CHPA0 (07:50-09:15)
+        {"start": time_to_minutes("07:50"), "end": time_to_minutes("09:15"), "from": "A", "to": "E"},
+
+        # Trajet 10: CTSN1 → GYGAZ (07:21-08:59)
+        {"start": time_to_minutes("07:21"), "end": time_to_minutes("08:59"), "from": "A", "to": "B"},
+
+        # Trajet 11: GYGAZ → GYSOD (06:33-07:10) - B → D (GYGA vers GYSO)
+        {"start": time_to_minutes("06:33"), "end": time_to_minutes("07:10"), "from": "B", "to": "D"},
+
+        # Trajet 12: FLCHE → CHPA9 (07:04-08:35) - C → E (FLCH vers CHPA)
+        {"start": time_to_minutes("07:04"), "end": time_to_minutes("08:35"), "from": "C", "to": "E"},
+
+        # Trajet 13: GYGAZ → CTSN1 (07:25-09:06)
+        {"start": time_to_minutes("07:25"), "end": time_to_minutes("09:06"), "from": "B", "to": "A"},
+
+        # Trajet 14: FLCHE → GYSOA (07:30-08:08) - C → D (FLCH vers GYSO)
+        {"start": time_to_minutes("07:30"), "end": time_to_minutes("08:08"), "from": "C", "to": "D"},
+
+        # Trajet 15: CTSN1 → CHPA0 (08:50-10:15)
+        {"start": time_to_minutes("08:50"), "end": time_to_minutes("10:15"), "from": "A", "to": "E"},
+
+        # Trajet 16: CTSN1 → GYGAZ (08:21-09:59)
+        {"start": time_to_minutes("08:21"), "end": time_to_minutes("09:59"), "from": "A", "to": "B"},
+
+        # Trajet 17: CTSRO → FLCHE (07:15-08:08)
+        {"start": time_to_minutes("07:15"), "end": time_to_minutes("08:08"), "from": "F", "to": "C"},
+
+        # Trajet 18: FLCHE → CHPA9 (08:04-09:35) - C → E (FLCH vers CHPA)
+        {"start": time_to_minutes("08:04"), "end": time_to_minutes("09:35"), "from": "C", "to": "E"},
+
+        # Trajet 19: GYGAZ → CTSN1 (08:25-10:06)
+        {"start": time_to_minutes("08:25"), "end": time_to_minutes("10:06"), "from": "B", "to": "A"}
     ]
 
     # Affichage des trajets d'origine pour référence
@@ -423,10 +489,12 @@ def voiturage_ia():
         start = minutes_to_time(trip["start"])
         end = minutes_to_time(trip["end"])
         duration = trip["end"] - trip["start"]
-        print(f"  Trajet-{i}: {trip['from']} → {trip['to']} ({start}–{end}, {duration}min)")
+        internal_marker = " [INTERNE]" if trip["from"] == trip["to"] else ""
+        print(f"  Trajet-{i}: {trip['from']} → {trip['to']} ({start}–{end}, {duration}min){internal_marker}")
 
     num_trips = len(trips)
-    num_services_max = 5
+    # AJUSTEMENT : Réduction du nombre de services maximum pour forcer plus de regroupements
+    num_services_max = 8  # au lieu de 15
 
     # Création du modèle et des variables
     model = cp_model.CpModel()
@@ -445,7 +513,7 @@ def voiturage_ia():
     solver.parameters.enumerate_all_solutions = True
     solver.parameters.max_time_in_seconds = MAX_SOLVER_TIME_SECONDS
 
-    printer = BusSchedulePrinter(assignments, trips, order=order, max_solutions=10)
+    printer = BusSchedulePrinter(assignments, trips, order=order, max_solutions=5)
     status = solver.Solve(model, printer)
 
     # Résultats
