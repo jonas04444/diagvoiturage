@@ -4,107 +4,47 @@ from typing import List, Dict, Any
 
 
 def time_to_minutes(time_str):
-    """Convertit HH:MM en minutes depuis minuit"""
     h, m = map(int, time_str.split(':'))
     return h * 60 + m
 
 
 def minutes_to_time(minutes: int) -> str:
-    """Convertit minutes en HH:MM"""
     h = minutes // 60
     m = minutes % 60
     return f"{h:02d}h{m:02d}"
 
 
-class ODMSolverWithHLP:
-    """Solveur ODM avec gestion des Haut Le Pied (HLP)"""
+class ProgressiveSolver:
+    """Solveur qui teste progressivement chaque contrainte"""
 
     def __init__(self, trips_data):
         self.trips = trips_data
-        self.hlp_table = self._create_hlp_table()
 
-    def _create_hlp_table(self):
-        """Crée la table des temps de HLP entre arrêts"""
-        # Table des temps de trajet à vide entre arrêts (en minutes)
-        # Format: {(arret_depart[:4], arret_arrivee[:4]): temps_hlp}
-        hlp_times = {
-            # Exemples de HLP - à adapter selon votre réseau
-            ("CTSN", "CHPA"): 5,  # 15min pour aller de CTSN vers CHPA à vide
-            ("CHPA", "CTSN"): 5,  # 15min pour aller de CHPA vers CTSN à vide
-            ("CTSN", "GYGA"): 2,  # 20min pour aller de CTSN vers GYGAZ à vide
-            ("GYGA", "CTSN"): 2,  # 20min pour aller de GYGAZ vers CTSN à vide
-            ("GYGA", "GYSO"): 1,  # 10min pour aller de GYGAZ vers GYSOD à vide
-            ("GYSO", "GYGA"): 1,  # 10min pour aller de GYSOD vers GYGAZ à vide
-            ("GYSO", "FLCH"): 5,  # 25min pour aller de GYSOD vers FLCHE à vide
-            ("FLCH", "GYSO"): 5,  # 25min pour aller de FLCHE vers GYSOD à vide
-            ("CHPA", "GYGA"): 3,  # 30min pour aller de CHPA vers GYGAZ à vide
-            ("GYGA", "CHPA"): 3,  # 30min pour aller de GYGAZ vers CHPA à vide
-        }
-        return hlp_times
-
-    def get_hlp_time(self, from_stop, to_stop):
-        """Retourne le temps de HLP entre deux arrêts (4 premières lettres)"""
-        from_code = from_stop[:4]
-        to_code = to_stop[:4]
-        return self.hlp_table.get((from_code, to_code), None)
-
-    def peut_chainer_direct(self, trip1, trip2):
-        """Vérifie si trip2 peut suivre trip1 directement (sans HLP)"""
-        trip1_to = trip1["to"][:4]
-        trip2_from = trip2["from"][:4]
-        return trip1_to == trip2_from
-
-    def peut_chainer_avec_hlp(self, trip1, trip2):
-        """Vérifie si trip2 peut suivre trip1 avec un HLP"""
-        trip1_to = trip1["to"][:4]
-        trip2_from = trip2["from"][:4]
-
-        # Direct d'abord
-        if trip1_to == trip2_from:
-            return True, 0  # Pas de HLP nécessaire
-
-        # Avec HLP
-        hlp_time = self.get_hlp_time(trip1["to"], trip2["from"])
-        if hlp_time is not None:
-            return True, hlp_time
-
-        return False, None
-
-    def solve_odm_with_hlp(self, max_services=8):
-        """Résout le problème ODM avec possibilité d'utiliser des HLP"""
-
-        print(f"Organisation de {len(self.trips)} voyages en ODM (avec HLP)")
-        print("=" * 60)
-
-        # Affichage des voyages
-        print("Voyages à organiser:")
-        for i, trip in enumerate(self.trips):
-            start = minutes_to_time(trip["start"])
-            end = minutes_to_time(trip["end"])
-            duration = trip["end"] - trip["start"]
-            print(f"  {i:2d}: {trip['from']} → {trip['to']} ({start}-{end}, {duration}min)")
-
-        # Affichage des HLP disponibles
-        print("\nHLP disponibles:")
-        for (from_code, to_code), hlp_time in self.hlp_table.items():
-            print(f"  {from_code} → {to_code}: {hlp_time}min")
+    def test_basic_assignment(self):
+        """Test 1: Assignation de base sans contraintes"""
+        print("Test 1: Assignation de base")
 
         model = cp_model.CpModel()
         n = len(self.trips)
+        assignments = [model.NewIntVar(0, 5, f"service_{i}") for i in range(n)]
 
-        # Variables principales
-        assignments = [model.NewIntVar(0, max_services - 1, f"service_{i}") for i in range(n)]
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 5
+        status = solver.Solve(model)
 
-        # Variables HLP: pour chaque paire de voyages, y a-t-il un HLP utilisé?
-        hlp_used = {}
-        for i in range(n):
-            for j in range(n):
-                if i != j:
-                    hlp_used[(i, j)] = model.NewBoolVar(f"hlp_{i}_{j}")
+        result = status in [cp_model.OPTIMAL, cp_model.FEASIBLE]
+        print(f"  Résultat: {'✅ OK' if result else '❌ ÉCHEC'}")
+        return result
 
-        print(f"\nApplication des contraintes avec HLP...")
+    def test_with_overlaps(self):
+        """Test 2: Avec contraintes de chevauchement seulement"""
+        print("Test 2: Non-chevauchement seulement")
 
-        # CONTRAINTE 1: Pas de chevauchement
+        model = cp_model.CpModel()
+        n = len(self.trips)
+        assignments = [model.NewIntVar(0, 6, f"service_{i}") for i in range(n)]
+
+        # Contrainte de non-chevauchement
         conflicts = 0
         for i in range(n):
             for j in range(i + 1, n):
@@ -112,219 +52,175 @@ class ODMSolverWithHLP:
                 if trip1["start"] < trip2["end"] and trip2["start"] < trip1["end"]:
                     model.Add(assignments[i] != assignments[j])
                     conflicts += 1
-        print(f"  ✓ {conflicts} conflits temporels résolus")
 
-        # CONTRAINTE 2: Continuité avec HLP
-        chain_constraints = 0
-        for service_id in range(max_services):
-            # Variables pour identifier les voyages sur ce service
-            trips_on_service = []
-            for i in range(n):
-                on_service = model.NewBoolVar(f"trip_{i}_on_service_{service_id}")
-                model.Add(assignments[i] == service_id).OnlyEnforceIf(on_service)
-                model.Add(assignments[i] != service_id).OnlyEnforceIf(on_service.Not())
-                trips_on_service.append(on_service)
+        print(f"    {conflicts} conflits temporels gérés")
 
-            # Pour chaque paire de voyages sur ce service
-            for i in range(n):
-                for j in range(n):
-                    if i != j:
-                        trip1, trip2 = self.trips[i], self.trips[j]
-                        if trip1["end"] <= trip2["start"]:  # j peut suivre i temporellement
-
-                            # Si les deux voyages sont sur le même service
-                            both_on_service = model.NewBoolVar(f"both_{i}_{j}_s{service_id}")
-                            model.AddBoolAnd([trips_on_service[i], trips_on_service[j]]).OnlyEnforceIf(both_on_service)
-                            model.AddBoolOr([trips_on_service[i].Not(), trips_on_service[j].Not()]).OnlyEnforceIf(
-                                both_on_service.Not())
-
-                            # Vérifier la possibilité de chaînage
-                            can_chain, hlp_time = self.peut_chainer_avec_hlp(trip1, trip2)
-
-                            if can_chain:
-                                if hlp_time > 0:  # HLP nécessaire
-                                    # Vérifier que le temps permet le HLP
-                                    available_time = trip2["start"] - trip1["end"]
-                                    if available_time >= hlp_time + 5:  # HLP + 5min de pause minimum
-                                        # Contrainte: si les deux voyages sont ensemble, utiliser HLP
-                                        model.Add(hlp_used[(i, j)] == both_on_service)
-                                    else:
-                                        # Pas assez de temps pour HLP, interdire
-                                        model.Add(both_on_service == 0)
-                                        chain_constraints += 1
-                                # Si hlp_time == 0, chaînage direct possible
-                            else:
-                                # Pas de chaînage possible même avec HLP
-                                if trip2["start"] - trip1["end"] < 120:  # Si < 2h, séparer
-                                    model.Add(both_on_service == 0)
-                                    chain_constraints += 1
-
-        print(f"  ✓ {chain_constraints} impossibilités de chaînage gérées")
-
-        # CONTRAINTE 3: Maximum 1 HLP par service
-        hlp_limit_constraints = 0
-        for service_id in range(max_services):
-            # Compter les HLP utilisés sur ce service
-            hlp_count = []
-            for i in range(n):
-                for j in range(n):
-                    if i != j and (i, j) in hlp_used:
-                        # HLP compte seulement si les deux voyages sont sur ce service
-                        both_on_service = model.NewBoolVar(f"both_{i}_{j}_hlp_s{service_id}")
-                        model.Add(assignments[i] == service_id).OnlyEnforceIf(both_on_service)
-                        model.Add(assignments[i] != service_id).OnlyEnforceIf(both_on_service.Not())
-                        model.Add(assignments[j] == service_id).OnlyEnforceIf(both_on_service)
-                        model.Add(assignments[j] != service_id).OnlyEnforceIf(both_on_service.Not())
-
-                        # HLP effectif = HLP utilisé ET les deux voyages sur ce service
-                        effective_hlp = model.NewBoolVar(f"effective_hlp_{i}_{j}_s{service_id}")
-                        model.AddBoolAnd([hlp_used[(i, j)], both_on_service]).OnlyEnforceIf(effective_hlp)
-                        model.AddBoolOr([hlp_used[(i, j)].Not(), both_on_service.Not()]).OnlyEnforceIf(
-                            effective_hlp.Not())
-
-                        hlp_count.append(effective_hlp)
-
-            # Maximum 1 HLP par service
-            if hlp_count:
-                model.Add(sum(hlp_count) <= 1)
-                hlp_limit_constraints += 1
-
-        print(f"  ✓ Maximum 1 HLP par ODM ({hlp_limit_constraints} services contrôlés)")
-
-        # CONTRAINTE 4: Services de minimum 6h sauf si impossible
-        min_duration_constraints = 0
-        MIN_SERVICE_DURATION = 6 * 60  # 6 heures
-
-        for service_id in range(max_services):
-            # Calculer la durée du service
-            trips_on_service = []
-            for i in range(n):
-                on_service = model.NewBoolVar(f"trip_{i}_on_service_{service_id}_duration")
-                model.Add(assignments[i] == service_id).OnlyEnforceIf(on_service)
-                model.Add(assignments[i] != service_id).OnlyEnforceIf(on_service.Not())
-                trips_on_service.append(on_service)
-
-            # Service a des voyages?
-            service_has_trips = model.NewBoolVar(f"service_{service_id}_has_trips")
-            model.AddBoolOr(trips_on_service).OnlyEnforceIf(service_has_trips)
-            model.AddBoolAnd([t.Not() for t in trips_on_service]).OnlyEnforceIf(service_has_trips.Not())
-
-            # Si le service a 2+ voyages, essayer d'atteindre 6h minimum
-            nb_trips = model.NewIntVar(0, n, f"nb_trips_s{service_id}")
-            model.Add(nb_trips == sum(trips_on_service))
-
-            multiple_trips = model.NewBoolVar(f"multiple_trips_s{service_id}")
-            model.Add(nb_trips >= 2).OnlyEnforceIf(multiple_trips)
-            model.Add(nb_trips < 2).OnlyEnforceIf(multiple_trips.Not())
-
-            # Pour les services multi-voyages, encourager 6h+ (objectif souple)
-            min_duration_constraints += 1
-
-        print(f"  ✓ Encouragement services 6h+ ({min_duration_constraints} services)")
-
-        # Objectif: minimiser les services ET les HLP
-        services_used = []
-        for s in range(max_services):
-            used = model.NewBoolVar(f"service_{s}_used")
-            trip_vars = []
-            for i in range(n):
-                on_service = model.NewBoolVar(f"trip_{i}_on_service_{s}_obj")
-                model.Add(assignments[i] == s).OnlyEnforceIf(on_service)
-                model.Add(assignments[i] != s).OnlyEnforceIf(on_service.Not())
-                trip_vars.append(on_service)
-
-            model.AddBoolOr(trip_vars).OnlyEnforceIf(used)
-            model.AddBoolAnd([v.Not() for v in trip_vars]).OnlyEnforceIf(used.Not())
-            services_used.append(used)
-
-        # Compter les HLP utilisés
-        total_hlp = sum(hlp_used.values())
-
-        # Objectif: minimiser services (poids 100) + HLP utilisés (poids 1)
-        model.Minimize(100 * sum(services_used) + total_hlp)
-
-        # Résolution
-        print(f"\nRésolution avec HLP...")
         solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = 60
-
-        start_time = time.time()
+        solver.parameters.max_time_in_seconds = 10
         status = solver.Solve(model)
-        elapsed = time.time() - start_time
 
-        print(f"Temps: {elapsed:.2f}s | Statut: {solver.StatusName(status)}")
+        result = status in [cp_model.OPTIMAL, cp_model.FEASIBLE]
+        print(f"  Résultat: {'✅ OK' if result else '❌ ÉCHEC'}")
 
-        if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
-            return self._display_solution_with_hlp(solver, assignments, hlp_used)
-        else:
-            print("❌ Aucune solution trouvée même avec HLP")
-            return None
+        if result:
+            # Afficher la solution
+            services = {}
+            for i, trip in enumerate(self.trips):
+                service_id = solver.Value(assignments[i])
+                if service_id not in services:
+                    services[service_id] = []
+                services[service_id].append(i)
 
-    def _display_solution_with_hlp(self, solver, assignments, hlp_used):
-        """Affiche la solution avec les HLP utilisés"""
+            print(f"    Solution: {len(services)} services créés")
+            for s_id, trips in services.items():
+                print(f"      Service {s_id}: voyages {trips}")
+
+        return result
+
+    def test_with_basic_chaining(self):
+        """Test 3: Avec chaînage basique (sans HLP)"""
+        print("Test 3: Chaînage basique (4 premières lettres)")
+
+        model = cp_model.CpModel()
+        n = len(self.trips)
+        assignments = [model.NewIntVar(0, 8, f"service_{i}") for i in range(n)]
+
+        # Non-chevauchement
+        for i in range(n):
+            for j in range(i + 1, n):
+                trip1, trip2 = self.trips[i], self.trips[j]
+                if trip1["start"] < trip2["end"] and trip2["start"] < trip1["end"]:
+                    model.Add(assignments[i] != assignments[j])
+
+        # Chaînage simple: si deux voyages sont proches temporellement mais ne se chaînent pas, les séparer
+        chain_separations = 0
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    trip1, trip2 = self.trips[i], self.trips[j]
+                    if trip1["end"] <= trip2["start"]:
+                        time_gap = trip2["start"] - trip1["end"]
+
+                        # Si gap < 2h ET pas de chaînage possible
+                        if time_gap < 120:
+                            can_chain = (trip1["to"][:4] == trip2["from"][:4])
+                            if not can_chain:
+                                model.Add(assignments[i] != assignments[j])
+                                chain_separations += 1
+
+        print(f"    {chain_separations} séparations de chaînage appliquées")
+
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 15
+        status = solver.Solve(model)
+
+        result = status in [cp_model.OPTIMAL, cp_model.FEASIBLE]
+        print(f"  Résultat: {'✅ OK' if result else '❌ ÉCHEC'}")
+        return result
+
+    def test_minimal_hlp(self):
+        """Test 4: Version HLP ultra-simplifiée"""
+        print("Test 4: HLP minimal (sans limite)")
+
+        hlp_table = {
+            ("CTSN", "CHPA"): 15, ("CHPA", "CTSN"): 15,
+            ("CTSN", "GYGA"): 20, ("GYGA", "CTSN"): 20,
+            ("GYGA", "GYSO"): 10, ("GYSO", "GYGA"): 10,
+            ("GYSO", "FLCH"): 25, ("FLCH", "GYSO"): 25,
+            ("CHPA", "GYGA"): 30, ("GYGA", "CHPA"): 30,
+        }
+
+        model = cp_model.CpModel()
+        n = len(self.trips)
+        assignments = [model.NewIntVar(0, 6, f"service_{i}") for i in range(n)]
+
+        # Non-chevauchement
+        for i in range(n):
+            for j in range(i + 1, n):
+                trip1, trip2 = self.trips[i], self.trips[j]
+                if trip1["start"] < trip2["end"] and trip2["start"] < trip1["end"]:
+                    model.Add(assignments[i] != assignments[j])
+
+        # Chaînage avec HLP (version permissive)
+        impossible_chains = 0
+        for i in range(n):
+            for j in range(n):
+                if i != j:
+                    trip1, trip2 = self.trips[i], self.trips[j]
+                    if trip1["end"] <= trip2["start"]:
+                        time_gap = trip2["start"] - trip1["end"]
+
+                        # Chaînage direct possible?
+                        direct_chain = (trip1["to"][:4] == trip2["from"][:4])
+
+                        # HLP possible?
+                        hlp_key = (trip1["to"][:4], trip2["from"][:4])
+                        hlp_time = hlp_table.get(hlp_key, None)
+                        hlp_possible = hlp_time is not None and time_gap >= hlp_time + 5
+
+                        # Si ni direct ni HLP possible ET gap < 3h, séparer
+                        if not direct_chain and not hlp_possible and time_gap < 180:
+                            model.Add(assignments[i] != assignments[j])
+                            impossible_chains += 1
+
+        print(f"    {impossible_chains} chaînages impossibles même avec HLP")
+
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 20
+        status = solver.Solve(model)
+
+        result = status in [cp_model.OPTIMAL, cp_model.FEASIBLE]
+        print(f"  Résultat: {'✅ OK' if result else '❌ ÉCHEC'}")
+
+        if result:
+            self._show_simple_solution(solver, assignments, hlp_table)
+
+        return result
+
+    def _show_simple_solution(self, solver, assignments, hlp_table):
+        """Affiche une solution simple"""
         services = {}
-        used_hlps = []
-
-        # Regrouper les voyages par service
         for i, trip in enumerate(self.trips):
             service_id = solver.Value(assignments[i])
             if service_id not in services:
                 services[service_id] = []
             services[service_id].append((i, trip))
 
-        # Identifier les HLP utilisés
-        for (i, j), hlp_var in hlp_used.items():
-            if solver.Value(hlp_var) == 1:
-                used_hlps.append((i, j))
-
-        print(f"\n✅ SOLUTION AVEC HLP - {len(services)} ODM créés:")
-        print("=" * 60)
+        print(f"\n    Solution trouvée: {len(services)} services")
 
         for service_id in sorted(services.keys()):
             trip_list = services[service_id]
             trip_list.sort(key=lambda x: x[1]["start"])
 
-            print(f"\nODM {service_id} ({len(trip_list)} voyages):")
-
-            total_work = 0
-            service_hlps = []
+            print(f"\n    Service {service_id} ({len(trip_list)} voyages):")
 
             for idx, (trip_idx, trip) in enumerate(trip_list):
                 start = minutes_to_time(trip["start"])
                 end = minutes_to_time(trip["end"])
-                duration = trip["end"] - trip["start"]
-                total_work += duration
+                print(f"      Voyage-{trip_idx}: {trip['from']} → {trip['to']} ({start}-{end})")
 
-                print(f"  Voyage-{trip_idx}: {trip['from']} → {trip['to']} "
-                      f"({start}-{end}, {duration}min)")
-
-                # Vérifier s'il y a un HLP après ce voyage
+                # Vérifier chaînage avec le suivant
                 if idx < len(trip_list) - 1:
-                    next_trip_idx = trip_list[idx + 1][0]
-                    if (trip_idx, next_trip_idx) in used_hlps:
-                        hlp_time = self.get_hlp_time(trip["to"], trip_list[idx + 1][1]["from"])
-                        service_hlps.append((trip_idx, next_trip_idx, hlp_time))
-                        print(f"      └─ HLP: {trip['to'][:4]} → {trip_list[idx + 1][1]['from'][:4]} ({hlp_time}min)")
+                    next_trip = trip_list[idx + 1][1]
+                    gap = next_trip["start"] - trip["end"]
 
-            # Stats de l'ODM
-            if len(trip_list) > 1:
-                trips_only = [trip for _, trip in trip_list]
-                odm_start = min(t["start"] for t in trips_only)
-                odm_end = max(t["end"] for t in trips_only)
-                amplitude = odm_end - odm_start
-                total_hlp_time = sum(hlp_time for _, _, hlp_time in service_hlps)
-                total_pause = amplitude - total_work - total_hlp_time
-
-                print(f"  📊 Amplitude: {minutes_to_time(amplitude)} | "
-                      f"Travail: {total_work}min | HLP: {total_hlp_time}min | Pause: {total_pause}min")
-                print(f"  📊 HLP utilisés: {len(service_hlps)}/1 max")
-
-        print(f"\n📊 Résumé: {len(used_hlps)} HLP utilisés au total")
-        return services
+                    if trip["to"][:4] == next_trip["from"][:4]:
+                        print(f"        ↓ Chaînage direct (pause {gap}min)")
+                    else:
+                        hlp_key = (trip["to"][:4], next_trip["from"][:4])
+                        if hlp_key in hlp_table:
+                            hlp_time = hlp_table[hlp_key]
+                            if gap >= hlp_time + 5:
+                                pause_after_hlp = gap - hlp_time
+                                print(f"        ↓ HLP possible: {hlp_time}min + pause {pause_after_hlp}min")
+                            else:
+                                print(f"        ⚠ HLP impossible: temps insuffisant")
+                        else:
+                            print(f"        ⚠ Pas de chaînage disponible")
 
 
-def test_with_hlp():
-    """Test avec vos voyages et les HLP"""
+def run_progressive_tests():
+    """Lance tous les tests progressivement"""
 
     trips = [
         {"start": time_to_minutes("05:32"), "end": time_to_minutes("06:28"), "from": "CTSN2", "to": "CTSN1"},
@@ -341,17 +237,31 @@ def test_with_hlp():
         {"start": time_to_minutes("13:30"), "end": time_to_minutes("14:08"), "from": "FLCHE", "to": "GYSOA"}
     ]
 
-    solver = ODMSolverWithHLP(trips)
-    return solver.solve_odm_with_hlp(max_services=6)
+    solver = ProgressiveSolver(trips)
+
+    print("DIAGNOSTIC PROGRESSIF HLP")
+    print("=" * 40)
+    print()
+
+    # Tests progressifs
+    tests = [
+        solver.test_basic_assignment,
+        solver.test_with_overlaps,
+        solver.test_with_basic_chaining,
+        solver.test_minimal_hlp
+    ]
+
+    for i, test in enumerate(tests, 1):
+        success = test()
+        print()
+
+        if not success:
+            print(f"❌ ARRÊT au test {i} - contraintes trop restrictives")
+            break
+    else:
+        print("✅ TOUS LES TESTS RÉUSSIS")
+        print("Le problème est solvable avec HLP simplifiés")
 
 
 if __name__ == "__main__":
-    print("ODM SOLVER AVEC HLP")
-    print("=" * 30)
-
-    solution = test_with_hlp()
-
-    if solution:
-        print(f"\nSuccès! Optimisation avec HLP réussie")
-    else:
-        print("\nÉchec - vérifiez les contraintes")
+    run_progressive_tests()
