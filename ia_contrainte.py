@@ -6,10 +6,10 @@ from typing import List, Dict, Any
 # ===== CONSTANTES =====
 # Rend le code plus lisible et maintenable
 MIN_PAUSE_MINUTES = 5
-MAX_PAUSE_MINUTES = 55
-PAUSE_WORK_RATIO_PERCENT = 20  # 20% du temps de travail minimum en pause
+MAX_PAUSE_MINUTES = 100
+PAUSE_WORK_RATIO_PERCENT = 25  # 25% du temps de travail minimum en pause
 RATIO_MULTIPLIER = 100  # Pour éviter les décimaux dans les contraintes
-MAX_SOLVER_TIME_SECONDS = 30  # AJUSTEMENT : Plus de temps pour explorer les solutions
+MAX_SOLVER_TIME_SECONDS = 100  # AJUSTEMENT : Plus de temps pour explorer les solutions
 MAX_MINUTES_PER_DAY = 1440
 MIN_SERVICE_DURATION_FOR_PAUSE_RULES = 360  # 6 heures en minutes
 
@@ -494,7 +494,7 @@ def voiturage_ia():
 
     num_trips = len(trips)
     # AJUSTEMENT : Réduction du nombre de services maximum pour forcer plus de regroupements
-    num_services_max = 8  # au lieu de 15
+    num_services_max = 10  # au lieu de 15
 
     # Création du modèle et des variables
     model = cp_model.CpModel()
@@ -523,5 +523,5 @@ def voiturage_ia():
         print("❌ Aucune solution trouvée. Vérifiez les contraintes.")
 
 
-if __name__ == "__main__":
-    voiturage_ia()
+#if __name__ == "__main__":
+    #voiturage_ia()
