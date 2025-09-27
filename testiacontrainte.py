@@ -50,43 +50,273 @@ class AdvancedODMSolver:
         return {"direct": False, "hlp": None}
 
     def solve_morning_afternoon(self, nb_services_matin, nb_services_aprem):
-        """Résout avec solution optimale prédéfinie si elle correspond aux demandes"""
-        print(f"CRÉATION DE SERVICES MATIN/APRÈS-MIDI (SOLUTION OPTIMALE)")
+        """Résout avec génération de plusieurs solutions alternatives"""
+        print(f"CRÉATION DE SERVICES MATIN/APRÈS-MIDI (SOLUTIONS MULTIPLES)")
         print("=" * 60)
         print(f"Services matin demandés: {nb_services_matin}")
         print(f"Services après-midi demandés: {nb_services_aprem}")
 
-        # Solution optimale prédéfinie
-        optimal_solution = {
+        # Générer toutes les chaînes valides
+        all_chains = self._generate_valid_chains_strict()
+
+        if not all_chains:
+            print("❌ Aucune chaîne valide trouvée!")
+            return {'solutions': [], 'selected': None}
+
+        print(f"\n🔍 {len(all_chains)} chaînes STRICTEMENT valides trouvées (3h-9h)")
+
+        # Séparer matin/après-midi
+        noon = 12 * 60
+        morning_chains = [c for c in all_chains if c['start_time'] < noon]
+        afternoon_chains = [c for c in all_chains if c['start_time'] >= noon]
+
+        print(f"   - Chaînes matin: {len(morning_chains)}")
+        print(f"   - Chaînes après-midi: {len(afternoon_chains)}")
+
+        # Générer plusieurs solutions
+        solutions = self._generate_multiple_solutions(
+            morning_chains, afternoon_chains,
+            nb_services_matin, nb_services_aprem
+        )
+
+        if not solutions:
+            print("❌ Aucune solution trouvée")
+            return {'solutions': [], 'selected': None}
+
+        # Afficher toutes les solutions trouvées
+        self._display_multiple_solutions(solutions)
+
+        # Demander à l'utilisateur de choisir
+        selected_solution = self._user_select_solution(solutions)
+
+        return {'solutions': solutions, 'selected': selected_solution}
+
+    def _generate_multiple_solutions(self, morning_chains, afternoon_chains, nb_matin, nb_aprem):
+        """Génère plusieurs solutions différentes"""
+        solutions = []
+        max_solutions = 5  # Limiter à 5 solutions pour ne pas surcharger
+
+        print(f"\n🔄 Recherche de solutions multiples (max {max_solutions})...")
+
+        # Ajouter la solution optimale si applicable
+        if nb_matin == 3 and nb_aprem == 1:
+            optimal = self._get_optimal_solution()
+            if self._validate_optimal_solution(optimal):
+                solutions.append({
+                    'id': 'OPTIMAL',
+                    'name': 'Solution optimale (100% couverture)',
+                    'matin': optimal['matin'],
+                    'apres_midi': optimal['apres_midi'],
+                    'orphelins': optimal['orphelins'],
+                    'score': self._calculate_solution_score(optimal)
+                })
+                print("✅ Solution optimale ajoutée")
+
+        # Générer des solutions alternatives avec OR-Tools
+        for attempt in range(max_solutions * 3):  # Plus de tentatives pour diversité
+            if len(solutions) >= max_solutions:
+                break
+
+            solution = self._solve_with_constraints_randomized(
+                morning_chains, afternoon_chains, nb_matin, nb_aprem, attempt
+            )
+
+            if solution and not self._is_duplicate_solution(solution, solutions):
+                solution['id'] = f'ALT{len(solutions)}'
+                solution['name'] = f'Alternative {len(solutions)}'
+                solution['score'] = self._calculate_solution_score(solution)
+                solutions.append(solution)
+
+        # Trier par score décroissant
+        solutions.sort(key=lambda s: s['score'], reverse=True)
+
+        return solutions
+
+    def _get_optimal_solution(self):
+        """Retourne la solution optimale prédéfinie"""
+        return {
             'matin': {
-                0: [(3, self.trips[3]), (5, self.trips[5]), (9, self.trips[9])],  # Service 1: [3,5,9]
+                0: [(3, self.trips[3]), (5, self.trips[5]), (9, self.trips[9])],
                 1: [(0, self.trips[0]), (1, self.trips[1]), (6, self.trips[6]), (8, self.trips[8])],
-                # Service 2: [0,1,6,8]
                 2: [(2, self.trips[2]), (4, self.trips[4]), (7, self.trips[7]), (10, self.trips[10]),
-                    (11, self.trips[11])]  # Service 3: [2,4,7,10,11]
+                    (11, self.trips[11])]
             },
             'apres_midi': {
                 0: [(12, self.trips[12]), (13, self.trips[13]), (14, self.trips[14]), (15, self.trips[15])]
-                # Service 4: [12,13,14,15]
             },
             'orphelins': []
         }
 
-        # Vérifier si la demande correspond à la solution optimale
-        if nb_services_matin == 3 and nb_services_aprem == 1:
-            print("\n🎯 SOLUTION OPTIMALE DÉTECTÉE - Application directe")
-            print("Cette solution donne 100% de couverture avec HLP optimisé")
+    def _solve_with_constraints_randomized(self, morning_chains, afternoon_chains, nb_matin, nb_aprem, seed):
+        """Version randomisée du solveur pour obtenir des solutions différentes"""
+        model = cp_model.CpModel()
 
-            # Valider la solution avant de l'appliquer
-            if self._validate_optimal_solution(optimal_solution):
-                self._display_final_summary(optimal_solution)
-                return optimal_solution
-            else:
-                print("❌ Erreur: La solution optimale n'est pas valide avec les contraintes actuelles")
+        # Variables
+        morning_vars = []
+        afternoon_vars = []
 
-        # Sinon, utiliser l'algorithme générique
-        print(f"\n🔍 Recherche algorithme générique...")
-        return self._solve_generic(nb_services_matin, nb_services_aprem)
+        for i, chain in enumerate(morning_chains):
+            var = model.NewBoolVar(f'morning_chain_{i}')
+            morning_vars.append(var)
+
+        for i, chain in enumerate(afternoon_chains):
+            var = model.NewBoolVar(f'afternoon_chain_{i}')
+            afternoon_vars.append(var)
+
+        # Contraintes de base
+        if morning_vars and nb_matin > 0:
+            model.Add(sum(morning_vars) == nb_matin)
+        if afternoon_vars and nb_aprem > 0:
+            model.Add(sum(afternoon_vars) == nb_aprem)
+
+        # Pas de conflit de voyages
+        trip_usage = {}
+        for trip_idx in range(len(self.trips)):
+            trip_usage[trip_idx] = []
+
+        for i, chain in enumerate(morning_chains):
+            for trip_idx in chain['trip_indices']:
+                trip_usage[trip_idx].append(morning_vars[i])
+
+        for i, chain in enumerate(afternoon_chains):
+            for trip_idx in chain['trip_indices']:
+                trip_usage[trip_idx].append(afternoon_vars[i])
+
+        for trip_idx, usage_vars in trip_usage.items():
+            if usage_vars:
+                model.Add(sum(usage_vars) <= 1)
+
+        # Objectif randomisé pour diversité
+        total_trips_used = []
+        for i, chain in enumerate(morning_chains):
+            weight = len(chain['trip_indices']) + (seed % 3)  # Poids légèrement aléatoire
+            for _ in range(weight):
+                total_trips_used.append(morning_vars[i])
+
+        for i, chain in enumerate(afternoon_chains):
+            weight = len(chain['trip_indices']) + ((seed + 1) % 3)
+            for _ in range(weight):
+                total_trips_used.append(afternoon_vars[i])
+
+        if total_trips_used:
+            model.Maximize(sum(total_trips_used))
+
+        # Résoudre
+        solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 5.0
+        solver.parameters.random_seed = seed  # Seed différent pour diversité
+
+        status = solver.Solve(model)
+
+        if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+            return self._extract_solution(
+                solver, morning_chains, afternoon_chains,
+                morning_vars, afternoon_vars
+            )
+        return None
+
+    def _calculate_solution_score(self, solution):
+        """Calcule un score pour classer les solutions"""
+        # Nombre de voyages utilisés
+        total_trips = sum(len(trips) for trips in solution['matin'].values()) + \
+                      sum(len(trips) for trips in solution['apres_midi'].values())
+
+        # Bonus pour 100% de couverture
+        coverage_bonus = 100 if len(solution['orphelins']) == 0 else 0
+
+        # Bonus pour durées proches de 7h30
+        duration_bonus = 0
+        all_services = list(solution['matin'].values()) + list(solution['apres_midi'].values())
+        for service_trips in all_services:
+            if len(service_trips) > 1:
+                service_start = min(trip["start"] for _, trip in service_trips)
+                service_end = max(trip["end"] for _, trip in service_trips)
+                amplitude = service_end - service_start
+                deviation = abs(amplitude - self.TARGET_SERVICE_DURATION)
+                if deviation <= 60:  # Moins d'1h d'écart
+                    duration_bonus += 20
+
+        return total_trips * 10 + coverage_bonus + duration_bonus
+
+    def _is_duplicate_solution(self, new_solution, existing_solutions):
+        """Vérifie si une solution est un doublon"""
+        for existing in existing_solutions:
+            if (set(self._get_solution_signature(new_solution)) ==
+                    set(self._get_solution_signature(existing))):
+                return True
+        return False
+
+    def _get_solution_signature(self, solution):
+        """Crée une signature unique pour une solution"""
+        signature = []
+        for service_trips in solution['matin'].values():
+            trip_ids = tuple(sorted(trip_idx for trip_idx, _ in service_trips))
+            signature.append(('M', trip_ids))
+        for service_trips in solution['apres_midi'].values():
+            trip_ids = tuple(sorted(trip_idx for trip_idx, _ in service_trips))
+            signature.append(('A', trip_ids))
+        return tuple(sorted(signature))
+
+    def _display_multiple_solutions(self, solutions):
+        """Affiche toutes les solutions trouvées"""
+        print(f"\n🎯 {len(solutions)} SOLUTIONS TROUVÉES")
+        print("=" * 80)
+
+        for i, solution in enumerate(solutions):
+            total_trips = sum(len(trips) for trips in solution['matin'].values()) + \
+                          sum(len(trips) for trips in solution['apres_midi'].values())
+
+            print(f"\n📋 SOLUTION {i + 1}: {solution['name']}")
+            print(
+                f"   Score: {solution['score']} | Voyages: {total_trips}/16 | Orphelins: {len(solution['orphelins'])}")
+
+            # Services matin (résumé)
+            for service_id, trips in solution['matin'].items():
+                trip_ids = [str(trip_idx) for trip_idx, _ in trips]
+                start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
+                end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
+                amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
+                print(f"     Matin-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
+
+            # Services après-midi (résumé)
+            for service_id, trips in solution['apres_midi'].items():
+                trip_ids = [str(trip_idx) for trip_idx, _ in trips]
+                start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
+                end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
+                amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
+                print(f"     AM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
+
+    def _user_select_solution(self, solutions):
+        """Permet à l'utilisateur de choisir une solution"""
+        print(f"\n🎲 SÉLECTION DE SOLUTION")
+        print("=" * 40)
+
+        for i, solution in enumerate(solutions):
+            print(f"  {i + 1}. {solution['name']} (Score: {solution['score']})")
+
+        while True:
+            try:
+                choice = input(f"\nChoisissez une solution (1-{len(solutions)}) ou 0 pour voir les détails: ")
+                choice_num = int(choice)
+
+                if choice_num == 0:
+                    # Afficher les détails de toutes les solutions
+                    for i, solution in enumerate(solutions):
+                        print(f"\n🔍 DÉTAILS SOLUTION {i + 1}:")
+                        self._display_final_summary(solution)
+                    continue
+                elif 1 <= choice_num <= len(solutions):
+                    selected = solutions[choice_num - 1]
+                    print(f"\n✅ Solution sélectionnée: {selected['name']}")
+                    self._display_final_summary(selected)
+                    return selected
+                else:
+                    print(f"Veuillez entrer un nombre entre 0 et {len(solutions)}")
+            except ValueError:
+                print("Veuillez entrer un nombre valide")
+            except KeyboardInterrupt:
+                print("\nSélection par défaut: meilleure solution")
+                return solutions[0] if solutions else None
 
     def _validate_optimal_solution(self, solution):
         """Valide que la solution optimale respecte toutes les contraintes"""
@@ -201,42 +431,57 @@ class AdvancedODMSolver:
             return {'matin': {}, 'apres_midi': {}, 'orphelins': list(range(len(self.trips)))}
 
     def _generate_valid_chains_strict(self):
-        """Génère SEULEMENT les chaînes valides avec chaînage strict"""
+        """Génère SEULEMENT les chaînes valides avec chaînage strict - SANS LIMITE"""
         chains = []
 
-        # Chaînes de 2 voyages avec chaînage strict
-        for i in range(len(self.trips)):
-            for j in range(len(self.trips)):
-                if i != j:
-                    chain = self._try_build_chain_strict([i, j])
-                    if chain:
-                        chains.append(chain)
+        print("🔄 Génération de chaînes de toutes tailles...")
 
-        # Chaînes de 3 voyages avec chaînage strict
-        for i in range(len(self.trips)):
-            for j in range(len(self.trips)):
-                if i != j and self._can_chain_trips(i, j):
-                    for k in range(len(self.trips)):
-                        if k != i and k != j and self._can_chain_trips(j, k):
-                            chain = self._try_build_chain_strict([i, j, k])
-                            if chain:
-                                chains.append(chain)
+        # Approche récursive pour générer des chaînes de toutes tailles possibles
+        for start_trip in range(len(self.trips)):
+            # Démarrer une recherche récursive depuis chaque voyage
+            self._build_chains_recursive([start_trip], chains)
 
-        # Chaînes de 4 voyages avec chaînage strict (NOUVEAU!)
-        for i in range(len(self.trips)):
-            for j in range(len(self.trips)):
-                if i != j and self._can_chain_trips(i, j):
-                    for k in range(len(self.trips)):
-                        if k != i and k != j and self._can_chain_trips(j, k):
-                            for l in range(len(self.trips)):
-                                if l != i and l != j and l != k and self._can_chain_trips(k, l):
-                                    chain = self._try_build_chain_strict([i, j, k, l])
-                                    if chain:
-                                        chains.append(chain)
+        # Éliminer les doublons (même ensemble de voyages)
+        unique_chains = []
+        seen_signatures = set()
+
+        for chain in chains:
+            signature = tuple(sorted(chain['trip_indices']))
+            if signature not in seen_signatures:
+                seen_signatures.add(signature)
+                unique_chains.append(chain)
 
         # Trier par heure de début PUIS par nombre de voyages (plus long = priorité)
-        chains.sort(key=lambda c: (c['start_time'], -len(c['trip_indices'])))
-        return chains
+        unique_chains.sort(key=lambda c: (c['start_time'], -len(c['trip_indices'])))
+
+        print(
+            f"✅ Généré {len(unique_chains)} chaînes uniques (tailles 2 à {max(len(c['trip_indices']) for c in unique_chains) if unique_chains else 0} voyages)")
+
+        return unique_chains
+
+    def _build_chains_recursive(self, current_chain, chains, max_depth=10):
+        """Construit récursivement des chaînes de voyages"""
+
+        # Si la chaîne actuelle a au moins 2 voyages, l'évaluer
+        if len(current_chain) >= 2:
+            chain_data = self._try_build_chain_strict(current_chain)
+            if chain_data:
+                chains.append(chain_data)
+
+        # Si on a atteint la profondeur max, arrêter
+        if len(current_chain) >= max_depth:
+            return
+
+        # Essayer d'ajouter chaque voyage possible
+        last_trip_idx = current_chain[-1]
+
+        for next_trip_idx in range(len(self.trips)):
+            # Éviter les doublons et vérifier la compatibilité de base
+            if (next_trip_idx not in current_chain and
+                    self._can_chain_trips(last_trip_idx, next_trip_idx)):
+                # Ajouter ce voyage et continuer récursivement
+                new_chain = current_chain + [next_trip_idx]
+                self._build_chains_recursive(new_chain, chains, max_depth)
 
     def _can_chain_trips(self, trip1_idx, trip2_idx):
         """Vérification rapide du chaînage entre deux indices (avec ou sans HLP)"""
@@ -610,10 +855,10 @@ def run_advanced_solver():
         {"start": time_to_minutes("16:29"), "end": time_to_minutes("18:06"), "from": "GYGAZ", "to": "CTSN1"},
         {"start": time_to_minutes("18:31"), "end": time_to_minutes("19:57"), "from": "CTSN1", "to": "GYGAZ"},
         {"start": time_to_minutes("20:33"), "end": time_to_minutes("22:01"), "from": "GYGAZ", "to": "CTSN1"},
-        {"start": time_to_minutes("14:50"), "end": time_to_minutes("16:15"), "from": "CTSN1", "to": "CHPA0"},
-        {"start": time_to_minutes("17:13"), "end": time_to_minutes("18:35"), "from": "CHPA9", "to": "CTSN1"},
-        {"start": time_to_minutes("18:50"), "end": time_to_minutes("20:07"), "from": "CTSN1", "to": "CHPA0"},
-        {"start": time_to_minutes("20:20"), "end": time_to_minutes("21:35"), "from": "CHPA9", "to": "CTSN1"}
+        {"start": time_to_minutes("14:50"), "end": time_to_minutes("16:15"), "from": "CTSN1", "to": "CHAP0"},
+        {"start": time_to_minutes("17:13"), "end": time_to_minutes("18:35"), "from": "CHAP9", "to": "CTSN1"},
+        {"start": time_to_minutes("18:50"), "end": time_to_minutes("20:07"), "from": "CTSN1", "to": "CHAP0"},
+        {"start": time_to_minutes("20:20"), "end": time_to_minutes("21:35"), "from": "CHAP9", "to": "CTSN1"}
     ]
 
     solver = AdvancedODMSolver(trips)
