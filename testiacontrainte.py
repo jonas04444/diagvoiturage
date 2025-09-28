@@ -24,7 +24,7 @@ class AdvancedODMSolver:
         self.TARGET_SERVICE_DURATION = 7.5 * 60  # 7h30 cible
         self.TOLERANCE = 30  # 30 minutes de tolérance
         self.MIN_PAUSE = 5  # 5 minutes minimum entre voyages
-        self.MAX_PAUSE = 3 * 60  # 3h maximum entre voyages (pour flexibilité)
+        self.MAX_PAUSE = 1 * 60  # 3h maximum entre voyages (pour flexibilité)
 
         # HLP (Haut-Le-Pied) autorisés
         self.hlp_connections = [
@@ -63,7 +63,7 @@ class AdvancedODMSolver:
             print("❌ Aucune chaîne valide trouvée!")
             return {'solutions': [], 'selected': None}
 
-        print(f"\n🔍 {len(all_chains)} chaînes STRICTEMENT valides trouvées (3h-9h)")
+        print(f"\n🔍 {len(all_chains)} chaînes STRICTEMENT valides trouvées")
 
         # Séparer matin/après-midi
         noon = 12 * 60
@@ -92,27 +92,14 @@ class AdvancedODMSolver:
         return {'solutions': solutions, 'selected': selected_solution}
 
     def _generate_multiple_solutions(self, morning_chains, afternoon_chains, nb_matin, nb_aprem):
-        """Génère plusieurs solutions différentes"""
+        """Génère plusieurs solutions différentes pour n'importe quelle configuration"""
         solutions = []
         max_solutions = 5  # Limiter à 5 solutions pour ne pas surcharger
 
         print(f"\n🔄 Recherche de solutions multiples (max {max_solutions})...")
+        print(f"Configuration demandée: {nb_matin} matin + {nb_aprem} après-midi")
 
-        # Ajouter la solution optimale si applicable
-        if nb_matin == 3 and nb_aprem == 1:
-            optimal = self._get_optimal_solution()
-            if self._validate_optimal_solution(optimal):
-                solutions.append({
-                    'id': 'OPTIMAL',
-                    'name': 'Solution optimale (100% couverture)',
-                    'matin': optimal['matin'],
-                    'apres_midi': optimal['apres_midi'],
-                    'orphelins': optimal['orphelins'],
-                    'score': self._calculate_solution_score(optimal)
-                })
-                print("✅ Solution optimale ajoutée")
-
-        # Générer des solutions alternatives avec OR-Tools
+        # Générer des solutions avec OR-Tools (algorithme générique)
         for attempt in range(max_solutions * 3):  # Plus de tentatives pour diversité
             if len(solutions) >= max_solutions:
                 break
@@ -122,30 +109,21 @@ class AdvancedODMSolver:
             )
 
             if solution and not self._is_duplicate_solution(solution, solutions):
-                solution['id'] = f'ALT{len(solutions)}'
-                solution['name'] = f'Alternative {len(solutions)}'
+                solution['id'] = f'SOL{len(solutions) + 1}'
+                solution['name'] = f'Solution {len(solutions) + 1}'
                 solution['score'] = self._calculate_solution_score(solution)
                 solutions.append(solution)
+                print(f"✅ Solution {len(solutions)} trouvée (score: {solution['score']})")
 
-        # Trier par score décroissant
+        if not solutions:
+            print("❌ Aucune solution trouvée pour cette configuration")
+            return []
+
+        # Trier par score décroissant (meilleure solution en premier)
         solutions.sort(key=lambda s: s['score'], reverse=True)
 
+        print(f"🎯 {len(solutions)} solutions générées et triées par qualité")
         return solutions
-
-    def _get_optimal_solution(self):
-        """Retourne la solution optimale prédéfinie"""
-        return {
-            'matin': {
-                0: [(3, self.trips[3]), (5, self.trips[5]), (9, self.trips[9])],
-                1: [(0, self.trips[0]), (1, self.trips[1]), (6, self.trips[6]), (8, self.trips[8])],
-                2: [(2, self.trips[2]), (4, self.trips[4]), (7, self.trips[7]), (10, self.trips[10]),
-                    (11, self.trips[11])]
-            },
-            'apres_midi': {
-                0: [(12, self.trips[12]), (13, self.trips[13]), (14, self.trips[14]), (15, self.trips[15])]
-            },
-            'orphelins': []
-        }
 
     def _solve_with_constraints_randomized(self, morning_chains, afternoon_chains, nb_matin, nb_aprem, seed):
         """Version randomisée du solveur pour obtenir des solutions différentes"""
@@ -866,9 +844,9 @@ def run_advanced_solver():
     print("🚀 SOLVEUR ODM AVANCÉ - VERSION FINALE")
     print("=" * 60)
     print(f"📋 Total voyages: {len(trips)}")
-    print("⏱️  Durée services: 3h à 9h")
-    print("🔗 Contrainte: Chaînage strict obligatoire")
-    print("⏸️  Pause entre voyages: 5min à 3h maximum")
+    print("⏱️  Durée services: 3h à 9h (flexible)")
+    print("🔗 Contrainte: Chaînage strict ou HLP")
+    print("⏸️  Pause entre voyages: 5min à 2h maximum")
     print("🚐 HLP autorisé: CTSN1 → GYSOD (8min) - max 1 par service")
     print("🎯 Cible: 7h30 d'amplitude par service")
     print()

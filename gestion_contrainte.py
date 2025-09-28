@@ -19,12 +19,12 @@ class AdvancedODMSolver:
 
     def __init__(self, trips_data):
         self.trips = trips_data
-        self.MIN_SERVICE_DURATION = 3 * 60  # 3h minimum (plus flexible)
+        self.MIN_SERVICE_DURATION = 5.5 * 60  # 3h minimum (plus flexible)
         self.MAX_SERVICE_DURATION = 9 * 60  # 9h maximum
         self.TARGET_SERVICE_DURATION = 7.5 * 60  # 7h30 cible
         self.TOLERANCE = 30  # 30 minutes de tolérance
         self.MIN_PAUSE = 5  # 5 minutes minimum entre voyages
-        self.MAX_PAUSE = 3 * 60  # 3h maximum entre voyages (pour flexibilité)
+        self.MAX_PAUSE = 1 * 60  # 3h maximum entre voyages (pour flexibilité)
 
         # HLP (Haut-Le-Pied) autorisés
         self.hlp_connections = [
@@ -97,6 +97,7 @@ class AdvancedODMSolver:
         max_solutions = 5  # Limiter à 5 solutions pour ne pas surcharger
 
         print(f"\n🔄 Recherche de solutions multiples (max {max_solutions})...")
+        print(f"Configuration demandée: {nb_matin} matin + {nb_aprem} après-midi")
 
         # Ajouter la solution optimale si applicable
         if nb_matin == 3 and nb_aprem == 1:
