@@ -254,7 +254,7 @@ class AdvancedODMSolver:
                 start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
                 end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
                 amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
-                print(f"     Matin-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
+                print(f"     AM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
 
             # Services après-midi (résumé)
             for service_id, trips in solution['apres_midi'].items():
@@ -262,7 +262,7 @@ class AdvancedODMSolver:
                 start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
                 end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
                 amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
-                print(f"     AM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
+                print(f"     PM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
 
     def _user_select_solution(self, solutions):
         """Permet à l'utilisateur de choisir une solution"""
@@ -377,7 +377,7 @@ class AdvancedODMSolver:
             print(f"  [{','.join(trips_str)}] {start_time}-{end_time} ({amplitude:.1f}h)")
 
         # Étape 2: Séparer matin/après-midi
-        noon = 12 * 60  # 12h00
+        noon = 11 * 60  # 11h00
         morning_chains = [c for c in all_chains if c['start_time'] < noon]
         afternoon_chains = [c for c in all_chains if c['start_time'] >= noon]
 
@@ -817,6 +817,10 @@ def run_advanced_solver():
     """Lance le solveur avancé - VERSION FINALE CORRIGÉE"""
 
     trips = [
+        {"start": time_to_minutes("13:25"), "end": time_to_minutes("15:06"), "from": "GYGAZ", "to": "CTSN1"},
+        {"start": time_to_minutes("15:21"), "end": time_to_minutes("16:59"), "from": "CTSN1", "to": "GYGAZ"},
+        {"start": time_to_minutes("17:33"), "end": time_to_minutes("19:01"), "from": "GYGAZ", "to": "CTSN1"},
+        {"start": time_to_minutes("19:31"), "end": time_to_minutes("20:57"), "from": "CTSN1", "to": "GYGAZ"},
         {"start": time_to_minutes("05:32"), "end": time_to_minutes("06:28"), "from": "CTSN2", "to": "CTSN1"},
         {"start": time_to_minutes("06:50"), "end": time_to_minutes("08:14"), "from": "CTSN1", "to": "CHPA0"},
         {"start": time_to_minutes("06:11"), "end": time_to_minutes("07:29"), "from": "CHPA9", "to": "CTSN1"},

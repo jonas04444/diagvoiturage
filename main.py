@@ -14,6 +14,7 @@ def main():
     tab1 = tabview.add("Création voyage")
     tab2 = tabview.add("création ligne")
     tab3 = tabview.add("Paramètres")
+    tab4 = tabview.add("voiturage")
 
     tab1.grid_columnconfigure(0, weight=1)
     tab1.grid_columnconfigure(1, weight=1)
@@ -50,6 +51,16 @@ def main():
     saisieaddline.grid(row=1, column=0, pady=10)
     num_ligne = ctk.CTkEntry(master=tab2)
     num_ligne.grid(row=1, column=1, pady=10)
+
+    canvas_frame = ctk.CTkFrame(tab4, fg_color="white")
+    canvas_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    win.canva= ctk.CTkCanvas(canvas_frame, bg="white", highlightthickness=0)
+    win.canva.pack(side="left", expand=True, padx=10, pady=10)
+
+    scrollbar = ctk.CTkScrollbar(canvas_frame, command=win.canva.yview)
+    scrollbar.pack(side="right", fill="y")
+    win.canva.configure(yscrollcommand=scrollbar.set)
 
     win.mainloop()
 
