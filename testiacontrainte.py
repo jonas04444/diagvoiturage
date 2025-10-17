@@ -90,9 +90,11 @@ class AdvancedODMSolver:
             return {'solutions': [], 'selected': None}
 
         self._display_multiple_solutions(solutions)
-        selected_solution = self._user_select_solution(solutions)
 
-        return {'solutions': solutions, 'selected': selected_solution}
+        # ⚠️ Au lieu de demander à l'utilisateur, on retourne directement les solutions
+        # selected_solution = self._user_select_solution(solutions)  <- COMMENTER CETTE LIGNE
+
+        return {'solutions': solutions, 'selected': solutions[0] if solutions else None}
 
     def _generate_multiple_solutions(self, morning_chains, afternoon_chains, nb_matin, nb_aprem):
         """Génère TOUTES les solutions possibles"""
