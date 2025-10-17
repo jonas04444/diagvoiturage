@@ -1,6 +1,5 @@
 from ortools.sat.python import cp_model
 import time
-from typing import List, Dict, Any, Tuple
 from itertools import combinations
 
 
@@ -26,8 +25,9 @@ class AdvancedODMSolver:
         self.TOLERANCE = 30
         self.MIN_PAUSE = 5
         self.MAX_PAUSE = 1 * 120
+        self.EARLY_LIMIT = 6 * 60 + 30  # 6h30
+        self.LATE_LIMIT = 18 * 60  # 18h00
 
-        # HLP (Haut-Le-Pied) autorisés - SEULEMENT 2
         self.hlp_connections = [
             {"from": "PTSNC", "to": "CPCEC", "duration": 5},
             {"from": "CPCEC", "to": "PTSNC", "duration": 6}
@@ -166,11 +166,13 @@ class AdvancedODMSolver:
                 solution = {
                     'matin': {},
                     'apres_midi': {},
-                    'orphelins': []
+                    'orphelins': [],
+                    'hors_horaires': []
                 }
 
                 used_trips = set()
 
+                # Assignation des services MATIN
                 service_id = 0
                 for i, var in enumerate(self._morning_vars):
                     if self.Value(var) == 1:
@@ -183,6 +185,7 @@ class AdvancedODMSolver:
                         solution['matin'][service_id] = trips_info
                         service_id += 1
 
+                # Assignation des services APRÈS-MIDI
                 service_id = 0
                 for i, var in enumerate(self._afternoon_vars):
                     if self.Value(var) == 1:
@@ -195,12 +198,23 @@ class AdvancedODMSolver:
                         solution['apres_midi'][service_id] = trips_info
                         service_id += 1
 
+                # Séparation orphelins / hors-horaires
+                EARLY_LIMIT = 6 * 60 + 30
+                LATE_LIMIT = 18 * 60
+
                 for trip_idx in range(len(self._trips)):
                     if trip_idx not in used_trips:
-                        solution['orphelins'].append(trip_idx)
+                        trip = self._trips[trip_idx]
+                        if trip['start'] < EARLY_LIMIT or trip['start'] >= LATE_LIMIT:
+                            solution['hors_horaires'].append(trip_idx)
+                        else:
+                            solution['orphelins'].append(trip_idx)
 
                 self._solutions.append(solution)
-                print(f"✅ Solution {len(self._solutions)} trouvée ({len(solution['orphelins'])} orphelins)")
+                orphelin_count = len(solution['orphelins'])
+                hors_horaire_count = len(solution['hors_horaires'])
+                print(
+                    f"✅ Solution {len(self._solutions)} trouvée ({orphelin_count} orphelins, {hors_horaire_count} hors-horaires)")
 
             def get_solutions(self):
                 return self._solutions
@@ -249,81 +263,56 @@ class AdvancedODMSolver:
         return total_trips * 10 + coverage_bonus + duration_bonus
 
     def _display_multiple_solutions(self, solutions):
-        """Affiche toutes les solutions trouvées"""
+        """Affiche un RÉSUMÉ compact de toutes les solutions"""
         print(f"\n🎯 {len(solutions)} SOLUTIONS TROUVÉES")
-        print("=" * 80)
+        print("=" * 100)
 
-        display_count = min(15, len(solutions))
+        display_count = min(10, len(solutions))
+
+        print(f"{'#':<4} {'Score':<8} {'Services':<10} {'Voyages':<10} {'Orphelins':<12} {'Hors-h':<8}")
+        print("-" * 100)
 
         for i in range(display_count):
             solution = solutions[i]
+            total_services = len(solution['matin']) + len(solution['apres_midi'])
             total_trips = sum(len(trips) for trips in solution['matin'].values()) + \
                           sum(len(trips) for trips in solution['apres_midi'].values())
+            orphelins = len(solution['orphelins'])
+            hors_horaires = len(solution['hors_horaires'])
 
-            print(f"\n📋 SOLUTION {i + 1}: {solution['name']}")
             print(
-                f"   Score: {solution['score']} | Voyages: {total_trips}/{len(self.trips)} | Orphelins: {len(solution['orphelins'])}")
-
-            for service_id, trips in solution['matin'].items():
-                trip_ids = [str(trip_idx) for trip_idx, _ in trips]
-                start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
-                end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
-                amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
-                print(f"     AM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
-
-            for service_id, trips in solution['apres_midi'].items():
-                trip_ids = [str(trip_idx) for trip_idx, _ in trips]
-                start_time = minutes_to_time(min(trip["start"] for _, trip in trips))
-                end_time = minutes_to_time(max(trip["end"] for _, trip in trips))
-                amplitude = (max(trip["end"] for _, trip in trips) - min(trip["start"] for _, trip in trips)) / 60
-                print(f"     PM-{service_id}: [{','.join(trip_ids)}] {start_time}-{end_time} ({amplitude:.1f}h)")
+                f"{i + 1:<4} {solution['score']:<8} {total_services:<10} {total_trips}/{len(self.trips):<9} {orphelins:<12} {hors_horaires:<8}")
 
         if len(solutions) > display_count:
-            print(f"\n... et {len(solutions) - display_count} autres solutions")
+            print(f"\n... et {len(solutions) - display_count} autres solutions disponibles")
+
+        print("=" * 100)
 
     def _user_select_solution(self, solutions):
-        """Permet à l'utilisateur de choisir une solution"""
+        """Permet à l'utilisateur de choisir une solution et l'affiche"""
         print(f"\n🎲 SÉLECTION DE SOLUTION")
-        print("=" * 40)
-
-        display_count = min(15, len(solutions))
-
-        for i in range(display_count):
-            solution = solutions[i]
-            total_trips = sum(len(trips) for trips in solution['matin'].values()) + \
-                          sum(len(trips) for trips in solution['apres_midi'].values())
-            print(
-                f"  {i + 1}. {solution['name']} (Score: {solution['score']}, {total_trips} voyages, {len(solution['orphelins'])} orphelins)")
-
-        if len(solutions) > display_count:
-            print(f"  ... {len(solutions) - display_count} autres solutions disponibles")
+        print("=" * 60)
 
         while True:
             try:
-                choice = input(f"\nChoisissez une solution (1-{len(solutions)}) ou 0 pour voir les détails: ")
+                choice = input(f"\nChoisissez le numéro d'une solution (1-{len(solutions)}): ")
                 choice_num = int(choice)
 
-                if choice_num == 0:
-                    for i in range(min(15, len(solutions))):
-                        solution = solutions[i]
-                        print(f"\n🔍 DÉTAILS SOLUTION {i + 1}:")
-                        self._display_final_summary(solution)
-                    continue
-                elif 1 <= choice_num <= len(solutions):
+                if 1 <= choice_num <= len(solutions):
                     selected = solutions[choice_num - 1]
-                    print(f"\n✅ Solution sélectionnée: {selected['name']}")
+                    print(f"\n✅ Solution {choice_num} sélectionnée!")
                     self._display_final_summary(selected)
                     return selected
                 else:
-                    print(f"Veuillez entrer un nombre entre 0 et {len(solutions)}")
+                    print(f"❌ Veuillez entrer un nombre entre 1 et {len(solutions)}")
             except ValueError:
-                print("Veuillez entrer un nombre valide")
+                print("❌ Veuillez entrer un nombre valide")
             except KeyboardInterrupt:
-                print("\nSélection par défaut: meilleure solution")
-                return solutions[0] if solutions else None
+                print("\n🛑 Sélection annulée")
+                return None
 
     def _generate_valid_chains_strict(self):
-        """Génère TOUTES les chaînes valides avec toutes les combinaisons possibles"""
+        """Génère TOUTES les chaînes valides"""
         chains = []
 
         print("🔄 Génération de toutes les combinaisons possibles...")
@@ -347,8 +336,7 @@ class AdvancedODMSolver:
 
         unique_chains.sort(key=lambda c: (c['start_time'], -len(c['trip_indices'])))
 
-        print(
-            f"✅ Généré {len(unique_chains)} chaînes uniques (tailles 2 à {max(len(c['trip_indices']) for c in unique_chains) if unique_chains else 0} voyages)")
+        print(f"✅ Généré {len(unique_chains)} chaînes uniques")
 
         return unique_chains
 
@@ -378,7 +366,7 @@ class AdvancedODMSolver:
         }
 
     def _are_trips_compatible_strict(self, trip_indices):
-        """Vérification STRICTE de compatibilité (avec gestion HLP)"""
+        """Vérification STRICTE de compatibilité"""
         trips_data = [self.trips[i] for i in trip_indices]
         sorted_trips = sorted(zip(trip_indices, trips_data), key=lambda x: x[1]["start"])
 
@@ -416,27 +404,30 @@ class AdvancedODMSolver:
         return True
 
     def _display_final_summary(self, solution):
-        """Affiche le résumé final"""
-        print(f"\n" + "=" * 80)
-        print(f"✅ SOLUTION TROUVÉE - SERVICES AVEC CHAÎNAGE STRICT")
-        print("=" * 80)
+        """Affiche le résumé DÉTAILLÉ de la solution sélectionnée"""
+        print(f"\n" + "=" * 100)
+        print(f"SOLUTION SÉLECTIONNÉE - SERVICES AVEC CHAÎNAGE STRICT")
+        print("=" * 100)
 
         if solution['matin']:
-            print(f"\n🌅 SERVICES MATIN ({len(solution['matin'])} services):")
+            print(f"\n🌅 SERVICES MATIN ({len(solution['matin'])} service(s)):")
+            print("-" * 100)
             for service_id, trips in solution['matin'].items():
                 self._display_service(service_id, trips, "MATIN")
         else:
             print(f"\n🌅 SERVICES MATIN: Aucun")
 
         if solution['apres_midi']:
-            print(f"\n🌇 SERVICES APRÈS-MIDI ({len(solution['apres_midi'])} services):")
+            print(f"\n🌇 SERVICES APRÈS-MIDI ({len(solution['apres_midi'])} service(s)):")
+            print("-" * 100)
             for service_id, trips in solution['apres_midi'].items():
-                self._display_service(service_id, trips, "AM")
+                self._display_service(service_id, trips, "APRÈS-MIDI")
         else:
             print(f"\n🌇 SERVICES APRÈS-MIDI: Aucun")
 
         if solution['orphelins']:
-            print(f"\n⚠️ VOYAGES ORPHELINS ({len(solution['orphelins'])} voyages):")
+            print(f"\n⚠️ VOYAGES ORPHELINS ({len(solution['orphelins'])} voyage(s)):")
+            print("-" * 100)
             sorted_orphans = sorted(solution['orphelins'], key=lambda i: self.trips[i]["start"])
             for trip_idx in sorted_orphans:
                 trip = self.trips[trip_idx]
@@ -447,24 +438,40 @@ class AdvancedODMSolver:
         else:
             print(f"\n✅ AUCUN VOYAGE ORPHELIN!")
 
+        if solution['hors_horaires']:
+            print(f"\n🌙 VOYAGES HORS-HORAIRES ({len(solution['hors_horaires'])} voyage(s)):")
+            print("-" * 100)
+            sorted_hors_horaires = sorted(solution['hors_horaires'], key=lambda i: self.trips[i]["start"])
+            for trip_idx in sorted_hors_horaires:
+                trip = self.trips[trip_idx]
+                start = minutes_to_time(trip["start"])
+                end = minutes_to_time(trip["end"])
+                duration = trip["end"] - trip["start"]
+                print(f"  Voyage-{trip_idx}: {trip['from']} → {trip['to']} ({start}-{end}, {duration}min)")
+
         total_services = len(solution['matin']) + len(solution['apres_midi'])
         total_assigned = sum(len(trips) for trips in solution['matin'].values()) + \
                          sum(len(trips) for trips in solution['apres_midi'].values())
 
-        print(f"\n📊 STATISTIQUES:")
-        print(f"  Services créés: {total_services}")
+        print(f"\n" + "=" * 100)
+        print(f"STATISTIQUES FINALES:")
+        print(
+            f"  Services: {total_services} (Matin: {len(solution['matin'])}, Après-midi: {len(solution['apres_midi'])})")
         print(f"  Voyages assignés: {total_assigned}/{len(self.trips)}")
-        print(f"  Voyages orphelins: {len(solution['orphelins'])}/{len(self.trips)}")
+        print(f"  Orphelins: {len(solution['orphelins'])} | Hors-horaires: {len(solution['hors_horaires'])}")
 
         if len(self.trips) > 0:
-            print(f"  Taux d'assignation: {total_assigned / len(self.trips) * 100:.1f}%")
+            taux = (total_assigned / len(self.trips)) * 100
+            print(f"  Taux d'assignation: {taux:.1f}%")
+
+        print("=" * 100)
 
     def _display_service(self, service_id, trips, prefix):
-        """Affiche un service individuel avec gestion HLP"""
+        """Affiche un service individuel"""
         sorted_trips = sorted(trips, key=lambda x: x[1]["start"])
-        trip_ids = [trip_idx for trip_idx, _ in sorted_trips]
+        trip_ids = [str(trip_idx) for trip_idx, _ in sorted_trips]
 
-        print(f"\n  Service {prefix}-{service_id}: Voyages {trip_ids}")
+        print(f"\n  Service {prefix}-{service_id}: [{', '.join(trip_ids)}]")
 
         total_work = 0
         hlp_used = []
@@ -474,15 +481,21 @@ class AdvancedODMSolver:
             end = minutes_to_time(trip["end"])
             duration = trip["end"] - trip["start"]
             total_work += duration
-            print(f"    Voyage-{trip_idx}: {trip['from']} → {trip['to']} ({start}-{end}, {duration}min)")
+            print(f"    • Voyage-{trip_idx}: {trip['from']} → {trip['to']} ({start}-{end}, {duration}min)")
 
             if i < len(sorted_trips) - 1:
                 next_trip = sorted_trips[i + 1][1]
                 chain_result = self.can_chain_with_hlp(trip, next_trip)
-                if not chain_result["direct"] and chain_result["hlp"] is not None:
+
+                if chain_result["direct"]:
+                    pause = next_trip["start"] - trip["end"]
+                    print(f"      └─ Pause: {pause}min")
+                elif chain_result["hlp"] is not None:
                     hlp = chain_result["hlp"]
                     hlp_used.append(hlp)
-                    print(f"      🚐 HLP: {hlp['from']} → {hlp['to']} ({hlp['duration']}min)")
+                    pause_with_hlp = (next_trip["start"] - trip["end"]) + hlp["duration"]
+                    print(
+                        f"      └─ HLP: {hlp['from']} → {hlp['to']} ({hlp['duration']}min) | Pause totale: {pause_with_hlp}min")
 
         if len(sorted_trips) >= 1:
             service_start = min(trip["start"] for _, trip in sorted_trips)
@@ -490,14 +503,12 @@ class AdvancedODMSolver:
             amplitude = service_end - service_start
             total_pause = amplitude - total_work
 
-            hlp_info = f" | HLP: {len(hlp_used)}" if hlp_used else ""
-            print(
-                f"    📊 Amplitude: {minutes_to_time(amplitude)} | Travail: {total_work}min | Pause: {total_pause}min{hlp_info}")
+            amplitude_str = minutes_to_time(amplitude)
+            print(f"\n    Amplitude: {amplitude_str} | Travail: {total_work}min | Pause: {total_pause}min")
 
 
 def run_advanced_solver():
     """Lance le solveur avancé"""
-
     trips = [
         {"start": time_to_minutes("06:03"), "end": time_to_minutes("06:40"), "from": "FOMET", "to": "CEN05"},
         {"start": time_to_minutes("06:54"), "end": time_to_minutes("07:48"), "from": "CEN07", "to": "PTSNC"},
@@ -511,30 +522,30 @@ def run_advanced_solver():
 
     solver = AdvancedODMSolver(trips)
 
-    print("🚀 SOLVEUR ODM AVANCÉ - VERSION FINALE")
+    print("SOLVEUR ODM AVANCÉ")
     print("=" * 60)
-    print(f"📋 Total voyages: {len(trips)}")
-    print(f"🚐 HLP autorisés: {len(solver.hlp_connections)} connexions")
+    print(f"Total voyages: {len(trips)}")
+    print(f"HLP autorisés: {len(solver.hlp_connections)}")
     for hlp in solver.hlp_connections:
-        print(f"   - {hlp['from']} → {hlp['to']} ({hlp['duration']}min)")
+        print(f"  - {hlp['from']} → {hlp['to']} ({hlp['duration']}min)")
     print()
 
     try:
-        nb_matin = int(input("🌅 Nombre de services MATIN: "))
-        nb_aprem = int(input("🌇 Nombre de services APRÈS-MIDI: "))
+        nb_matin = int(input("Nombre de services MATIN: "))
+        nb_aprem = int(input("Nombre de services APRÈS-MIDI: "))
 
-        print(f"\n🔄 Calcul en cours...")
+        print(f"\nCalcul en cours...")
         start_time = time.time()
 
         result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
 
         elapsed = time.time() - start_time
-        print(f"\n⏱️ Temps de calcul: {elapsed:.2f}s")
+        print(f"\nTemps de calcul: {elapsed:.2f}s")
 
     except KeyboardInterrupt:
-        print(f"\n\n🛑 Arrêt demandé - Au revoir!")
+        print(f"\n\nArrêt demandé")
     except Exception as e:
-        print(f"❌ Erreur: {e}")
+        print(f"Erreur: {e}")
 
 
 if __name__ == "__main__":
