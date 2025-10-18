@@ -2,6 +2,29 @@ import tkinter as tk
 import customtkinter as ctk
 from customtkinter import CTkTabview
 
+class Timelinegraphique:
+
+    def __init__(self, canvas, trips_data, line):
+        self.canvas = canvas
+        self.trips = trips_data
+        self.timeline_start = 4*60
+        self.timeline_end = 24*60
+        self.timeline_height = 600
+        self.timeline_width = 1200
+        self.service_height = 50
+        self.padding_top = 50
+        self.padding_left = 80
+        self.padding_bottom = 50
+        self.colors = self._generate_colors()
+
+    def _generate_colors(self):
+
+        colors = [
+            "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
+            "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B88B", "#AED6F1"
+        ]
+        return colors
+
 def main():
     win = ctk.CTk()
     win.title("menu")
