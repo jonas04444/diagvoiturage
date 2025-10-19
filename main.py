@@ -1,6 +1,11 @@
 import tkinter as tk
+from tkinter import messagebox
+
 import customtkinter as ctk
 from customtkinter import CTkTabview
+
+from gestion_contrainte import minutes_to_time
+
 
 class Timelinegraphique:
 
@@ -18,12 +23,134 @@ class Timelinegraphique:
         self.colors = self._generate_colors()
 
     def _generate_colors(self):
-
+        """couleur pour les différents voyages"""
         colors = [
             "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
             "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B88B", "#AED6F1"
         ]
         return colors
+
+    def draw_solution(self, solution):
+        """dessine un solution par timeline"""
+        self.canvas.delete("all")
+
+        self.canvas.update()
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
+
+        if canvas_width <= 1 or canvas_height <= 1:
+            messagebox.showerror("Erreur", f"Canvas dimensions invalides: {canvas_width}x{canvas_height}")
+            return
+
+        self._draw_timeline_background()
+        self._draw_time_labels()
+
+        current_y =  self.padding_top
+
+        """affichage matin"""
+        if solution['matin']:
+            self.canvas.create_text(
+                10, current_y, text="MATIN", font=("Arial", 10, "bold"),
+                anchor="w", fill="white"
+            )
+            current_y += 20
+
+            for service_id, trips in solution['matin'].items():
+                self._draw_service_line(current_y, trips, f"AM-{service_id}")
+                current_y += self.service_height + 5
+
+        """affichage après-midi"""
+        if solution['apres_midi']:
+            self.canvas.create_text(
+                10, current_y, text="APRES-MIDI", font=("Arial", 10, "bold"),
+                anchor="w", fill="white"
+            )
+            current_y += 20
+
+            for service_id, trips in solution['matin'].items():
+                self._draw_service_line(current_y, trips, f"PM-{service_id}")
+                current_y += self.service_height + 5
+
+        """affiche les voyages orphelins"""
+        if solution['orphelins']:
+            current_y += 15
+            self.canvas.create_text(
+                10, current_y, text="⚠️ ORPHELINS", font=("Arial", 10, "bold"),
+                anchor="w", fill="#FF6B6B"
+            )
+            current_y += 20
+
+            for trip_idx in solution['orphelins']:
+                trip = self.trips[trip_idx]
+                self._draw_trip_rect(
+                    current_y, trip_idx, trip,
+                    "#FF6B6B", f"Orphelin-{trip_idx}"
+                )
+                current_y += 25
+
+    def _draw_timeline_background(self):
+        """Dessine le fond de la timeline"""
+        """faut ajouter les paramètre de couleur"""
+        self.canvas.create_rectangle(
+            self.padding_left, self.padding_top,
+            self.padding_left + self.timeline_width,
+            self.padding_top + self.timeline_height,
+            fill="#2b2b2b", outline="#555555"
+        )
+
+    def _draw_time_labels(self):
+        """affiche les lobels horaires"""
+        for hour in range (4, 25, 2):
+            x = self._time_to_x(hour * 60)
+            self.canvas.create_line(
+                x , self.padding_top,
+                x , self.padding_top + self.timeline_height,
+                fill="#444444", dash=(2,2)
+            )
+            self.canvas.create_text(
+                x, self.padding_top - 20,
+                text=f"{hour:02d}h",
+                font=("Arial", 9),
+                fill="white"
+            )
+
+    def _draw_trip_rect(self, y, trip_idx, trip, color, label):
+        """dessine les rectangles pour les voyages"""
+        x1 = self._time_to_x(trip["start"])
+        x2 = self._time_to_x(trip["end"])
+        y1 = y
+        y2 = y + self.service_height
+
+        """rectangel du voyage"""
+        self.canvas.create_rectangle(
+            x1, y1, x2, y2,
+            fill=color, outline="white", width = 2
+        )
+
+        """texte avec heure et code"""
+        mid_x = (x1 + x2) / 2
+        mid_y = (y1 + y2) / 2
+
+        start_time = minutes_to_time(trip["start"])
+        end_time = minutes_to_time(trip["end"])
+
+        self.canvas.create_text(
+            mid_x , mid_y - 8,
+            text=label,
+            font=("Arial", 8, "bold"),
+            fill="black"
+        )
+        self.canvas.create_text(
+            mid_x, mid_y + 8,
+            text=f"{start_time}-{end_time}",
+            font=("Arial", 7),
+            fill="black"
+        )
+
+    def _time_to_x(self, minutes):
+        """Convertit une heure en coordonnée X"""
+        ratio = (minutes - self.timeline_start) / (self.timeline_end - self.timeline_start)
+        return self.padding_left + ratio * self.timeline_width
 
 def main():
     win = ctk.CTk()
