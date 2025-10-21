@@ -22,12 +22,21 @@ class Timelinegraphique:
         self.padding_bottom = 50
         self.colors = self._generate_colors()
 
-    def _generate_colors(self):
+    def _generate_colors(self,i):
         """couleur pour les différents voyages"""
-        colors = [
-            "#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8",
-            "#F7DC6F", "#BB8FCE", "#85C1E2", "#F8B88B", "#AED6F1"
-        ]
+        colors = {
+            "A1": "#FF6B6B",
+            "25": "#4ECDC4",
+            "35": "#45B7D1",
+            "43": "#FFA07A",
+            "83": "#98D8C8",
+            "86": "#F7DC6F",
+            "85": "#BB8FCE",
+            "63": "#85C1E2",
+            "41": "#F8B88B",
+            "M4": "#AED6F1"
+
+        }
         return colors
 
     def draw_solution(self, solution):
@@ -163,7 +172,8 @@ class Timelinegraphique:
         sorted_trips = sorted(trips, key=lambda x: x[1]["start"])
 
         for i, (trip_idx, trip) in enumerate(sorted_trips):
-            color = self.colors[i % len(self.colors)]
+            line_name = trip.get("line", "default")
+            color = self.colors.get(line_name, "#CCCCCC")
             self._draw_trip_rect(
                 y, trip_idx, trip, color, f"{trip['from'][:3]}-{trip['to'][:3]}"
             )
