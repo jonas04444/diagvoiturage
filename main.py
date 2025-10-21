@@ -181,9 +181,12 @@ class Timelinegraphique:
 def main():
     win = ctk.CTk()
     win.title("menu")
-    win.geometry("1000x800")
+    win.geometry("1400x900")
 
-    tabview = CTkTabview(master=win, width=950, height=750, corner_radius=15)
+    win.grid_rowconfigure(0, weight=1)
+    win.grid_columnconfigure(0, weight=1)
+
+    tabview = CTkTabview(master=win, width=1350, height=850, corner_radius=15)
     tabview.grid(row=0, column=0, columnspan=3, padx=20, pady=20, sticky="nsew")
 
 
@@ -192,6 +195,7 @@ def main():
     tab3 = tabview.add("Paramètres")
     tab4 = tabview.add("voiturage")
 
+    """TAB 1"""
     tab1.grid_columnconfigure(0, weight=1)
     tab1.grid_columnconfigure(1, weight=1)
     tab1.grid_columnconfigure(2, weight=1)
@@ -220,6 +224,10 @@ def main():
     add_data = ctk.CTkButton(master=tab1, text="ajout de données")
     add_data.grid(row=6,column=1, pady=20)
 
+    """TAB 2: création des lignes"""
+    tab2.grid_columnconfigure(0, weight=1)
+    tab2.grid_columnconfigure(1, weight=1)
+
     label2 = ctk.CTkLabel(master=tab2, text="Création de ligne")
     label2.grid(row=0, column=1, pady=10)
 
@@ -227,6 +235,13 @@ def main():
     saisieaddline.grid(row=1, column=0, pady=10)
     num_ligne = ctk.CTkEntry(master=tab2)
     num_ligne.grid(row=1, column=1, pady=10)
+
+    """TAB 4: solveur ODM"""
+    tab4.grid_columnconfigure(0, weight=0)
+    tab4.grid_columnconfigure(1, weight=1)
+    tab4.grid_rowconfigure(0, weight=0)
+    tab4.grid_rowconfigure(1, weight=1)
+    tab4.grid_rowconfigure(2, weight=0)
 
     canvas_frame = ctk.CTkFrame(tab4, fg_color="white")
     canvas_frame.pack(fill="both", expand=True, padx=10, pady=10)
