@@ -152,6 +152,22 @@ class Timelinegraphique:
         ratio = (minutes - self.timeline_start) / (self.timeline_end - self.timeline_start)
         return self.padding_left + ratio * self.timeline_width
 
+    def _draw_service_line(self,y , trips, service_labe):
+        """dessine une ligne de service avec les voyages"""
+        self.canvas.create_text(
+            10, y + self.service_height // 2,
+            text=service_labe, font=("Arial", 9, "bold"),
+            anchor="w", fill="white"
+        )
+
+        sorted_trips = sorted(trips, key=lambda x: x[1]["start"])
+
+        for i, (trip_idx, trip) in enumerate(sorted_trips):
+            color = self.colors[i % len(self.colors)]
+            self._draw_trip_rect(
+                y, trip_idx, trip, color, f"{trip['from'][:3]}-{trip['to'][:3]}"
+            )
+
 def main():
     win = ctk.CTk()
     win.title("menu")
