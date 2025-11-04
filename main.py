@@ -251,6 +251,21 @@ def main():
     )
     label_solver.grid(row=0, column=0, pady=10)
 
+    config_frame = ctk.CTkFrame(tab4)
+    config_frame.grid(row=1, column=0, sticky="nw", padx=10, pady=10, rowspan=2)
+
+    label_matin = ctk.CTkLabel(master=config_frame, text="Services MATIN:")
+    label_matin.grid(row=0, column=0, pady=10, sticky="e", padx=10)
+    entry_matin = ctk.CTkEntry(master=config_frame, width=100)
+    entry_matin.insert(0, " ")
+    entry_matin.grid(row=0, column=1, pady=10, sticky="w", padx=10)
+
+    label_aprem = ctk.CTkLabel(master=config_frame, text="Services APRÈS-MIDI:")
+    label_aprem.grid(row=1, column=0, pady=10, sticky="e", padx=10)
+    entry_aprem = ctk.CTkEntry(master=config_frame, width=100)
+    entry_aprem.insert(0, " ")
+    entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
+
 
     win.mainloop()
 
