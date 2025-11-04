@@ -243,15 +243,14 @@ def main():
     tab4.grid_rowconfigure(1, weight=1)
     tab4.grid_rowconfigure(2, weight=0)
 
-    canvas_frame = ctk.CTkFrame(tab4, fg_color="white")
-    canvas_frame.pack(fill="both", expand=True, padx=10, pady=10)
+    label_solver = ctk.CTkLabel(
 
-    win.canva= ctk.CTkCanvas(canvas_frame, bg="white", highlightthickness=0)
-    win.canva.pack(side="left", expand=True, padx=10, pady=10)
+        master=tab4,
+        text="Configuration du solveur ODM",
+        font=("Arial", 14, "bold")
+    )
+    label_solver.grid(row=0, column=0, pady=10)
 
-    scrollbar = ctk.CTkScrollbar(canvas_frame, command=win.canva.yview)
-    scrollbar.pack(side="right", fill="y")
-    win.canva.configure(yscrollcommand=scrollbar.set)
 
     win.mainloop()
 
