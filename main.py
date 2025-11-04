@@ -4,10 +4,10 @@ from tkinter import messagebox
 import customtkinter as ctk
 from customtkinter import CTkTabview
 
-from gestion_contrainte import minutes_to_time
+from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
 
 
-class Timelinegraphique:
+class TimelineCanvas:
 
     def __init__(self, canvas, trips_data, line):
         self.canvas = canvas
@@ -266,6 +266,31 @@ def main():
     entry_aprem.insert(0, " ")
     entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
 
+    def solve():
+        try:
+            nb_matin = int(entry_matin.get())
+            nb_aprem = int(entry_aprem.get())
+
+            # ajouter les données ici
+            trips = [
+                {"start": time_to_minutes("06:03"), "end": time_to_minutes("06:40"), "from": "FOMET", "to": "CEN05"},
+                {"start": time_to_minutes("06:54"), "end": time_to_minutes("07:48"), "from": "CEN07", "to": "PTSNC"},
+                {"start": time_to_minutes("08:58"), "end": time_to_minutes("10:13"), "from": "CPCEC", "to": "MYVES"},
+                {"start": time_to_minutes("10:38"), "end": time_to_minutes("11:44"), "from": "MYVES", "to": "PTPLA"},
+                {"start": time_to_minutes("12:09"), "end": time_to_minutes("13:13"), "from": "PTPLA", "to": "MYVES"},
+                {"start": time_to_minutes("13:38"), "end": time_to_minutes("14:56"), "from": "MYVES", "to": "CPCEC"},
+                {"start": time_to_minutes("06:40"), "end": time_to_minutes("07:36"), "from": "PTSNC", "to": "CEN05"},
+                {"start": time_to_minutes("07:54"), "end": time_to_minutes("08:50"), "from": "CEN07", "to": "PTSNC"}
+            ]
+
+            solver = AdvancedODMSolver(trips)
+            result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
+
+            solutions_data['solutions'] = result['solutions']
+            solutions_data['trips'] = trips
+
+    button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
+    button_solve.grid(row=2, column=0, columnspan=2, pady=20)
 
     win.mainloop()
 
