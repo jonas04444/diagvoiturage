@@ -266,6 +266,9 @@ def main():
     entry_aprem.insert(0, " ")
     entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
 
+    solutions_data = {'solutions': [], 'trips': []}
+    canvas_ref = {'canvas': None, 'timeline': None}
+
     def solve():
         try:
             nb_matin = int(entry_matin.get())
@@ -289,9 +292,51 @@ def main():
             solutions_data['solutions'] = result['solutions']
             solutions_data['trips'] = trips
 
+            canvas_ref['timeline'] = TimelineCanvas(canvas, trips)
+
+            display_solution(result['solutions'], trips)
+
+        except ValueError:
+            error_label.configure(text="Erreur: entrez des nombres valides")  # ✅ Corrigé
+
+        except Exception as e:
+            error_label.configure(text=f"Erreur: {str(e)}")  # ✅ Espace supprimé
+
+
     button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
     button_solve.grid(row=2, column=0, columnspan=2, pady=20)
 
+    error_label = ctk.CTkLabel(master=config_frame, text="", text_color="red")
+    error_label.grid(row=3, column=0, columnspan=2)
+
+    solutions_frame = ctk.CTkFrame(tab4)
+    solutions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
+
+    def display_solution(solutions, trips):
+        for widget in solutions_frame.winfo_children():
+            widget.destroy()
+
+        if not solutions:
+            error_label.configure(text="Aucune solution trouvée")
+            return
+
+        error_label.configure(text="")
+
+        label_solutions = ctk.CTkLabel(
+            master=solutions_frame,
+            text=f"Solutions trouvées ({len(solutions)}",
+            font=("Arial", 12, "bold")
+        )
+        label_solutions.pack(pady=10)
+
+    canvas_frame = ctk.CTkFrame(tab4, fg_color="#1a1a1a")
+    canvas_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+    tab4.grid_columnconfigure(1, weight=1)
+    tab4.grid_rowconfigure(1, weight=1)
+
+    canvas = tk.Canvas(canvas_frame, bg="#1a1a1a", highlightthickness=0, width=800, height=600)
+    canvas.pack(fill="both", expand=True, side="left")
+    canvas_ref['canvas'] = canvas
     win.mainloop()
 
 main()
