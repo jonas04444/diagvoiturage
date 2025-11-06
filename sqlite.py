@@ -1,5 +1,6 @@
 import sqlite3
 import tkinter.messagebox as msgbox
+from gestion_contrainte import time_to_minutes
 
 def add_line(donnees_ligne):
     conn = sqlite3.connect("dbdiaggrantt.db")
@@ -150,6 +151,69 @@ donnees_lieux = [
     }
 ]
 
+
+def get_trips_from_database(num_ligne=None):
+    """
+    Récupère les trajets depuis la base de données.
+
+    Args:
+        num_ligne: Numéro de ligne à filtrer (optionnel)
+
+    Returns:
+        list: Liste des trajets formatés pour le solver
+    """
+    try:
+        conn = sqlite3.connect('votre_database.db')
+        cursor = conn.cursor()
+
+        query = """
+            SELECT 
+                t.Heure_Start,
+                t.Heure_End,
+                l1.nom_lieu as lieu_depart,
+                l2.nom_lieu as lieu_arrivee,
+                t.id_trajet,
+                t.Num_ligne,
+                t.Num_trajet,
+                t.variant
+            FROM trajet t
+            INNER JOIN lieux l1 ON t.DP_arret = l1.id_lieux
+            INNER JOIN lieux l2 ON t.DR_arret = l2.id_lieux
+            WHERE 1=1
+        """
+
+        params = []
+
+        if num_ligne is not None:
+            query += " AND t.Num_ligne = ?"
+            params.append(num_ligne)
+
+        query += " ORDER BY t.Heure_Start"
+
+        cursor.execute(query, params)
+
+        trips = []
+        for row in cursor.fetchall():
+            trips.append({
+                "start": time_to_minutes(row[0]),  # Heure_Start
+                "end": time_to_minutes(row[1]),  # Heure_End
+                "from": row[2],  # lieu_depart (nom)
+                "to": row[3],  # lieu_arrivee (nom)
+                "id_trajet": row[4],  # id_trajet
+                "num_ligne": row[5],  # Num_ligne
+                "num_trajet": row[6],  # Num_trajet
+                "variant": row[7]  # variant
+            })
+
+        conn.close()
+
+        if not trips:
+            raise ValueError("Aucun trajet trouvé dans la base de données")
+
+        return trips
+
+    except sqlite3.Error as e:
+        raise Exception(f"Erreur base de données: {str(e)}")
 
 #add_trajet(donnees_trajet)
 #add_lieux(donnees_lieux)
