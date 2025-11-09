@@ -4,30 +4,34 @@ from gestion_contrainte import time_to_minutes
 
 def add_line(donnees_ligne):
     conn = sqlite3.connect("dbdiaggrantt.db")
-    cur =  conn.cursor()
+    cur = conn.cursor()
 
     for version in donnees_ligne:
         cur.execute("""
-                    SELECT 1 FROM Version_linge
-                    WHERE num_ligne = ? AND Version_ligne = ?
-                """, (version["num_ligne"], version["Version_ligne"]))
+                    SELECT 1 FROM Version_ligne
+                    WHERE num_ligne = ? AND Variante = ?
+                """, (version["num_ligne"], version["Variante"]))
 
         existe = cur.fetchone()
 
         if existe:
             msgbox.showwarning(
                 "Doublon détecté",
-                f"La ligne {version['num_ligne']} avec la version {version['Version_ligne']} existe déjà."
+                f"La ligne {version['num_ligne']} avec la version {version['Variante']} existe déjà."
             )
         else:
             cur.execute("""
-                    INSERT INTO Version_linge (
-                        num_ligne, Version_ligne
+                    INSERT INTO Version_ligne (
+                        num_ligne, Variante
                     ) VALUES (?, ?)
                 """, (
                     version["num_ligne"],
-                    version["Version_ligne"]
+                    version["Variante"]
                 ))
+            msgbox.showinfo(
+                "Ligne et variante",
+                f"La ligne {version['num_ligne']} avec la version {version['Variante']} a été ajoutée."
+            )
 
     conn.commit()
     conn.close()

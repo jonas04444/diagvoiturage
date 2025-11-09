@@ -239,10 +239,12 @@ def main():
 
     saisieaddlinevar = ctk.CTkLabel(master=tab2, text="entrer variant:")
     saisieaddlinevar.grid(row=2, column=0, pady=10)
-    num_ligne = ctk.CTkEntry(master=tab2)
-    num_ligne.grid(row=2, column=1, pady=10)
+    num_lignevar = ctk.CTkEntry(master=tab2)
+    num_lignevar.grid(row=2, column=1, pady=10)
 
-    button = ctk.CTkButton(master=tab2, text="valider", command=add_line)
+    button = ctk.CTkButton(master=tab2,
+                           text="valider",
+                           command=lambda: add_line([{"num_ligne": int(num_ligne.get()), "Variante": int(num_lignevar.get())}]))
     button.grid(row=5, column=1, pady=20)
 
     """TAB 4: solveur ODM"""
