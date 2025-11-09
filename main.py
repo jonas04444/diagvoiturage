@@ -5,6 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkTabview
 
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
+from sqlite import add_line
 
 
 class TimelineCanvas:
@@ -235,6 +236,14 @@ def main():
     saisieaddline.grid(row=1, column=0, pady=10)
     num_ligne = ctk.CTkEntry(master=tab2)
     num_ligne.grid(row=1, column=1, pady=10)
+
+    saisieaddlinevar = ctk.CTkLabel(master=tab2, text="entrer variant:")
+    saisieaddlinevar.grid(row=2, column=0, pady=10)
+    num_ligne = ctk.CTkEntry(master=tab2)
+    num_ligne.grid(row=2, column=1, pady=10)
+
+    button = ctk.CTkButton(master=tab2, text="valider", command=add_line)
+    button.grid(row=5, column=1, pady=20)
 
     """TAB 4: solveur ODM"""
     tab4.grid_columnconfigure(0, weight=0)
