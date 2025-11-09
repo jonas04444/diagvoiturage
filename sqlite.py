@@ -117,7 +117,10 @@ def add_lieux(donnees_lieux):
                     lieux["description"],
                     lieux["zone"]
                 ))
-            msgbox.showinfo("bien éffectué")
+            msgbox.showinfo(
+                "bien éffectué",
+                f"le lieux {lieux['id_lieux']} est créé."
+            )
     conn.commit()
     conn.close()
 
@@ -218,6 +221,29 @@ def get_trips_from_database(num_ligne=None):
 
     except sqlite3.Error as e:
         raise Exception(f"Erreur base de données: {str(e)}")
+
+
+def get_lignes_from_db():
+    """Récupère toutes les lignes disponibles depuis la base de données"""
+    try:
+        conn = sqlite3.connect("dbdiaggrantt.db")
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT DISTINCT num_ligne, Variante 
+            FROM Version_ligne 
+            ORDER BY num_ligne, Variante
+        """)
+
+        lignes = cur.fetchall()
+        conn.close()
+
+        # Formatage pour l'affichage : "Ligne X - Variante Y"
+        return [f"Ligne {ligne[0]} - Variante {ligne[1]}" for ligne in lignes]
+
+    except sqlite3.Error as e:
+        msgbox.showerror("Erreur DB", f"Impossible de récupérer les lignes: {str(e)}")
+        return ["Aucune ligne disponible"]
 
 #add_trajet(donnees_trajet)
 #add_lieux(donnees_lieux)

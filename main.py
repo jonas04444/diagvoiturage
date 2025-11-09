@@ -5,7 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkTabview
 
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
-from sqlite import add_line
+from sqlite import add_line, get_lignes_from_db, add_lieux
 
 
 class TimelineCanvas:
@@ -204,10 +204,16 @@ def main():
     label = ctk.CTkLabel(master=tab1, text="création voyage")
     label.grid(row=0, column=1,pady=10, sticky="ew")
 
-    saisie1 = ctk.CTkLabel(master=tab1, text="entrer ligne:")
+    saisie1 = ctk.CTkLabel(master=tab1, text="sélectionner ligne:")
     saisie1.grid(row=1, column=0,pady=10)
-    ligne = ctk.CTkEntry(master=tab1)
-    ligne.grid(row=1, column=1,pady=10)
+
+    ligne_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lignes_from_db(),
+        width=200
+    )
+    ligne_dropdown.grid(row=1, column=1, pady=10)
+
 
     saisie2 = ctk.CTkLabel(master=tab1, text="entrer début:")
     saisie2.grid(row=2, column=0,pady=10)
@@ -225,11 +231,11 @@ def main():
     add_data = ctk.CTkButton(master=tab1, text="ajout de données")
     add_data.grid(row=6,column=1, pady=20)
 
-    """TAB 2: création des lignes"""
+    """TAB 2: création des lignes et lieu"""
     tab2.grid_columnconfigure(0, weight=1)
     tab2.grid_columnconfigure(1, weight=1)
 
-    label2 = ctk.CTkLabel(master=tab2, text="Création de ligne")
+    label2 = ctk.CTkLabel(master=tab2, text="Création de ligne et lieu")
     label2.grid(row=0, column=1, pady=10)
 
     saisieaddline = ctk.CTkLabel(master=tab2, text="entrer ligne:")
@@ -246,6 +252,35 @@ def main():
                            text="valider",
                            command=lambda: add_line([{"num_ligne": int(num_ligne.get()), "Variante": int(num_lignevar.get())}]))
     button.grid(row=5, column=1, pady=20)
+
+    saisielieu = ctk.CTkLabel(master=tab2, text="entrer lieu:")
+    saisielieu.grid(row=6, column=0, pady=10)
+    addidlieu = ctk.CTkEntry(master=tab2)
+    addidlieu.grid(row=6, column=1, pady=10)
+
+    saisiecommune = ctk.CTkLabel(master=tab2, text="entrer commune:")
+    saisiecommune.grid(row=7, column=0, pady=10)
+    addcommune = ctk.CTkEntry(master=tab2)
+    addcommune.grid(row=7, column=1, pady=10)
+
+    saisiedescription = ctk.CTkLabel(master=tab2, text="entrer description:")
+    saisiedescription.grid(row=8, column=0, pady=10)
+    adddescription = ctk.CTkEntry(master=tab2)
+    adddescription.grid(row=8, column=1, pady=10)
+
+    saisiezone = ctk.CTkLabel(master=tab2, text="entrer zone:")
+    saisiezone.grid(row=9, column=0, pady=10)
+    addzone = ctk.CTkEntry(master=tab2)
+    addzone.grid(row=9, column=1, pady=10)
+
+    buttonlieu = ctk.CTkButton(master=tab2,
+                               text="ajouter lieu",
+                               command=lambda: add_lieux([{"id_lieux": addidlieu.get().strip(),
+                                                           "commune": addcommune.get().strip(),
+                                                           "description": adddescription.get().strip(),
+                                                           "zone": int(addzone.get())}])
+                               )
+    buttonlieu.grid(row=10, column=1, pady=10)
 
     """TAB 4: solveur ODM"""
     tab4.grid_columnconfigure(0, weight=0)
