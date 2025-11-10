@@ -206,7 +206,6 @@ def main():
 
     saisie1 = ctk.CTkLabel(master=tab1, text="sélectionner ligne:")
     saisie1.grid(row=1, column=0,pady=10)
-
     ligne_dropdown = ctk.CTkComboBox(
         master=tab1,
         values=get_lignes_from_db(),
@@ -214,37 +213,41 @@ def main():
     )
     ligne_dropdown.grid(row=1, column=1, pady=10)
 
+    saisienumvoyage = ctk.CTkLabel(master=tab1, text="entrez numéro de voyage")
+    saisienumvoyage.grid(row=2, column=0, pady=10)
+    numvoyage= ctk.CTkEntry(master=tab1)
+    numvoyage.grid(row=2, column=1,pady=10)
 
     saisie2 = ctk.CTkLabel(master=tab1, text="entrer début:")
-    saisie2.grid(row=2, column=0,pady=10)
+    saisie2.grid(row=3, column=0,pady=10)
     debutarret = ctk.CTkEntry(master=tab1)
-    debutarret.grid(row=2, column=1,pady=10)
+    debutarret.grid(row=3, column=1,pady=10)
 
     saisie3 = ctk.CTkLabel(master=tab1, text="entrer fin:")
-    saisie3.grid(row=3, column=0,pady=10)
+    saisie3.grid(row=4, column=0,pady=10)
     finarret = ctk.CTkEntry(master=tab1)
-    finarret.grid(row=3, column=1,pady=10)
+    finarret.grid(row=4, column=1,pady=10)
 
     saisie4 = ctk.CTkLabel(master=tab1, text="entrer lieux de début:")
-    saisie4.grid(row=4, column=0, pady=10)
+    saisie4.grid(row=5, column=0, pady=10)
     lieux1_dropdown = ctk.CTkComboBox(
         master=tab1,
         values=get_lieux_from_db(),
         width=200
     )
-    lieux1_dropdown.grid(row=4, column=1, pady=10)
+    lieux1_dropdown.grid(row=5, column=1, pady=10)
 
     saisie5 = ctk.CTkLabel(master=tab1, text="entrer lieux de fin:")
-    saisie5.grid(row=5, column=0, pady=10)
+    saisie5.grid(row=6, column=0, pady=10)
     lieux2_dropdown = ctk.CTkComboBox(
         master=tab1,
         values=get_lieux_from_db(),
         width=200
     )
-    lieux2_dropdown.grid(row=5, column=1, pady=10)
+    lieux2_dropdown.grid(row=6, column=1, pady=10)
 
     button= ctk.CTkButton(master=tab1, text="valider")
-    button.grid(row=6,column=1, pady=20)
+    button.grid(row=7, column=1, pady=20)
 
 
 
