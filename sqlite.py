@@ -245,6 +245,27 @@ def get_lignes_from_db():
         msgbox.showerror("Erreur DB", f"Impossible de récupérer les lignes: {str(e)}")
         return ["Aucune ligne disponible"]
 
+def get_lieux_from_db():
+    """récupère tout les lieux dispo dans la db"""
+    try:
+        conn = sqlite3.connect("dbdiaggrantt.db")
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT DISTINCT id_lieux, description
+            FROM lieux
+            ORDER BY id_lieux, description
+        """)
+
+        lieux = cur.fetchall()
+        conn.close()
+
+        return [f"{lieu[0]} - {lieu[1]}" for lieu in lieux]
+
+    except sqlite3.Error as e:
+        msgbox.showerror("Erreur DB", f"Impossible de récupérer les lieux")
+        return ["Aucun lieu disponible"]
+
 #add_trajet(donnees_trajet)
 #add_lieux(donnees_lieux)
 #test = "CHMON"

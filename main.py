@@ -5,7 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkTabview
 
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
-from sqlite import add_line, get_lignes_from_db, add_lieux
+from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db
 
 
 class TimelineCanvas:
@@ -192,7 +192,7 @@ def main():
 
 
     tab1 = tabview.add("Création voyage")
-    tab2 = tabview.add("création ligne")
+    tab2 = tabview.add("création ligne et lieux")
     tab3 = tabview.add("Paramètres")
     tab4 = tabview.add("voiturage")
 
@@ -225,11 +225,28 @@ def main():
     finarret = ctk.CTkEntry(master=tab1)
     finarret.grid(row=3, column=1,pady=10)
 
-    button= ctk.CTkButton(master=tab1, text="valider")
-    button.grid(row=5,column=1, pady=20)
+    saisie4 = ctk.CTkLabel(master=tab1, text="entrer lieux de début:")
+    saisie4.grid(row=4, column=0, pady=10)
+    lieux1_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lieux_from_db(),
+        width=200
+    )
+    lieux1_dropdown.grid(row=4, column=1, pady=10)
 
-    add_data = ctk.CTkButton(master=tab1, text="ajout de données")
-    add_data.grid(row=6,column=1, pady=20)
+    saisie5 = ctk.CTkLabel(master=tab1, text="entrer lieux de fin:")
+    saisie5.grid(row=5, column=0, pady=10)
+    lieux2_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lieux_from_db(),
+        width=200
+    )
+    lieux2_dropdown.grid(row=5, column=1, pady=10)
+
+    button= ctk.CTkButton(master=tab1, text="valider")
+    button.grid(row=6,column=1, pady=20)
+
+
 
     """TAB 2: création des lignes et lieu"""
     tab2.grid_columnconfigure(0, weight=1)
