@@ -36,30 +36,37 @@ def add_line(donnees_ligne):
     conn.commit()
     conn.close()
 
+
 def add_trajet(donnees_trajet):
     conn = sqlite3.connect("dbdiaggrantt.db")
-    conn.execute("PRAGMA foreign_keys = ON")
     cur = conn.cursor()
 
     for trajet in donnees_trajet:
+        # Vérifier que la ligne existe
         cur.execute("""
-            SELECT id_version FROM Version_ligne
+            SELECT num_ligne FROM Version_ligne
             WHERE num_ligne = ? AND Variante = ?
-        """, (trajet["Num_ligne"], trajet["variante"]))
+        """, (trajet["Num_ligne"], trajet["variant"]))
+
         result = cur.fetchone()
 
         if not result:
-            msgbox.showerror("Ligne inconnue", f"❌ La ligne {trajet['Num_ligne']} avec variante {trajet['variante']} n'existe pas.")
-        else:
-            id_version_ligne = result[0]
+            msgbox.showerror(
+                "Ligne inconnue",
+                f"❌ La ligne {trajet['Num_ligne']} avec variante {trajet['variant']} n'existe pas."
+            )
+            continue  # Passe au trajet suivant
 
+        num_ligne = result[0]
+
+        # Vérifier si le trajet existe déjà
         cur.execute("""
             SELECT 1 FROM trajet
-            WHERE Num_ligne = ? AND Num_trajet = ? AND variante = ?
+            WHERE Num_ligne = ? AND Num_trajet = ? AND variant = ?
         """, (
-            id_version_ligne,
+            num_ligne,
             trajet["Num_trajet"],
-            trajet["variante"]
+            trajet["variant"]
         ))
 
         existe = cur.fetchone()
@@ -70,19 +77,22 @@ def add_trajet(donnees_trajet):
                 f"Le trajet ligne {trajet['Num_ligne']} numéro {trajet['Num_trajet']} (variant {trajet['variant']}) existe déjà."
             )
         else:
+            # Insertion du trajet
             cur.execute("""
                 INSERT INTO trajet (
-                    Num_ligne, Num_trajet,
-                    DP_arret, DR_arret, Duree
-                ) VALUES (?, ?, ?, ?, ?)
+                    Num_ligne, Num_trajet, variant,
+                    DP_arret, DR_arret, Heure_Start, Heure_End
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """, (
-                id_version_ligne,
+                num_ligne,
                 trajet["Num_trajet"],
+                trajet["variant"],
                 trajet["DP_arret"],
                 trajet["DR_arret"],
-                trajet["Duree"]
+                trajet["Heure_Start"],
+                trajet["Heure_End"]
             ))
-            msgbox.showinfo("Ajout réussi", f"✔️ Trajet ajouté.")
+            msgbox.showinfo("Ajout réussi", f"✔️ Trajet {trajet['Num_trajet']} ajouté.")
 
     conn.commit()
     conn.close()
@@ -138,26 +148,6 @@ def verif_lieux(test_lieux):
     if not existe:
         msgbox.showwarning("lieu introuvebale","Ce lieux n'existe pas")
     conn.close()
-
-donnees_trajet = [
-    {
-        "Num_ligne": 63,
-        "Num_trajet": 1,
-        "variante": 1,
-        "DP_arret": "CTLEE",
-        "DR_arret": "CTLAA",
-        "Duree": 50
-    }
-]
-donnees_lieux = [
-    {
-        "id_lieux" : "CHMON",
-        "commune" : "Charleroi",
-        "description" : "route de mons",
-        "zone" : 1
-    }
-]
-
 
 def get_trips_from_database(num_ligne=None):
     """

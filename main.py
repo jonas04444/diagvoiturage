@@ -1,11 +1,11 @@
 import tkinter as tk
 from tkinter import messagebox
-
+import sqlite3
 import customtkinter as ctk
 from customtkinter import CTkTabview
 
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
-from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db
+from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet
 
 
 class TimelineCanvas:
@@ -193,7 +193,7 @@ def main():
 
     tab1 = tabview.add("Création voyage")
     tab2 = tabview.add("création ligne et lieux")
-    tab3 = tabview.add("Paramètres")
+    tab3 = tabview.add("liste voyage")
     tab4 = tabview.add("voiturage")
 
     """TAB 1"""
@@ -246,10 +246,18 @@ def main():
     )
     lieux2_dropdown.grid(row=6, column=1, pady=10)
 
-    button= ctk.CTkButton(master=tab1, text="valider")
-    button.grid(row=7, column=1, pady=20)
-
-
+    button = ctk.CTkButton(master=tab1,
+                           text="ajouter un trajet",
+                           command=lambda: add_trajet([{
+                               "Num_ligne": int(ligne_dropdown.get().split()[1]),
+                               "variant": int(ligne_dropdown.get().split()[-1]),
+                               "Num_trajet": int(numvoyage.get()),
+                               "DP_arret": lieux1_dropdown.get().strip(),
+                               "DR_arret": lieux2_dropdown.get().strip(),
+                               "Heure_Start": debutarret.get().strip(),
+                               "Heure_End": finarret.get().strip()
+                           }]))
+    button.grid(row=7, column=1, pady=10)
 
     """TAB 2: création des lignes et lieu"""
     tab2.grid_columnconfigure(0, weight=1)
@@ -301,6 +309,22 @@ def main():
                                                            "zone": int(addzone.get())}])
                                )
     buttonlieu.grid(row=10, column=1, pady=10)
+
+    """TAB 3: liste de selction des voyages"""
+    tab3.grid_columnconfigure(0, weight=0)
+    tab3.grid_columnconfigure(1, weight=1)
+    tab3.grid_rowconfigure(0, weight=0)
+    tab3.grid_rowconfigure(1, weight=1)
+    tab3.grid_rowconfigure(2, weight=0)
+
+    choixligne = ctk.CTkLabel(master=tab3, text="sélection ligne:")
+    choixligne.grid(row=0, column=0, pady=10)
+    ligneselect = ctk.CTkComboBox(
+        master=tab3,
+        values=get_lignes_from_db(),
+        width=200
+    )
+    ligneselect.grid(row=0, column=1, pady=10)
 
     """TAB 4: solveur ODM"""
     tab4.grid_columnconfigure(0, weight=0)
@@ -406,3 +430,4 @@ def main():
     win.mainloop()
 
 main()
+
