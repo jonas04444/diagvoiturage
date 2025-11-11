@@ -1,5 +1,8 @@
+import csv
 import sqlite3
 import tkinter.messagebox as msgbox
+from tkinter import filedialog
+
 from gestion_contrainte import time_to_minutes
 
 def add_line(donnees_ligne):
@@ -255,6 +258,32 @@ def get_lieux_from_db():
     except sqlite3.Error as e:
         msgbox.showerror("Erreur DB", f"Impossible de récupérer les lieux")
         return ["Aucun lieu disponible"]
+
+def charger_csv():
+    """Ouvre une fenêtre pour sélectionner et charger un fichier CSV"""
+    try:
+        fichier = filedialog.askopenfilename(
+            title="Sélectionner un fichier CSV",
+            filetypes=[("Fichiers CSV", "*.csv"), ("Tous les fichiers", "*.*")]
+        )
+
+        if not fichier:
+            return
+
+        with open(fichier, 'r', encoding='utf-8') as f:
+            lecteur = csv.DictReader(f, delimiter=';')  # ✅ Point-virgule
+
+            donnees = []
+            for ligne in lecteur:
+                donnees.append(ligne)
+
+            print(f"✅ {len(donnees)} lignes chargées depuis {fichier}")
+            print(f"Colonnes disponibles: {list(donnees[0].keys()) if donnees else 'Aucune'}")  # ✅ Corrigé
+
+            msgbox.showinfo("Succès", f"{len(donnees)} lignes chargées avec succès")
+
+    except Exception as e:
+        msgbox.showerror("Erreur", f"Impossible de charger le fichier: {str(e)}")
 
 #add_trajet(donnees_trajet)
 #add_lieux(donnees_lieux)

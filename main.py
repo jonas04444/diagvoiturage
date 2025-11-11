@@ -4,36 +4,9 @@ from tkinter import messagebox as msgbox
 import customtkinter as ctk
 from customtkinter import CTkTabview, filedialog
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
-from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet
+from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 
 class TimelineCanvas:
-
-    def charger_csv(self):
-        """Ouvre une fenêtre pour sélectionner et charger un fichier CSV"""
-        try:
-            # Ouvre la boîte de dialogue pour sélectionner le fichier
-            fichier = filedialog.askopenfilename(
-                title="Sélectionner un fichier CSV",
-                filetypes=[("Fichiers CSV", "*.csv"), ("Tous les fichiers", "*.*")]
-            )
-
-            if not fichier:
-                return
-
-            with open(fichier, 'r', encoding='utf-8') as f:
-                lecteur = csv.DictReader(f, delimiter=';')  # ✅ Point-virgule
-
-                donnees = []
-                for ligne in lecteur:
-                    donnees.append(ligne)
-
-                print(f"✅ {len(donnees)} lignes chargées depuis {fichier}")
-                print(f"Colonnes disponibles: {list(donnees[0].keys()) if donnees else 'Aucune'}")  # ✅ Corrigé
-
-                msgbox.showinfo("Succès", f"{len(donnees)} lignes chargées avec succès")
-
-        except Exception as e:
-            msgbox.showerror("Erreur", f"Impossible de charger le fichier: {str(e)}")
 
     def __init__(self, canvas, trips_data, line):
         self.canvas = canvas
@@ -74,7 +47,7 @@ class TimelineCanvas:
         canvas_height = self.canvas.winfo_height()
 
         if canvas_width <= 1 or canvas_height <= 1:
-            messagebox.showerror("Erreur", f"Canvas dimensions invalides: {canvas_width}x{canvas_height}")
+            msgbox.showerror("Erreur", f"Canvas dimensions invalides: {canvas_width}x{canvas_height}")
             return
 
         self._draw_timeline_background()
@@ -287,7 +260,7 @@ def main():
     button_csv = ctk.CTkButton(
         master=tab1,
         text="Charger CSV",
-        command=charger_csv,
+        command=charger_csv(),
         width=200
     )
     button_csv.grid(row=8, column=1, pady=10)
