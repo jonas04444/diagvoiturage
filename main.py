@@ -260,7 +260,7 @@ def main():
     button_csv = ctk.CTkButton(
         master=tab1,
         text="Charger CSV",
-        command=charger_csv(),
+        command=lambda: charger_csv(),
         width=200
     )
     button_csv.grid(row=8, column=1, pady=10)
