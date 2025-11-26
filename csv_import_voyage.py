@@ -1,0 +1,62 @@
+import csv
+import tkinter as tk
+from tkinter import messagebox as msgbox, filedialog
+import customtkinter as ctk
+from pyexpat.errors import messages
+
+
+class CSVimportvoyage:
+    def __init__(self, root: tk.tk):
+        self.root = root
+        self.root.title("Gestionnaire de voyage CSV")
+        self.root.geometry("1400x800")
+
+    def loa_csv(self):
+        """ouvre une boite de dialogue pour selectionner le fichier CSv"""
+        file_path = filedialog.askopenfilename(
+            title="Sélectionner un fichier CSV",
+            filetypes = [("Fichiers CSV", "*.csv"), ("tous les fichiers", "*.*")]
+        )
+
+        if file_path:
+            self.loa_csv(file_path)
+
+    def load_csv(self, file_path: str):
+        """
+        charge fichier CSV
+        :param file_path:
+        :return:
+        """
+        """liste des encodages (proposer par cursor)"""
+        encodings = ['utf-8', 'utf-8-sig', 'windows-1252', 'iso-8859-1', 'latin1', 'cp1252']
+
+        try:
+            last_error = None
+            for encoding in encodings:
+                try:
+                    with open(file_path, 'r', encoding=encoding) as f:
+                        reader = csv.DictReader(f, delimiter=";")
+                        self.csv_headers = reader.fieldnames or []
+                        self.csv_data = list(reader)
+
+                    break
+                except UnicodeDecodeError as e:
+                    last_error = e
+                    continue
+                except Exception as e:
+                    raise e
+
+            if last_error and not self.csv_data:
+                raise UnicodeDecodeError(
+                    last_error.encoding,
+                    last_error.object,
+                    last_error.start,
+                    last_error.end,
+                    f"Aucun encodage ne fonctionne. Essayé: {', '.join(encodings)}"
+                )
+            if not self.csv_data:
+                msgbox.showwarning("Attention","Le fichier CSV est vide.")
+                return
+
+        except:
+            pass
