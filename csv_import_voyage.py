@@ -58,5 +58,21 @@ class CSVimportvoyage:
                 msgbox.showwarning("Attention","Le fichier CSV est vide.")
                 return
 
-        except:
-            pass
+            """Reset des selection"""
+            self.selectec_rows.clear()
+            self.sort_reverse.clear()
+
+            self.populate_table()
+
+            """bouton export"""
+            self.btn_export.config(state=tk.NORMAL)
+            self.btn_save_trajet.config(state=tk.NORMAL)
+
+            msgbox.showinfo("Succès", f"{len(self.csv_data)} lignes chargées avec succès.")
+
+        except FileNotFoundError:
+            msgbox.showerror("Erreur", f"Fichier non trouvé: {file_path}")
+
+        except Exception as e:
+            msgbox.showerror("Erreur", f"Erreur lors du chargement du CSV:\n{str(e)}")
+
