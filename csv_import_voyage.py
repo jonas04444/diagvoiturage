@@ -26,6 +26,7 @@ class CSVimportvoyage:
     def load_csv(self, file_path: str):
         """
         charge fichier CSV
+        
         :param file_path:
         :return:
         """
