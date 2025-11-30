@@ -11,6 +11,8 @@ class CSVimportvoyage:
         self.root.title("Gestionnaire de voyage CSV")
         self.root.geometry("1400x800")
 
+        #donées
+        self.csv_data = List[]
     def loa_csv(self):
         """ouvre une boite de dialogue pour selectionner le fichier CSv"""
         file_path = filedialog.askopenfilename(
@@ -46,6 +48,7 @@ class CSVimportvoyage:
                 except Exception as e:
                     raise e
 
+            #vérif si encodage pas bon
             if last_error and not self.csv_data:
                 raise UnicodeDecodeError(
                     last_error.encoding,
@@ -54,6 +57,7 @@ class CSVimportvoyage:
                     last_error.end,
                     f"Aucun encodage ne fonctionne. Essayé: {', '.join(encodings)}"
                 )
+
             if not self.csv_data:
                 msgbox.showwarning("Attention","Le fichier CSV est vide.")
                 return
@@ -76,3 +80,7 @@ class CSVimportvoyage:
         except Exception as e:
             msgbox.showerror("Erreur", f"Erreur lors du chargement du CSV:\n{str(e)}")
 
+    def populate_table(self):
+        #supp des colonnes existantes
+        for col in self.tree["columns"]:
+            self.tree.heading(col, text="")
