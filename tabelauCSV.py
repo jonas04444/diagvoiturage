@@ -20,7 +20,7 @@ class TableauCSV(ctk.CTkFrame):
             #attention à l'encodage
             with open(chemin_fichier, 'r', encoding='utf-8') as file:
                 lecture = csv.DictReader(file)
-                self.donnee = list(lecture)
+                self.donnees = list(lecture)
 
         except Exception as e:
             msgbox.showerror("Erreur",f"Erreur lors du chargement du CSV : {e}")
@@ -60,7 +60,7 @@ class TableauCSV(ctk.CTkFrame):
         frame_tableau.pack(fill="both", expand=True, padx=10, pady=10)
 
         style = ttk.Style()
-        style.theme_use('dark')
+        style.theme_use('clam')
 
         colonnes = ('Sélection', 'Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
 
@@ -112,3 +112,68 @@ class TableauCSV(ctk.CTkFrame):
         frame_tableau.grid_rowconfigure(0, weight=1)
         frame_tableau.grid_columnconfigure(0, weight=1)
 
+    def remplir_tableau(self):
+        """Remplit le tableau avec les données"""
+        # Exemple de données si le CSV n'est pas chargé
+        if not self.donnees:
+            self.donnees = [
+                {
+                    'Ligne': '1',
+                    'Voy.': '101',
+                    'Début': '08:00',
+                    'Fin': '09:30',
+                    'De': 'Paris',
+                    'Destination': 'Lyon',
+                    'Js srv': 'Lundi'
+                },
+                {
+                    'Ligne': '2',
+                    'Voy.': '102',
+                    'Début': '10:00',
+                    'Fin': '11:30',
+                    'De': 'Lyon',
+                    'Destination': 'Marseille',
+                    'Js srv': 'Mardi'
+                },
+                {
+                    'Ligne': '3',
+                    'Voy.': '103',
+                    'Début': '14:00',
+                    'Fin': '15:45',
+                    'De': 'Marseille',
+                    'Destination': 'Nice',
+                    'Js srv': 'Mercredi'
+                }
+            ]
+        for idx, ligne in enumerate(self.donnees):
+            self.tableau.insert(
+                '',
+                'end',
+                iid=idx,
+                values=(
+                    '☐',  # Case à cocher (vide)
+                    ligne.get('Ligne', ''),
+                    ligne.get('Voy.', ''),
+                    ligne.get('Début', ''),
+                    ligne.get('Fin', ''),
+                    ligne.get('De', ''),
+                    ligne.get('Destination', ''),
+                    ligne.get('Js srv', '')
+                )
+            )
+    def selction_voyages(self):
+        return self.tableau.selection()
+
+class window_tableau_csv(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        self.title("Affichage CSV")
+        self.geometry("1000x600")
+
+        self.tableau_widget = TableauCSV(self, fichie_csv="échantillon voyage BS.csv")
+        self.tableau_widget.pack(fill="both", expand=True)
+
+if __name__ == "__main__":
+    app = window_tableau_csv()
+    app.mainloop()

@@ -11,8 +11,7 @@ class CSVimportvoyage:
         self.root.title("Gestionnaire de voyage CSV")
         self.root.geometry("1400x800")
 
-        #donées
-        self.csv_data = List[]
+
     def loa_csv(self):
         """ouvre une boite de dialogue pour selectionner le fichier CSv"""
         file_path = filedialog.askopenfilename(
@@ -26,7 +25,7 @@ class CSVimportvoyage:
     def load_csv(self, file_path: str):
         """
         charge fichier CSV
-        
+
         :param file_path:
         :return:
         """
