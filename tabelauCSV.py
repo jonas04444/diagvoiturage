@@ -1,6 +1,6 @@
 import customtkinter as ctk
 import csv
-from tkinter import ttk, messagebox as msgbox
+from tkinter import ttk, messagebox as msgbox, filedialog
 import tkinter as tk
 
 class TableauCSV(ctk.CTkFrame):
@@ -25,6 +25,18 @@ class TableauCSV(ctk.CTkFrame):
         except Exception as e:
             msgbox.showerror("Erreur",f"Erreur lors du chargement du CSV : {e}")
             self.donnee = []
+    def selection_csv(self):
+        fichier=filedialog.askopenfilename(
+            title="Sélectionner un fichier CSV",
+            filetypes=[("Fichiers CSV","*.csv"), ("Tous les fichiers","*.*")]
+        )
+
+        if fichier:
+            self.charger_csv(fichier)
+            for item in self.tableau.get_children():
+                self.tableau.delete(item)
+            self.remplir_tableau()
+            msgbox.showinfo("Succès",f"Fichier chargé: {fichier}")
 
     def creer_boutons(self):
         frame_boutons = ctk.CTkFrame(self)
@@ -34,7 +46,7 @@ class TableauCSV(ctk.CTkFrame):
             frame_boutons,
             text="Sélectionner un fichier CSV",
             width=100,
-            command=lambda : msgbox.showinfo("csv chargé")
+            command=lambda: self.selection_csv()
         )
         download_csv.pack(side="left", padx=5)
 
@@ -161,8 +173,9 @@ class TableauCSV(ctk.CTkFrame):
                     ligne.get('Js srv', '')
                 )
             )
-    def selction_voyages(self):
+    def selection_voyages(self):
         return self.tableau.selection()
+
 
 class window_tableau_csv(ctk.CTk):
     def __init__(self):

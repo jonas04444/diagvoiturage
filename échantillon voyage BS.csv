@@ -1,520 +1,256 @@
-Ligne;Via;Direction;De;Début;Fin;·;Voy.;Voiture;InfPub;Prot.;Régul.;Méthode régulation -Voy;Js srv;Util.;Util.2;Note2;NA;Description;Durée;H_Journée_Voyage;PérAnnéeHor;Horaire;Parcours
-C109b;3;Aller;TUBPO;07:03;07:23;LBGAR;1;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;3312;;109b Semaine 1 C2025;9
-C0119;1;Aller;ANJON;07:03;07:58;BMIND;1;119 -  2;1;1;BMIND;Lieu de destination;12345;;;;;;0h55;3309;;119 Semaine 1 C2025;32
-C0173;1;Aller;FOMET;06:03;06:40;CEN05;1;173 -  1;1;1;CEN05;Lieu de destination;12345;;;;;;0h37;3105;;173 Semaine 1 C2025;69
-C0194;1;Aller;THVB1;06:52;08:00;THAT2;1;194 -  1;1;1;THVB1;Lieu d'origine;12345;;;;;;1h08;3305;;194 Semaine 1 C2025;28
-C0091;1;Aller;ANJON;05:30;05:57;CPCEC;1;91 -  3;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;0h27;3102;;91 Semaine 1 C2025;311
-C00M1;1;Aller;MB009;04:41;05:13;MB101;1;M1 -  1;1;1;MB101;Lieu de destination;12345;;;;;;0h32;3504;;M1 Semaine 1 C2025;42
-CM1ab;1;Aller;ANMON;19:40;20:17;CEN19;1;91 - 16;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;3208;;M1ab Semaine 1 C2025;34
-C109b;4;Retour;LBGAR;07:29;07:49;TUBPO;2;109b-  1;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;3312;;109b Semaine 1 C2025;12
-C0173;2;Retour;CEN07;06:54;07:48;PTSNC;2;173 -  1;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3105;;173 Semaine 1 C2025;64
-C0194;2;Retour;THVB1;09:13;09:48;THVB1;2;91 - 10;1;1;THVB1;Lieu d'origine;****5;;;;;;0h35;3308;;194 Semaine 1 C2025;27
-C0091;8;Retour;ANJON;05:55;06:26;MYVES;2;91 -  5;1;1;ANJON;Lieu d'origine;12345;;;;;;0h31;3311;;91 Semaine 1 C2025;328
-C00M1;2;Retour;MB010;05:17;05:53;MB008;2;M1 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3504;;M1 Semaine 1 C2025;46
-CM1ab;2;Retour;CEN07;20:30;21:07;ANMON;2;91 - 16;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;3208;;M1ab Semaine 1 C2025;35
-C109b;3;Aller;TUBPO;07:50;08:10;LBGAR;3;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;3312;;109b Semaine 1 C2025;9
-C0119;1;Aller;ANJON;07:01;07:56;BMIND;3;119 -  1;0;1;BMIND;Lieu de destination;12345;;;;;;0h55;3316;;119 Semaine 1 C2025;32
-C0173;1;Aller;PTSNC;06:40;07:36;CEN05;3;173 -  2;1;1;CEN05;Lieu de destination;12345;;Graphiqueur;C173b;;Correspondance … 7h03 FOMET;0h56;3301;;173 Semaine 1 C2025;65
-C0091;1;Aller;MYVES;05:14;06:12;PTPLA;3;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h58;3101;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;05:14;05:46;MB101;3;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3302;;M1 Semaine 1 C2025;42
-CM1ab;1;Aller;ANMON;20:20;20:57;CEN19;3;173 -  6;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;3205;;M1ab Semaine 1 C2025;34
-C109b;4;Retour;LBGAR;09:09;09:29;TUBPO;4;109b-  1;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;3312;;109b Semaine 1 C2025;12
-C0173;2;Retour;MMPLA;07:45;08:15;FORPE;4;173 -  3;1;1;MMPLA;Lieu d'origine;12345;Info. publique;;;;Limit‚ … FONTAINE L'EVEQUE Rue du P‚tria;0h30;3307;;173 Semaine 1 C2025;49
-C0194;2;Retour;THVB1;11:13;11:48;THVB1;4;91 - 10;1;1;THVB1;Lieu d'origine;****5;;;;;;0h35;3308;;194 Semaine 1 C2025;27
-C0063;6;Retour;GPCHE;07:28;08:05;FOMET;4;63 -  9;1;1;GPCHE;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du P‚tria;0h37;3306;;63 Semaine 2 C2025;84
-C0091;2;Retour;ANJON;05:55;06:39;MYVES;4;91 -  6;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;0h44;3103;;91 Semaine 1 C2025;329
-C00M1;2;Retour;MB010;05:47;06:23;MB008;4;M1 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3302;;M1 Semaine 1 C2025;46
-CM1ab;2;Retour;CEN07;21:15;21:52;ANMON;4;173 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;3205;;M1ab Semaine 1 C2025;35
-C109b;3;Aller;TUBPO;09:37;09:57;LBGAR;5;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;3312;;109b Semaine 1 C2025;9
-C0173;1;Aller;PTSNC;07:40;08:40;CEN05;5;91 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;1h00;3107;;173 Semaine 1 C2025;65
-C0194;3;Aller;THVB1;16:11;17:02;BCEGL;5;194 -  2;1;1;THVB1;Lieu d'origine;12*45;;;;;;0h51;3305;;194 Semaine 1 C2025;29
-C0091;1;Aller;MYVES;05:44;06:54;CPCEC;5;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h10;3104;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;05:29;06:08;MB013;5;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3501;;M1 Semaine 1 C2025;63
-CM1ab;1;Aller;ANMON;21:20;21:57;CEN19;5;91 - 16;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;3208;;M1ab Semaine 1 C2025;34
-C109b;4;Retour;LBGAR;12:09;12:29;TUBPO;6;109b-  2;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;3305;;109b Semaine 1 C2025;12
-C0173;2;Retour;CEN07;07:54;08:50;PTSNC;6;173 -  2;1;1;CEN07;Lieu d'origine;12345;;;;;;0h56;3301;;173 Semaine 1 C2025;64
-C0091;2;Retour;CPCEC;06:00;07:11;MYVES;6;91 -  3;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h11;3102;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;06:17;06:53;MB008;6;M1 -  3;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3502;;M1 Semaine 1 C2025;46
-CM1ab;2;Retour;CEN07;22:15;22:52;ANMON;6;91 - 16;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;3208;;M1ab Semaine 1 C2025;35
-C109b;3;Aller;TUBPO;12:37;12:57;LBGAR;7;109b-  2;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;3305;;109b Semaine 1 C2025;9
-C0173;1;Aller;PTSNC;08:43;09:40;CEN05;7;91 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h57;3103;;173 Semaine 1 C2025;65
-C0091;1;Aller;MYVES;06:14;07:13;PTPLA;7;91 -  4;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h59;3107;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;05:44;06:16;MB101;7;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3502;;M1 Semaine 1 C2025;42
-C109b;2;Retour;LBGAR;15:14;15:57;BMIND;8;109b-  3;1;1;LBGAR;Lieu d'origine;12*45;Graphiqueur;;;;retard‚ de 5' suite … une plainte voyageur pour la sortie ‚cole de Thuin;0h43;3309;;109b Semaine 1 C2025;10
-C0119;2;Retour;BMIND;17:04;17:38;BCTIL;8;119 -  3;1;1;BMIND;Lieu d'origine;12*45;Info. publique;;;;Limit‚ … Bierc‚e R‚sidence le Tilleul;0h34;3316;;119 Semaine 1 C2025;33
-C0173;2;Retour;CEN07;08:54;09:48;PTSNC;8;91 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3107;;173 Semaine 1 C2025;64
-C0091;2;Retour;PTPLA;06:40;07:43;MYVES;8;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h03;3101;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;06:47;07:23;MB008;8;M1 -  4;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3505;;M1 Semaine 1 C2025;46
-C109b;3;Aller;TUBPO;13:20;13:40;LBGAR;9;109b-  2;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;3305;;109b Semaine 1 C2025;9
-C0173;1;Aller;PTSNC;09:44;10:40;CEN05;9;91 -  3;1;1;CEN05;Lieu de destination;12345;;;;;;0h56;3102;;173 Semaine 1 C2025;65
-C0091;1;Aller;MYVES;06:40;07:56;CPCEC;9;91 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h16;3311;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;05:59;06:38;MB013;9;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3503;;M1 Semaine 1 C2025;63
-C109b;2;Retour;LBGAR;16:09;16:52;BMIND;10;109b-  4;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h43;3306;;109b Semaine 1 C2025;10
-C0173;2;Retour;CEN07;09:54;10:48;PTSNC;10;91 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3103;;173 Semaine 1 C2025;64
-C0091;10;Retour;ANJON;07:34;08:02;THHTT;10;91 - 10;1;1;ANJON;Lieu d'origine;12345;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h28;3308;;91 Semaine 1 C2025;295
-C00M1;2;Retour;MB010;07:17;07:53;MB008;10;M1 -  5;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3506;;M1 Semaine 1 C2025;46
-C109b;1;Aller;BMIND;17:10;17:40;LBGAR;11;109b-  4;1;1;BMIND;Lieu d'origine;12*45;;;;;;0h30;3306;;109b Semaine 1 C2025;11
-C0173;1;Aller;PTSNC;10:46;11:40;CEN05;11;91 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;3107;;173 Semaine 1 C2025;65
-C0063;7;Aller;FOMET;06:53;07:53;JUMA1;11;63 -  6;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s et dessert GOSSELIES Ath‚n‚e;1h00;3317;;63 Semaine 2 C2025;89
-C0091;1;Aller;MYVES;07:05;08:14;PTPLA;11;91 -  6;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h09;3103;;91 Semaine 1 C2025;338
-C099b;2;Retour;BMIND;16:13;17:10;NADEP;11;99b-  2;1;1;BMIND;Lieu d'origine;12*45;;;;;;0h57;3312;;99b Semaine 1 C2025;12
-C00M1;1;Aller;MB009;06:14;06:46;MB101;11;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3505;;M1 Semaine 1 C2025;42
-C0173;2;Retour;CEN07;10:54;11:48;PTSNC;12;91 -  3;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3102;;173 Semaine 1 C2025;64
-C0091;2;Retour;CPCEC;06:58;08:20;MYVES;12;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h22;3104;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;07:47;08:23;MB008;12;M2 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3501;;M1 Semaine 1 C2025;46
-C0119;2;Retour;BMIND;16:12;17:24;ANJON;13;109b-  3;1;1;BMIND;Lieu d'origine;12*45;;;;;;1h12;3309;;119 Semaine 1 C2025;34
-C0173;1;Aller;PTSNC;11:46;12:40;CEN05;13;91 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;3103;;173 Semaine 1 C2025;65
-C0063;1;Aller;FOMET;06:54;07:46;JUMA1;13;63 -  7;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s;0h52;3106;;63 Semaine 2 C2025;91
-C0091;1;Aller;MYVES;07:31;08:56;CPCEC;13;91 -  3;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h25;3102;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;06:29;07:08;MB013;13;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3504;;M1 Semaine 1 C2025;63
-C0173;2;Retour;CEN07;11:54;12:48;PTSNC;14;91 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3107;;173 Semaine 1 C2025;64
-C0091;2;Retour;ANJON;07:23;07:59;THHTT;14;91 -  7;1;1;THHTT;Lieu de destination;12345;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h36;3303;;91 Semaine 1 C2025;296
-C00M1;2;Retour;MB010;08:17;08:53;MB008;14;M2 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3503;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;12:46;13:40;CEN05;15;173 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;3201;;173 Semaine 1 C2025;65
-C0091;9;Aller;THHTT;08:04;08:37;ANJON;15;91 - 10;1;1;THHTT;Lieu d'origine;12345;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h33;3308;;91 Semaine 1 C2025;339
-C00M1;1;Aller;MB009;06:44;07:16;MB101;15;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3506;;M1 Semaine 1 C2025;42
-C0173;2;Retour;CEN07;12:54;13:48;PTSNC;16;91 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3103;;173 Semaine 1 C2025;64
-C0091;2;Retour;PTPLA;07:38;08:45;MYVES;16;91 -  9;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h07;3318;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;08:47;09:23;MB008;16;M1 -  5;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3506;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;13:46;14:40;CEN05;17;173 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;3205;;173 Semaine 1 C2025;65
-C0091;1;Aller;MYVES;08:17;09:17;ANMON;17;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination ANDERLUES Monument - Film 91b;1h00;3101;;91 Semaine 1 C2025;340
-C00M2;1;Aller;MB009;06:59;07:38;MB013;17;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3302;;M1 Semaine 1 C2025;63
-C0173;2;Retour;CEN07;13:54;14:48;PTSNC;18;173 -  5;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;3202;;173 Semaine 1 C2025;64
-C0063;2;Retour;JUMA2;07:45;08:39;FOMET;18;63 -  5;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s;0h54;3313;;63 Semaine 2 C2025;81
-C0091;2;Retour;CPCEC;07:58;09:16;MYVES;18;91 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3311;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;09:17;09:53;MB008;18;M1 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3302;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;14:46;15:40;CEN05;19;173 -  7;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;3203;;173 Semaine 1 C2025;65
-C0091;1;Aller;MYVES;08:33;09:44;PTPLA;19;91 -  7;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h11;3303;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;07:14;07:46;MB101;19;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3501;;M1 Semaine 1 C2025;42
-C0173;2;Retour;CEN07;14:54;15:51;PTSNC;20;173 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h57;3205;;173 Semaine 1 C2025;64
-C0091;10;Retour;ANJON;08:54;09:13;THVB1;20;91 - 10;1;1;ANJON;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h19;3308;;91 Semaine 1 C2025;293
-C00M1;2;Retour;MB010;09:47;10:23;MB008;20;M1 -  3;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3502;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;15:55;16:50;CEN05;21;173 -  1;1;1;CEN05;Lieu de destination;12345;;Graphiqueur;C173c;;Sortie ‚coles … 16h00 + d‚placement 10' jusque FOPET;0h55;3207;;173 Semaine 1 C2025;65
-C0091;9;Aller;THVB1;09:48;09:59;LBBO2;21;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h11;3308;;91 Semaine 1 C2025;282
-C00M2;1;Aller;MB009;07:29;08:08;MB013;21;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3502;;M1 Semaine 1 C2025;63
-C0173;2;Retour;CEN07;16:07;17:06;PTSNC;22;173 -  7;1;1;CEN07;Lieu d'origine;12345;;;;;;0h59;3203;;173 Semaine 1 C2025;64
-C0063;2;Retour;JUMA2;08:45;09:36;FOMET;22;63 -  7;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s;0h51;3106;;63 Semaine 2 C2025;81
-C0091;2;Retour;CPCEC;08:58;10:13;MYVES;22;173 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h15;3105;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;10:17;10:53;MB008;22;M1 -  4;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3505;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;16:45;17:40;CEN05;23;173 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h55;3201;;173 Semaine 1 C2025;65
-C0063;3;Aller;FOMET;09:44;10:29;JUMA1;23;63 -  7;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du P‚tria;0h45;3106;;63 Semaine 2 C2025;92
-C0091;1;Aller;MYVES;09:38;10:56;CPCEC;23;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3104;;91 Semaine 1 C2025;337
-C00M1;1;Aller;MB009;07:44;08:16;MB101;23;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3503;;M1 Semaine 1 C2025;42
-C0173;2;Retour;CEN07;17:07;18:04;PTSNC;24;173 -  1;1;1;CEN07;Lieu d'origine;12345;;;;;;0h57;3207;;173 Semaine 1 C2025;64
-C0091;10;Retour;LBBO2;10:02;10:12;THVB1;24;91 - 10;1;1;LBBO2;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h10;3308;;91 Semaine 1 C2025;290
-C00M1;2;Retour;MB010;10:47;11:23;MB008;24;M1 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3504-3607;;M1 Semaine 1 C2025;46
-C0173;1;Aller;PTSNC;17:45;18:40;CEN05;25;173 -  7;1;1;CEN05;Lieu de destination;12345;;;;;;0h55;3203;;173 Semaine 1 C2025;65
-C0041;1;Aller;CHPA9;11:56;12:44;JUMA1;25;63 -  7;1;1;CHPA9;Lieu d'origine;12345;;;;;;0h48;3106;;41 Semaine 1 C2025;63
-C0091;9;Aller;THVB1;10:48;10:59;LBBO2;25;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h11;3308;;91 Semaine 1 C2025;282
-C00M2;1;Aller;MB009;07:59;08:38;MB013;25;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3505;;M1 Semaine 1 C2025;63
-C0173;2;Retour;CEN07;18:07;19:02;PTSNC;26;173 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h55;3201;;173 Semaine 1 C2025;64
-C0091;2;Retour;PTPLA;10:09;11:13;MYVES;26;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h04;3101;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;11:17;11:53;MB008;26;M2 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3501-3604;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;10:38;11:44;PTPLA;27;173 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h06;3105;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;08:14;08:46;MB101;27;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3506;;M1 Semaine 1 C2025;42
-C0173;2;Retour;CEN07;19:07;19:44;FOMET;28;173 -  7;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;3203;;173 Semaine 1 C2025;67
-C0091;10;Retour;LBBO2;11:02;11:12;THVB1;28;91 - 10;1;1;LBBO2;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h10;3308;;91 Semaine 1 C2025;290
-C00M1;2;Retour;MB010;11:47;12:23;MB008;28;M2 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3503-3606;;M1 Semaine 1 C2025;46
-C0173;1;Aller;MYFOY;07:15;07:33;CEN05;29;173 -  3;0;1;CEN05;Lieu de destination;12345;;;;;;0h18;3307;;173 Semaine 1 C2025;68
-C00M2;1;Aller;MB009;08:29;09:08;MB013;29;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3504;;M1 Semaine 1 C2025;63
-C0041;2;Retour;JUMA2;11:00;11:51;CHPA0;30;63 -  7;1;1;JUMA2;Lieu d'origine;12345;;;;;;0h51;3106;;41 Semaine 1 C2025;65
-C0091;2;Retour;CPCEC;10:58;12:13;MYVES;30;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h15;3104;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;12:17;12:53;MB008;30;M1 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3607;;M1 Semaine 1 C2025;46
-C0091;9;Aller;THVB1;11:48;12:12;ANJON;31;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h24;3308;;91 Semaine 1 C2025;309
-C00M1;1;Aller;MB009;08:44;09:16;MB101;31;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3302;;M1 Semaine 1 C2025;42
-C00M1;2;Retour;MB010;12:47;13:23;MB008;32;M1 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3605;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;11:41;12:59;CPCEC;33;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3101-3313;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;08:59;09:38;MB013;33;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3501;;M1 Semaine 1 C2025;63
-C0091;2;Retour;PTPLA;12:09;13:13;MYVES;34;173 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h04;3105-3207;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;13:17;13:53;MB008;34;M1 -  3;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3601;;M1 Semaine 1 C2025;46
-C00M1;1;Aller;MB009;09:14;09:46;MB101;35;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3502;;M1 Semaine 1 C2025;42
-C0091;2;Retour;CPCEC;13:01;14:16;MYVES;36;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h15;3313-3303;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;13:47;14:23;MB008;36;M1 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3607-3317;;M1 Semaine 1 C2025;46
-C0063;3;Aller;FOMET;12:44;13:29;JUMA1;37;63 - 11;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du P‚tria;0h45;3206;;63 Semaine 2 C2025;92
-C00M2;1;Aller;MB009;09:29;10:08;MB013;37;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3503;;M1 Semaine 1 C2025;63
-C0091;2;Retour;PTPLA;14:09;15:14;MYVES;38;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12*45;;;;;;1h05;3307;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;14:17;14:53;MB008;38;M1 -  5;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3603;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;12:38;13:44;PTPLA;39;91 -  2;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12*45;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h06;3104-3307;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;09:44;10:16;MB101;39;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3505;;M1 Semaine 1 C2025;42
-C0091;2;Retour;ANJON;14:56;15:45;MYVES;40;91 - 12;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;0h49;3204;;91 Semaine 1 C2025;329
-C00M1;2;Retour;MB010;14:47;15:23;MB008;40;M2 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3604;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;13:38;14:56;CPCEC;41;173 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3207;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;09:59;10:38;MB013;41;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3506;;M1 Semaine 1 C2025;63
-C0063;4;Retour;JUMA2;13:15;14:03;FOMET;42;63 -  7;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du P‚tria;0h48;3106;;63 Semaine 2 C2025;74
-C0091;10;Retour;THWAI;15:35;15:47;THHTT;42;91 - 15;1;1;THWAI;Lieu d'origine;12*45;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h12;3304;;91 Semaine 1 C2025;292
-C00M1;2;Retour;MB010;15:17;15:53;MB008;42;M1 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3317;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;14:34;15:57;CPCEC;43;173 -  4;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h23;3201;;91 Semaine 1 C2025;337
-C00M1;1;Aller;MB009;10:14;10:46;MB101;43;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3504;;M1 Semaine 1 C2025;42
-C0091;2;Retour;CPCEC;14:57;16:15;MYVES;44;91 - 11;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3318;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;15:47;16:23;MB008;44;M1 -  4;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3602;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;15:06;16:18;PTPLA;45;91 -  1;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h12;3303;;91 Semaine 1 C2025;338
-C00M2;1;Aller;MB009;10:29;11:08;MB013;45;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3302;;M1 Semaine 1 C2025;63
-C0063;4;Retour;JUMA2;14:15;15:03;FOMET;46;63 - 11;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du P‚tria;0h48;3206;;63 Semaine 2 C2025;74
-C0091;2;Retour;PTPLA;15:36;16:45;MYVES;46;173 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h09;3202;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;16:17;16:53;MB008;46;M1 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3605;;M1 Semaine 1 C2025;46
-C0063;1;Aller;FOMET;15:09;16:00;JUMA1;47;63 - 11;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s;0h51;3206;;63 Semaine 2 C2025;91
-C0091;9;Aller;THHTT;15:47;16:09;LBBO2;47;91 - 15;1;1;THHTT;Lieu d'origine;12*45;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h22;3304;;91 Semaine 1 C2025;342
-C00M1;1;Aller;MB009;10:44;11:16;MB101;47;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3501;;M1 Semaine 1 C2025;42
-C0091;2;Retour;CPCEC;15:58;17:18;MYVES;48;91 - 16;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h20;3208;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;16:47;17:23;MB008;48;M1 -  3;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3601;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;15:31;16:57;CPCEC;49;91 - 14;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h26;3607;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;10:59;11:38;MB013;49;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3502;;M1 Semaine 1 C2025;63
-C0091;2;Retour;PTPLA;16:36;17:43;MYVES;50;173 -  6;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h07;3205;;91 Semaine 1 C2025;330
-C00M1;2;Retour;MB010;17:17;17:53;MB008;50;M2 -  2;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3606;;M1 Semaine 1 C2025;46
-C0091;1;Aller;MYVES;15:59;17:22;CPPLA;51;91 -  2;1;1;THATH;Lieu sp‚cifi‚ (arriv‚e);12*45;;;;;;1h23;3307;;91 Semaine 1 C2025;336
-C00M1;1;Aller;MB009;11:14;11:46;MB101;51;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3503;;M1 Semaine 1 C2025;42
-C0091;2;Retour;CPCEC;16:58;18:15;MYVES;52;91 - 14;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h17;3607;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;17:47;18:23;MB008;52;M1 -  5;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3603;;M1 Semaine 1 C2025;46
-C0063;5;Aller;FOMET;16:10;16:46;GPCHE;53;63 - 18;1;1;FOMET;Lieu d'origine;12*45;Info. publique;;;;Via FONTAINE Rue du P‚tria et limit‚ … GOUY-LEZ-PIETON Place Chens‚e;0h36;3313;;63 Semaine 2 C2025;94
-C0091;5;Aller;THHTT;16:21;16:55;ANJON;53;91 - 15;1;1;THHTT;Lieu d'origine;12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h34;3304;;91 Semaine 1 C2025;341
-C00M2;1;Aller;MB009;11:29;12:08;MB013;53;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3505;;M1 Semaine 1 C2025;63
-C0091;2;Retour;CPCEC;17:55;19:11;MYVES;54;91 - 12;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h16;3204;;91 Semaine 1 C2025;324
-C00M1;2;Retour;MB010;18:17;18:53;MB008;54;M2 -  1;1;1;MB010;Lieu d'origine;12345;;;;;;0h36;3604;;M1 Semaine 1 C2025;46
-C0041;1;Aller;CHPA9;17:55;18:40;JUMA1;55;63 - 11;1;1;CHPA9;Lieu d'origine;12345;;;;;;0h45;3206;;41 Semaine 1 C2025;63
-C0091;1;Aller;THHTT;16:14;16:53;ANJON;55;91 - 17;1;1;THATH;Lieu sp‚cifi‚ (arriv‚e);12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h39;3310;;91 Semaine 1 C2025;335
-C00M1;1;Aller;MB009;11:44;12:16;MB101;55;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3607;;M1 Semaine 1 C2025;42
-C0091;2;Retour;CPCEC;19:08;20:23;MYVES;56;173 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h15;3202;;91 Semaine 1 C2025;324
-C0091;1;Aller;MYVES;16:01;17:27;CPCEC;57;91 - 12;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h26;3204;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;11:59;12:38;MB013;57;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3506;;M1 Semaine 1 C2025;63
-C0091;2;Retour;PTPLA;20:23;21:23;MYVES;58;173 -  7;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h00;3203;;91 Semaine 1 C2025;330
-C00M1;1;Aller;MB009;12:14;12:46;MB101;59;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3605;;M1 Semaine 1 C2025;42
-C0091;2;Retour;PTPLA;21:01;22:01;MYVES;60;91 - 12;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h00;3204;;91 Semaine 1 C2025;330
-C0091;1;Aller;MYVES;16:45;18:04;CPCEC;61;91 - 11;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h19;3318;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;12:29;13:08;MB013;61;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3604;;M1 Semaine 1 C2025;63
-C0041;2;Retour;JUMA2;16:30;17:32;CHPA0;62;63 - 11;1;1;JUMA2;Lieu d'origine;12345;;;;;;1h02;3206;;41 Semaine 1 C2025;65
-C0091;3;Aller;LBGAR;17:41;18:00;ANJON;63;109b-  4;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h19;3306;;91 Semaine 1 C2025;313
-C00M1;1;Aller;MB009;12:44;13:16;MB101;63;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3601;;M1 Semaine 1 C2025;42
-C0091;1;Aller;MYVES;17:08;18:26;CPCEC;65;173 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h18;3202;;91 Semaine 1 C2025;337
-C00M2;1;Aller;MB009;12:59;13:38;MB013;65;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3606;;M1 Semaine 1 C2025;63
-C0091;1;Aller;MYVES;17:39;18:56;CPCEC;67;91 - 16;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;;;;;;1h17;3208;;91 Semaine 1 C2025;337
-C00M1;1;Aller;MB009;13:14;13:46;MB101;67;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3607;;M1 Semaine 1 C2025;42
-C0063;2;Retour;JUMA2;19:15;20:00;FOMET;68;63 - 11;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des D‚port‚s;0h45;3206;;63 Semaine 2 C2025;81
-C00M2;2;Retour;MB002;06:09;06:41;MB008;68;M2 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3501;;M1 Semaine 1 C2025;64
-C0091;1;Aller;MYVES;18:18;19:22;PTPLA;69;173 -  6;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h04;3205;;91 Semaine 1 C2025;338
-C00M2;1;Aller;MB009;13:29;14:08;MB013;69;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3602;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;06:39;07:11;MB008;70;M2 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3503;;M1 Semaine 1 C2025;64
-C0063;1;Aller;SOFOR;06:53;07:24;JUMA1;71;63 -  5;1;1;SOFOR;Lieu d'origine;12345;;;;;;0h31;3313;;63 Semaine 2 C2025;71
-C0091;1;Aller;MYVES;19:23;20:20;PTPLA;71;91 - 12;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h57;3204;;91 Semaine 1 C2025;338
-C00M1;1;Aller;MB009;13:44;14:16;MB101;71;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3603;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;07:09;07:41;MB008;72;M1 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3504;;M1 Semaine 1 C2025;64
-C0091;1;Aller;MYVES;20:23;21:20;PTPLA;73;173 -  5;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h57;3202;;91 Semaine 1 C2025;338
-C00M2;1;Aller;MB009;13:59;14:38;MB013;73;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3605;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;07:39;08:11;MB008;74;M1 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3302;;M1 Semaine 1 C2025;64
-C0091;3;Aller;MYVES;21:23;22:02;ANJON;75;173 -  7;1;1;ANJON;Lieu sp‚cifi‚ (arriv‚e);12345;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h39;3203;;91 Semaine 1 C2025;343
-C00M1;1;Aller;MB009;14:14;14:46;MB101;75;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3604;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;08:09;08:41;MB008;76;M1 -  3;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3502;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;14:29;15:08;MB013;77;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3601;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;08:39;09:11;MB008;78;M1 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3505;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;14:44;15:16;MB101;79;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3317;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;09:09;09:41;MB008;80;M1 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3504;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;14:59;15:38;MB013;81;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3606;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;09:39;10:11;MB008;82;M2 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3501;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;15:14;15:46;MB101;83;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3602;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;10:09;10:41;MB008;84;M2 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3503;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;15:29;16:08;MB013;85;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3603;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;10:39;11:11;MB008;86;M1 -  5;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3506;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;15:44;16:16;MB101;87;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3605;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;11:09;11:41;MB008;88;M1 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3302-3605;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;15:59;16:38;MB013;89;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3604;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;11:39;12:11;MB008;90;M1 -  3;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3502-3601;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;16:14;16:46;MB101;91;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3601;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;12:09;12:41;MB008;92;M1 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3505-3602;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;16:29;17:08;MB013;93;M1 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3317;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;12:39;13:11;MB008;94;M1 -  5;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3506-3603;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;16:44;17:16;MB101;95;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3606;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;13:09;13:41;MB008;96;M2 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3604;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;16:59;17:38;MB013;97;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3602;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;13:39;14:11;MB008;98;M2 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3606;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;17:14;17:46;MB101;99;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3603;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;14:09;14:41;MB008;100;M1 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3602;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;17:29;18:08;MB013;101;M1 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3605;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;14:39;15:11;MB008;102;M1 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3605;;M1 Semaine 1 C2025;64
-C00M1;1;Aller;MB009;17:44;18:16;MB101;103;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h32;3604;;M1 Semaine 1 C2025;42
-C00M2;2;Retour;MB002;15:09;15:41;MB008;104;M1 -  3;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3601;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;17:59;18:38;MB013;105;M1 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3601;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;15:39;16:11;MB008;106;M2 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3606;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;18:23;19:02;MB013;107;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3606;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;16:09;16:41;MB008;108;M1 -  5;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3603;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;18:53;19:32;MB013;109;M1 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3602;;M1 Semaine 1 C2025;63
-C00M2;2;Retour;MB002;16:39;17:11;MB008;110;M2 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3604;;M1 Semaine 1 C2025;64
-C00M2;1;Aller;MB009;19:25;20:04;MB013;111;M1 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h39;3603;;M1 Semaine 1 C2025;63
-C0091;2;Retour;ANJON;07:24;08:00;THHTT;112;91 -  8;0;1;THHTT;Lieu de destination;12345;;;;;;0h36;3304;;91 Semaine 1 C2025;296
-C00M2;2;Retour;MB002;17:09;17:41;MB008;112;M1 -  1;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3317;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;17:39;18:11;MB008;114;M1 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3602;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;18:09;18:41;MB008;116;M1 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3605;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;18:39;19:11;MB008;118;M1 -  3;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3601;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;19:10;19:42;MB008;120;M2 -  2;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3606;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;19:40;20:12;MB008;122;M1 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3602;;M1 Semaine 1 C2025;64
-C00M2;2;Retour;MB002;20:10;20:42;MB008;124;M1 -  5;1;1;MB002;Lieu d'origine;12345;;;;;;0h32;3603;;M1 Semaine 1 C2025;64
-C0091;1;Aller;THHTT;15:19;15:58;ANJON;393;91 - 13;0;1;THHTT;Lieu d'origine;12*45;;;;;;0h39;3301;;91 Semaine 1 C2025;335
-C00M2;2;Retour;MB002;08:00;08:29;MJONC;400;M2 -  4;1;1;MB002;Lieu d'origine;12345;;;;;;0h29;3310;;M1 Semaine 1 C2025;66
-C00M2;1;Aller;MJONC;07:24;08:00;MB013;401;M2 -  4;1;1;MB013;Lieu de destination;12345;;;;;;0h36;3310;;M1 Semaine 1 C2025;65
-C00M2;1;Aller;MJONC;07:10;07:46;MB013;501;M2 -  3;1;1;MB013;Lieu de destination;12345;;;;;;0h36;3314;;M1 Semaine 1 C2025;65
-C109a;1;Aller;BMIND;15:07;15:43;CEN03;515;119 -  3;0;1;CEN03;Lieu de destination;****5;;;;;;0h36;3316;;109a Semaine 1 C2025;896
-C00M2;2;Retour;MB002;07:47;08:16;MJONC;520;M2 -  3;1;1;MB002;Lieu d'origine;12345;;;;;;0h29;3314;;M1 Semaine 1 C2025;66
-C00M1;1;Aller;MJONC;15:44;16:13;MB101;521;M1 -  6;0;1;MJONC;Lieu d'origine;12*45;;;;;;0h29;3311;;M1 Semaine 1 C2025;44
-C00M1;2;Retour;MB010;16:14;16:47;MJONC;522;M1 -  6;0;1;MB010;Lieu d'origine;12*45;;;;;;0h33;3311;;M1 Semaine 1 C2025;47
-;;;FOMET;19:44;19:49;PTPLA;78011;173 -  7;0;1;FOMET;Lieu d'origine;12345;;;;;;0h05;3203;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;21:23;21:23;MYVES;78012;173 -  7;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3203;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;15:45;15:45;MYVES;78015;91 - 12;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3204;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;19:11;19:11;MYVES;78016;91 - 12;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3204;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;14:48;14:50;PTPLA;78038;173 -  5;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h02;3202;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;16:45;16:45;MYVES;78039;173 -  5;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3202;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;20:23;20:23;MYVES;78040;173 -  5;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3202;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;16:15;16:15;MYVES;78042;91 - 11;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3318;SCO;choi Sem-N-3 11 C2025;
-;;;LBBO2;16:09;16:19;THHTT;78080;91 - 15;0;1;LBBO2;Lieu d'origine;12*45;;;;;;0h10;3304;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;05:13;05:13;MB010;78102;M1 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;06:46;06:46;MB010;78104;M1 -  4;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;07:23;07:26;MB009;78105;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;08:38;08:38;MB002;78106;M1 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;09:11;09:14;MB009;78107;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;10:16;10:16;MB010;78108;M1 -  4;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;12:08;12:08;MB002;78130;M1 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;13:46;13:46;MB010;78132;M1 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3607;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;14:23;14:26;MB009;78133;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3317;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;15:16;15:16;MB010;78134;M1 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3317;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;15:53;15:56;MB009;78135;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3317;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;17:08;17:08;MB002;78136;M1 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3317;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;05:46;05:46;MB010;78152;M1 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;06:23;06:26;MB009;78153;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;07:38;07:38;MB002;78154;M1 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;08:11;08:14;MB009;78155;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;09:16;09:16;MB010;78156;M1 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;09:53;09:56;MB009;78157;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;11:08;11:08;MB002;78158;M1 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;11:41;11:44;MB009;78159;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;12:46;12:46;MB010;78160;M1 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;13:23;13:26;MB009;78161;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;14:38;14:38;MB002;78162;M1 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;15:11;15:14;MB009;78163;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;16:16;16:16;MB010;78164;M1 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;16:53;16:56;MB009;78165;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;18:08;18:08;MB002;78166;M1 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3605;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;06:16;06:16;MB010;78182;M1 -  3;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;06:53;06:56;MB009;78183;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;08:08;08:08;MB002;78184;M1 -  3;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;08:41;08:44;MB009;78185;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;09:46;09:46;MB010;78186;M1 -  3;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;10:23;10:26;MB009;78187;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;11:38;11:38;MB002;78188;M1 -  3;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;12:11;12:14;MB009;78189;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;13:16;13:16;MB010;78190;M1 -  3;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;13:53;13:56;MB009;78191;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;15:08;15:08;MB002;78192;M1 -  3;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;15:41;15:44;MB009;78193;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;16:46;16:46;MB010;78194;M1 -  3;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;17:23;17:26;MB009;78195;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;18:38;18:38;MB002;78196;M1 -  3;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3601;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;07:16;07:16;MB010;78212;M1 -  5;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;09:08;09:08;MB002;78214;M1 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;09:41;09:44;MB009;78215;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;10:46;10:46;MB010;78216;M1 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;13:11;13:14;MB009;78219;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;14:16;14:16;MB010;78220;M1 -  5;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;14:53;14:56;MB009;78221;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;16:08;16:08;MB002;78222;M1 -  5;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;16:41;16:44;MB009;78223;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;17:46;17:46;MB010;78224;M1 -  5;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;18:23;18:26;MB009;78225;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;20:04;20:04;MB002;78226;M1 -  5;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3603;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;16:13;16:13;MB010;78228;M1 -  6;0;1;MB101;Lieu d'origine;12*45;;;;;;0h00;3311;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;06:08;06:08;MB002;78244;M2 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;06:41;06:44;MB009;78245;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;07:46;07:46;MB010;78246;M2 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;08:23;08:26;MB009;78247;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;09:38;09:38;MB002;78248;M2 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;10:11;10:14;MB009;78249;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;11:16;11:16;MB010;78250;M2 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;11:53;11:56;MB009;78251;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;13:08;13:08;MB002;78252;M2 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;13:41;13:44;MB009;78253;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;14:46;14:46;MB010;78254;M2 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;15:23;15:26;MB009;78255;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;16:38;16:38;MB002;78256;M2 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;17:11;17:14;MB009;78257;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;18:16;18:16;MB010;78258;M2 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3604;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;06:38;06:38;MB002;78274;M2 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;07:11;07:14;MB009;78275;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;08:16;08:16;MB010;78276;M2 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;08:53;08:56;MB009;78277;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;10:08;10:08;MB002;78278;M2 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;10:41;10:44;MB009;78279;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;11:46;11:46;MB010;78280;M2 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;12:23;12:26;MB009;78281;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;13:38;13:38;MB002;78282;M2 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;14:11;14:14;MB009;78283;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;15:38;15:38;MB002;78284;M2 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;16:11;16:14;MB009;78285;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;17:16;17:16;MB010;78286;M2 -  2;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;17:53;17:56;MB009;78287;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;19:02;19:02;MB002;78288;M2 -  2;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3606;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;08:46;08:46;MB010;78306;M1 -  5;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;09:23;09:26;MB009;78307;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;10:38;10:38;MB002;78308;M1 -  5;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;12:16;12:16;MB010;78310;M1 -  1;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3607;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;14:08;14:08;MB002;78312;M1 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;14:41;14:44;MB009;78313;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB101;15:46;15:46;MB010;78314;M1 -  4;0;1;MB101;Lieu d'origine;12345;;;;;;0h00;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;16:23;16:26;MB009;78315;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;17:38;17:38;MB002;78316;M1 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;18:11;18:14;MB009;78317;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;19:32;19:32;MB002;78318;M1 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;08:00;08:00;MB002;78324;M2 -  4;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3310;SCO;choi Sem-N-3 11 C2025;
-;;;LBGAR;12:57;13:15;TUBPO;78336;109b-  2;0;1;LBGAR;Lieu d'origine;12345;;;;;;0h18;3305;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;05:53;05:56;MB009;78441;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;07:08;07:08;MB002;78442;M1 -  1;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;07:41;07:44;MB009;78443;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;07:53;07:56;MB009;78444;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;10:53;10:56;MB009;78445;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;11:11;11:14;MB009;78448;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;12:38;12:38;MB002;78449;M1 -  5;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;11:23;11:26;MB009;78452;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3607;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;12:53;12:56;MB009;78454;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3607;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;12:41;12:44;MB009;78456;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h03;3602;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;06:26;06:26;MYVES;79110;91 -  5;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3311;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;07:43;07:43;MYVES;79142;91 -  1;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3101;SCO;choi Sem-N-3 11 C2025;
-;;;ANMON;09:17;09:25;PTPLA;79143;91 -  1;0;1;ANMON;Lieu d'origine;12345;;;;;;0h08;3101;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;11:13;11:13;MYVES;79145;91 -  1;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3101;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;14:16;14:16;MYVES;79147;91 -  1;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3303;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;08:20;08:20;MYVES;79160;91 -  2;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3104;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;12:13;12:13;MYVES;79162;91 -  2;0;1;MYVES;Lieu d'origine;12*45;;;;;;0h00;3104;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;15:14;15:14;MYVES;79163;91 -  2;0;1;MYVES;Lieu d'origine;12*45;;;;;;0h00;3307;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;07:11;07:11;MYVES;79168;91 -  3;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3102;SCO;choi Sem-N-3 11 C2025;
-;;;CPCEC;08:56;09:02;PTSNC;79169;91 -  3;0;1;CPCEC;Lieu d'origine;12345;;;;;;0h06;3102;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;07:13;07:15;PTSNC;79172;91 -  4;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h02;3107;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;06:39;06:39;MYVES;79177;91 -  6;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3103;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;08:14;08:16;PTSNC;79178;91 -  6;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h02;3103;SCO;choi Sem-N-3 11 C2025;
-;;;THHTT;07:59;08:10;MYVES;79183;91 -  7;0;1;THHTT;Lieu d'origine;12345;;;;;;0h11;3303;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;07:48;07:53;CPCEC;79188;173 -  1;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h05;3105;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;10:13;10:13;MYVES;79190;173 -  1;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3105;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;13:13;13:13;MYVES;79192;173 -  1;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3207;SCO;choi Sem-N-3 11 C2025;
-;;;CPCEC;14:56;15:02;PTSNC;79193;173 -  1;0;1;CPCEC;Lieu d'origine;12345;;;;;;0h06;3207;SCO;choi Sem-N-3 11 C2025;
-;;;CPCEC;15:57;16:03;PTSNC;84231;173 -  4;0;1;CPCEC;Lieu d'origine;12345;;;;;;0h06;3201;SCO;choi Sem-N-3 11 C2025;
-;;;MB013;07:46;07:46;MB002;85967;M2 -  3;0;1;MB013;Lieu d'origine;12345;;;;;;0h00;3314;SCO;choi Sem-N-3 11 C2025;
-;;;CHPA0;17:32;17:32;CHPA9;87112;63 - 11;0;1;CHPA0;Lieu d'origine;12345;;;;;;0h00;3206;SCO;choi Sem-N-3 11 C2025;
-;;;CHPA0;11:51;11:51;CHPA9;87129;63 -  7;0;1;CHPA0;Lieu d'origine;12345;;;;;;0h00;3106;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;13:40;13:53;MYVES;87830;173 -  4;0;1;CEN05;Lieu d'origine;12345;;;;;;0h13;3201;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;07:33;07:39;MMPLA;87940;173 -  3;0;1;CEN05;Lieu d'origine;12345;;;;;;0h06;3307;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;13:36;13:46;PTSNC;88178;173 -  6;0;1;PTSNC;Lieu de destination;12345;;;;;;0h10;3205;SCO;choi Sem-N-3 11 C2025;
-;;;ANMON;21:52;21:56;DAND;88179;173 -  6;0;1;ANMON;Lieu d'origine;12345;;;;;;0h04;3205;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:01;07:01;ANJON;88180;119 -  1;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3316;SCO;choi Sem-N-3 11 C2025;
-;;;BMIND;07:56;08:26;DAND;88181;119 -  1;0;1;BMIND;Lieu d'origine;12345;;;;;;0h30;3316;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:57;16:09;LBGAR;88184;109b-  4;0;1;LBGAR;Lieu de destination;12345;;;;;;0h12;3306;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;18:00;18:00;DAND;88185;109b-  4;0;1;ANJON;Lieu d'origine;12*45;;;;;;0h00;3306;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:03;07:03;ANJON;88190;119 -  2;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3309;SCO;choi Sem-N-3 11 C2025;
-;;;BMIND;07:58;08:28;DAND;88191;119 -  2;0;1;BMIND;Lieu d'origine;12345;;;;;;0h30;3309;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;12:34;12:44;FOMET;88194;63 - 11;0;1;FOMET;Lieu de destination;12345;;;;;;0h10;3206;SCO;choi Sem-N-3 11 C2025;
-;;;FOMET;20:00;20:10;DAND;88195;63 - 11;0;1;FOMET;Lieu d'origine;12345;;;;;;0h10;3206;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:43;16:13;BMIND;88204;99b-  2;0;1;BMIND;Lieu de destination;12*45;;;;;;0h30;3312;SCO;choi Sem-N-3 11 C2025;
-;;;NADEP;17:10;17:39;DAND;88205;99b-  2;0;1;NADEP;Lieu d'origine;12*45;;;;;;0h29;3312;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;14:37;15:07;BMIND;88206;119 -  3;0;1;BMIND;Lieu de destination;****5;;;;;;0h30;3316;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:21;05:29;MB009;88212;M2 -  1;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3501;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;18:53;19:01;DAND;88213;M2 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3604;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;04:33;04:41;MB009;88214;M1 -  1;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3504;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;17:41;17:49;DAND;88215;M1 -  1;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3317;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:06;05:14;MB009;88216;M1 -  2;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3302;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;18:41;18:49;DAND;88217;M1 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3605;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:24;07:24;MJONC;88218;M2 -  4;0;1;MJONC;Lieu de destination;12345;;;;;;0h00;3310;SCO;choi Sem-N-3 11 C2025;
-;;;MJONC;08:29;08:29;DAND;88219;M2 -  4;0;1;MJONC;Lieu d'origine;12345;;;;;;0h00;3310;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:36;06:44;MB009;88220;M1 -  5;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3506;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;20:42;20:50;DAND;88221;M1 -  5;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3603;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:36;05:44;MB009;88222;M1 -  3;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3502;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;19:11;19:19;DAND;88223;M1 -  3;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3601;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:06;06:14;MB009;88224;M1 -  4;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3505;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;20:12;20:20;DAND;88225;M1 -  4;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3602;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:51;05:59;MB009;88226;M2 -  2;0;1;MB009;Lieu de destination;12345;;;;;;0h08;3503;SCO;choi Sem-N-3 11 C2025;
-;;;MB008;19:42;19:50;DAND;88227;M2 -  2;0;1;MB008;Lieu d'origine;12345;;;;;;0h08;3606;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:44;15:44;MJONC;88228;M1 -  6;0;1;MJONC;Lieu de destination;12*45;;;;;;0h00;3311;SCO;choi Sem-N-3 11 C2025;
-;;;MJONC;16:47;16:47;DAND;88229;M1 -  6;0;1;MJONC;Lieu d'origine;12*45;;;;;;0h00;3311;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:59;16:11;THVB1;88230;194 -  2;0;1;THVB1;Lieu de destination;12*45;;;;;;0h12;3305;SCO;choi Sem-N-3 11 C2025;
-;;;BCEGL;17:02;17:22;DAND;88231;194 -  2;0;1;BCEGL;Lieu d'origine;12*45;;;;;;0h20;3305;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:30;06:40;PTSNC;88232;173 -  2;0;1;PTSNC;Lieu de destination;12345;;;;;;0h10;3301;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;08:50;09:00;DAND;88233;173 -  2;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3301;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;16:00;16:10;FOMET;88234;63 - 18;0;1;FOMET;Lieu de destination;12*45;;;;;;0h10;3313;SCO;choi Sem-N-3 11 C2025;
-;;;GPCHE;16:46;17:16;DAND;88235;63 - 18;0;1;GPCHE;Lieu d'origine;12*45;;;;;;0h30;3313;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:00;07:15;MYFOY;88236;173 -  3;0;1;MYFOY;Lieu de destination;12345;;;;;;0h15;3307;SCO;choi Sem-N-3 11 C2025;
-;;;FORPE;08:15;08:25;DAND;88237;173 -  3;0;1;FORPE;Lieu d'origine;12345;;;;;;0h10;3307;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;12:12;12:12;DAND;88241;91 - 10;0;1;ANJON;Lieu d'origine;****5;;;;;;0h00;3308;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:34;07:34;ANJON;88242;91 - 10;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3308;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;08:37;08:37;DAND;88243;91 - 10;0;1;ANJON;Lieu d'origine;12*4*;;;;;;0h00;3308;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:55;05:55;ANJON;88244;91 -  6;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3103;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;13:48;13:58;DAND;88245;91 -  6;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3103;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:40;06:52;THVB1;88246;194 -  1;0;1;THVB1;Lieu de destination;12345;;;;;;0h12;3305;SCO;choi Sem-N-3 11 C2025;
-;;;THAT2;08:00;08:15;DAND;88247;194 -  1;0;1;THAT2;Lieu d'origine;12345;;;;;;0h15;3305;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;14:56;14:56;ANJON;88248;91 - 12;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3204;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;22:01;22:26;DAND;88249;91 - 12;0;1;MYVES;Lieu d'origine;12345;;;;;;0h25;3204;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:24;07:24;ANJON;88250;91 -  8;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3304;SCO;choi Sem-N-3 11 C2025;
-;;;THHTT;08:00;08:15;DAND;88251;91 -  8;0;1;THHTT;Lieu d'origine;12345;;;;;;0h15;3304;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:41;15:58;CPCEC;88252;91 - 16;0;1;CPCEC;Lieu de destination;12345;;;;;;0h17;3208;SCO;choi Sem-N-3 11 C2025;
-;;;ANMON;22:52;22:56;DAND;88253;91 - 16;0;1;ANMON;Lieu d'origine;12345;;;;;;0h04;3208;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;12:36;12:46;PTSNC;88254;173 -  4;0;1;PTSNC;Lieu de destination;12345;;;;;;0h10;3201;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;19:02;19:12;DAND;88255;173 -  4;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3201;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:06;15:31;MYVES;88256;91 - 14;0;1;MYVES;Lieu de destination;12345;;;;;;0h25;3607;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;18:15;18:40;DAND;88257;91 - 14;0;1;MYVES;Lieu d'origine;12345;;;;;;0h25;3607;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;14:36;14:46;PTSNC;88258;173 -  7;0;1;PTSNC;Lieu de destination;12345;;;;;;0h10;3203;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;22:02;22:02;DAND;88259;173 -  7;0;1;ANJON;Lieu d'origine;12345;;;;;;0h00;3203;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:02;15:14;LBGAR;88260;109b-  3;0;1;LBGAR;Lieu de destination;12*45;;;;;;0h12;3309;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;17:24;17:24;DAND;88261;109b-  3;0;1;ANJON;Lieu d'origine;12*45;;;;;;0h00;3309;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;14:40;14:57;CPCEC;88262;91 - 11;0;1;CPCEC;Lieu de destination;12345;;;;;;0h17;3318;SCO;choi Sem-N-3 11 C2025;
-;;;CPCEC;18:04;18:21;DAND;88263;91 - 11;0;1;CPCEC;Lieu d'origine;12345;;;;;;0h17;3318;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:43;06:53;FOMET;88266;63 -  6;0;1;FOMET;Lieu de destination;12345;;;;;;0h10;3317;SCO;choi Sem-N-3 11 C2025;
-;;;JUMA1;07:53;08:16;DAND;88267;63 -  6;0;1;JUMA1;Lieu d'origine;12345;;;;;;0h23;3317;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;11:57;12:09;LBGAR;88268;109b-  2;0;1;LBGAR;Lieu de destination;12345;;;;;;0h12;3305;SCO;choi Sem-N-3 11 C2025;
-;;;LBGAR;13:40;13:52;DAND;88269;109b-  2;0;1;LBGAR;Lieu d'origine;12345;;;;;;0h12;3305;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:44;06:54;FOMET;88270;63 -  7;0;1;FOMET;Lieu de destination;12345;;;;;;0h10;3106;SCO;choi Sem-N-3 11 C2025;
-;;;FOMET;14:03;14:13;DAND;88271;63 -  7;0;1;FOMET;Lieu d'origine;12345;;;;;;0h10;3106;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:33;06:53;SOFOR;88272;63 -  5;0;1;SOFOR;Lieu de destination;12345;;;;;;0h20;3313;SCO;choi Sem-N-3 11 C2025;
-;;;FOMET;08:39;08:49;DAND;88273;63 -  5;0;1;FOMET;Lieu d'origine;12345;;;;;;0h10;3313;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:10;07:10;MJONC;88274;M2 -  3;0;1;MJONC;Lieu de destination;12345;;;;;;0h00;3314;SCO;choi Sem-N-3 11 C2025;
-;;;MJONC;08:16;08:16;DAND;88275;M2 -  3;0;1;MJONC;Lieu d'origine;12345;;;;;;0h00;3314;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:28;15:35;THWAI;88276;91 - 15;0;1;THWAI;Lieu de destination;12*45;;;;;;0h07;3304;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;16:55;16:55;DAND;88277;91 - 15;0;1;ANJON;Lieu d'origine;12*45;;;;;;0h00;3304;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:59;16:14;THHTT;88278;91 - 17;0;1;THHTT;Lieu de destination;12*45;;;;;;0h15;3310;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;16:53;16:53;DAND;88279;91 - 17;0;1;ANJON;Lieu d'origine;12*45;;;;;;0h00;3310;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:58;07:28;GPCHE;88280;63 -  9;0;1;GPCHE;Lieu de destination;12345;;;;;;0h30;3306;SCO;choi Sem-N-3 11 C2025;
-;;;FOMET;08:05;08:15;DAND;88281;63 -  9;0;1;FOMET;Lieu d'origine;12345;;;;;;0h10;3306;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;15:04;15:19;THHTT;88282;91 - 13;0;1;THHTT;Lieu de destination;12*45;;;;;;0h15;3301;SCO;choi Sem-N-3 11 C2025;
-;;;ANJON;15:58;15:58;DAND;88283;91 - 13;0;1;ANJON;Lieu d'origine;12*45;;;;;;0h00;3301;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;06:37;07:03;TUBPO;88284;109b-  1;0;1;TUBPO;Lieu de destination;12345;;;;;;0h26;3312;SCO;choi Sem-N-3 11 C2025;
-;;;LBGAR;09:57;10:09;DAND;88285;109b-  1;0;1;LBGAR;Lieu d'origine;12345;;;;;;0h12;3312;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:53;06:03;FOMET;88352;173 -  1;0;1;FOMET;Lieu de destination;12345;;;;;;0h10;3105;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;18:04;18:14;DAND;88353;173 -  1;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3207;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;17:18;17:18;MYVES;90441;91 - 16;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3208;SCO;choi Sem-N-3 11 C2025;
-;;;CPCEC;18:56;19:10;ANMON;90442;91 - 16;0;1;CPCEC;Lieu d'origine;12345;;;;;;0h14;3208;SCO;choi Sem-N-3 11 C2025;
-;;;CEN03;15:43;16:17;BMIND;90472;119 -  3;0;1;CEN03;Lieu d'origine;****5;;;;;;0h34;3316;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;15:51;15:53;PTPLA;90501;173 -  6;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h02;3205;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;17:43;17:43;MYVES;90502;173 -  6;0;1;MYVES;Lieu d'origine;12345;;;;;;0h00;3205;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;19:22;19:31;ANMON;90503;173 -  6;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h09;3205;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;16:34;17:04;BMIND;90509;119 -  3;0;1;BMIND;Lieu de destination;12*4*;;;;;;0h30;3316;SCO;choi Sem-N-3 11 C2025;
-;;;BCTIL;17:38;17:55;DAND;90510;119 -  3;0;1;BCTIL;Lieu d'origine;12*45;;;;;;0h17;3316;SCO;choi Sem-N-3 11 C2025;
-;;;CEN19;20:57;20:57;CEN07;90572;173 -  6;0;1;CEN19;Lieu d'origine;12345;;;;;;0h00;3205;SCO;choi Sem-N-3 11 C2025;
-;;;CEN19;21:57;21:57;CEN07;90573;91 - 16;0;1;CEN19;Lieu d'origine;12345;;;;;;0h00;3208;SCO;choi Sem-N-3 11 C2025;
-;;;CEN19;20:17;20:17;CEN07;90574;91 - 16;0;1;CEN19;Lieu d'origine;12345;;;;;;0h00;3208;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;15:40;15:40;CEN07;90662;173 -  7;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3203;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;08:40;08:40;CEN07;90663;91 -  4;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3107;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;07:36;07:36;CEN07;90664;173 -  2;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3301;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;09:40;09:40;CEN07;90665;91 -  6;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3103;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;11:40;11:40;CEN07;90666;91 -  4;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3107;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;14:40;14:40;CEN07;90667;173 -  6;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3205;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;06:40;06:40;CEN07;90668;173 -  1;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3105;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;17:40;17:40;CEN07;90669;173 -  4;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3201;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;18:40;18:40;CEN07;90670;173 -  7;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3203;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;10:40;10:40;CEN07;90671;91 -  3;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3102;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;12:40;12:40;CEN07;90672;91 -  6;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3103;SCO;choi Sem-N-3 11 C2025;
-;;;CEN05;16:50;16:50;CEN07;90673;173 -  1;0;1;CEN05;Lieu d'origine;12345;;;;;;0h00;3207;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;13:29;13:54;CEN07;90700;173 -  5;0;1;CEN07;Lieu de destination;12345;;;;;;0h25;3202;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;21:20;21:32;DAND;90701;173 -  5;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h12;3202;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:23;07:23;ANJON;91102;91 -  7;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3303;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;09:44;09:56;DAND;91103;91 -  7;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h12;3303;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:55;05:55;ANJON;91104;91 -  5;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3311;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;09:16;09:41;DAND;91105;91 -  5;0;1;MYVES;Lieu d'origine;12345;;;;;;0h25;3311;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;04:49;05:14;MYVES;91106;91 -  1;0;1;MYVES;Lieu de destination;12345;;;;;;0h25;3101;SCO;choi Sem-N-3 11 C2025;
-;;;PTPLA;16:18;16:30;DAND;91107;91 -  1;0;1;PTPLA;Lieu d'origine;12345;;;;;;0h12;3303;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;07:26;07:38;PTPLA;91108;91 -  9;0;1;PTPLA;Lieu de destination;12345;;;;;;0h12;3318;SCO;choi Sem-N-3 11 C2025;
-;;;MYVES;08:45;09:10;DAND;91109;91 -  9;0;1;MYVES;Lieu d'origine;12345;;;;;;0h25;3318;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:49;06:14;MYVES;91110;91 -  4;0;1;MYVES;Lieu de destination;12345;;;;;;0h25;3107;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;12:48;12:58;DAND;91111;91 -  4;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3107;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:19;05:44;MYVES;91112;91 -  2;0;1;MYVES;Lieu de destination;12345;;;;;;0h25;3104;SCO;choi Sem-N-3 11 C2025;
-;;;CPPLA;17:22;17:37;DAND;91113;91 -  2;0;1;CPPLA;Lieu d'origine;12*45;;;;;;0h15;3307;SCO;choi Sem-N-3 11 C2025;
-;;;DAND;05:30;05:30;ANJON;91114;91 -  3;0;1;ANJON;Lieu de destination;12345;;;;;;0h00;3102;SCO;choi Sem-N-3 11 C2025;
-;;;PTSNC;11:48;11:58;DAND;91115;91 -  3;0;1;PTSNC;Lieu d'origine;12345;;;;;;0h10;3102;SCO;choi Sem-N-3 11 C2025;
+ï»¿Ligne;Voy.;DÃ©but;Fin;De;Ã€;Js srv
+C109b;1;07:03;07:23;TUBPO;LBGAR;12345
+C0119;1;07:03;07:58;ANJON;BMIND;12345
+C0173;1;06:03;06:40;FOMET;CEN05;12345
+C0194;1;06:52;08:00;THVB1;THAT2;12345
+C0091;1;05:30;05:57;ANJON;CPCEC;12345
+C00M1;1;04:41;05:13;MB009;MB101;12345
+CM1ab;1;19:40;20:17;ANMON;CEN19;12345
+C109b;2;07:29;07:49;LBGAR;TUBPO;12345
+C0173;2;06:54;07:48;CEN07;PTSNC;12345
+C0194;2;09:13;09:48;THVB1;THVB1;****5
+C0091;2;05:55;06:26;ANJON;MYVES;12345
+C00M1;2;05:17;05:53;MB010;MB008;12345
+CM1ab;2;20:30;21:07;CEN07;ANMON;12345
+C109b;3;07:50;08:10;TUBPO;LBGAR;12345
+C0119;3;07:01;07:56;ANJON;BMIND;12345
+C0173;3;06:40;07:36;PTSNC;CEN05;12345
+C0091;3;05:14;06:12;MYVES;PTPLA;12345
+C00M1;3;05:14;05:46;MB009;MB101;12345
+CM1ab;3;20:20;20:57;ANMON;CEN19;12345
+C109b;4;09:09;09:29;LBGAR;TUBPO;12345
+C0173;4;07:45;08:15;MMPLA;FORPE;12345
+C0194;4;11:13;11:48;THVB1;THVB1;****5
+C0063;4;07:28;08:05;GPCHE;FOMET;12345
+C0091;4;05:55;06:39;ANJON;MYVES;12345
+C00M1;4;05:47;06:23;MB010;MB008;12345
+CM1ab;4;21:15;21:52;CEN07;ANMON;12345
+C109b;5;09:37;09:57;TUBPO;LBGAR;12345
+C0173;5;07:40;08:40;PTSNC;CEN05;12345
+C0194;5;16:11;17:02;THVB1;BCEGL;12*45
+C0091;5;05:44;06:54;MYVES;CPCEC;12345
+C00M2;5;05:29;06:08;MB009;MB013;12345
+CM1ab;5;21:20;21:57;ANMON;CEN19;12345
+C109b;6;12:09;12:29;LBGAR;TUBPO;12345
+C0173;6;07:54;08:50;CEN07;PTSNC;12345
+C0091;6;06:00;07:11;CPCEC;MYVES;12345
+C00M1;6;06:17;06:53;MB010;MB008;12345
+CM1ab;6;22:15;22:52;CEN07;ANMON;12345
+C109b;7;12:37;12:57;TUBPO;LBGAR;12345
+C0173;7;08:43;09:40;PTSNC;CEN05;12345
+C0091;7;06:14;07:13;MYVES;PTPLA;12345
+C00M1;7;05:44;06:16;MB009;MB101;12345
+C109b;8;15:14;15:57;LBGAR;BMIND;12*45
+C0119;8;17:04;17:38;BMIND;BCTIL;12*45
+C0173;8;08:54;09:48;CEN07;PTSNC;12345
+C0091;8;06:40;07:43;PTPLA;MYVES;12345
+C00M1;8;06:47;07:23;MB010;MB008;12345
+C109b;9;13:20;13:40;TUBPO;LBGAR;12345
+C0173;9;09:44;10:40;PTSNC;CEN05;12345
+C0091;9;06:40;07:56;MYVES;CPCEC;12345
+C00M2;9;05:59;06:38;MB009;MB013;12345
+C109b;10;16:09;16:52;LBGAR;BMIND;12345
+C0173;10;09:54;10:48;CEN07;PTSNC;12345
+C0091;10;07:34;08:02;ANJON;THHTT;12345
+C00M1;10;07:17;07:53;MB010;MB008;12345
+C109b;11;17:10;17:40;BMIND;LBGAR;12*45
+C0173;11;10:46;11:40;PTSNC;CEN05;12345
+C0063;11;06:53;07:53;FOMET;JUMA1;12345
+C0091;11;07:05;08:14;MYVES;PTPLA;12345
+C099b;11;16:13;17:10;BMIND;NADEP;12*45
+C00M1;11;06:14;06:46;MB009;MB101;12345
+C0173;12;10:54;11:48;CEN07;PTSNC;12345
+C0091;12;06:58;08:20;CPCEC;MYVES;12345
+C00M1;12;07:47;08:23;MB010;MB008;12345
+C0119;13;16:12;17:24;BMIND;ANJON;12*45
+C0173;13;11:46;12:40;PTSNC;CEN05;12345
+C0063;13;06:54;07:46;FOMET;JUMA1;12345
+C0091;13;07:31;08:56;MYVES;CPCEC;12345
+C00M2;13;06:29;07:08;MB009;MB013;12345
+C0173;14;11:54;12:48;CEN07;PTSNC;12345
+C0091;14;07:23;07:59;ANJON;THHTT;12345
+C00M1;14;08:17;08:53;MB010;MB008;12345
+C0173;15;12:46;13:40;PTSNC;CEN05;12345
+C0091;15;08:04;08:37;THHTT;ANJON;12345
+C00M1;15;06:44;07:16;MB009;MB101;12345
+C0173;16;12:54;13:48;CEN07;PTSNC;12345
+C0091;16;07:38;08:45;PTPLA;MYVES;12345
+C00M1;16;08:47;09:23;MB010;MB008;12345
+C0173;17;13:46;14:40;PTSNC;CEN05;12345
+C0091;17;08:17;09:17;MYVES;ANMON;12345
+C00M2;17;06:59;07:38;MB009;MB013;12345
+C0173;18;13:54;14:48;CEN07;PTSNC;12345
+C0063;18;07:45;08:39;JUMA2;FOMET;12345
+C0091;18;07:58;09:16;CPCEC;MYVES;12345
+C00M1;18;09:17;09:53;MB010;MB008;12345
+C0173;19;14:46;15:40;PTSNC;CEN05;12345
+C0091;19;08:33;09:44;MYVES;PTPLA;12345
+C00M1;19;07:14;07:46;MB009;MB101;12345
+C0173;20;14:54;15:51;CEN07;PTSNC;12345
+C0091;20;08:54;09:13;ANJON;THVB1;****5
+C00M1;20;09:47;10:23;MB010;MB008;12345
+C0173;21;15:55;16:50;PTSNC;CEN05;12345
+C0091;21;09:48;09:59;THVB1;LBBO2;****5
+C00M2;21;07:29;08:08;MB009;MB013;12345
+C0173;22;16:07;17:06;CEN07;PTSNC;12345
+C0063;22;08:45;09:36;JUMA2;FOMET;12345
+C0091;22;08:58;10:13;CPCEC;MYVES;12345
+C00M1;22;10:17;10:53;MB010;MB008;12345
+C0173;23;16:45;17:40;PTSNC;CEN05;12345
+C0063;23;09:44;10:29;FOMET;JUMA1;12345
+C0091;23;09:38;10:56;MYVES;CPCEC;12345
+C00M1;23;07:44;08:16;MB009;MB101;12345
+C0173;24;17:07;18:04;CEN07;PTSNC;12345
+C0091;24;10:02;10:12;LBBO2;THVB1;****5
+C00M1;24;10:47;11:23;MB010;MB008;12345
+C0173;25;17:45;18:40;PTSNC;CEN05;12345
+C0041;25;11:56;12:44;CHPA9;JUMA1;12345
+C0091;25;10:48;10:59;THVB1;LBBO2;****5
+C00M2;25;07:59;08:38;MB009;MB013;12345
+C0173;26;18:07;19:02;CEN07;PTSNC;12345
+C0091;26;10:09;11:13;PTPLA;MYVES;12345
+C00M1;26;11:17;11:53;MB010;MB008;12345
+C0091;27;10:38;11:44;MYVES;PTPLA;12345
+C00M1;27;08:14;08:46;MB009;MB101;12345
+C0173;28;19:07;19:44;CEN07;FOMET;12345
+C0091;28;11:02;11:12;LBBO2;THVB1;****5
+C00M1;28;11:47;12:23;MB010;MB008;12345
+C0173;29;07:15;07:33;MYFOY;CEN05;12345
+C00M2;29;08:29;09:08;MB009;MB013;12345
+C0041;30;11:00;11:51;JUMA2;CHPA0;12345
+C0091;30;10:58;12:13;CPCEC;MYVES;12345
+C00M1;30;12:17;12:53;MB010;MB008;12345
+C0091;31;11:48;12:12;THVB1;ANJON;****5
+C00M1;31;08:44;09:16;MB009;MB101;12345
+C00M1;32;12:47;13:23;MB010;MB008;12345
+C0091;33;11:41;12:59;MYVES;CPCEC;12345
+C00M2;33;08:59;09:38;MB009;MB013;12345
+C0091;34;12:09;13:13;PTPLA;MYVES;12345
+C00M1;34;13:17;13:53;MB010;MB008;12345
+C00M1;35;09:14;09:46;MB009;MB101;12345
+C0091;36;13:01;14:16;CPCEC;MYVES;12345
+C00M1;36;13:47;14:23;MB010;MB008;12345
+C0063;37;12:44;13:29;FOMET;JUMA1;12345
+C00M2;37;09:29;10:08;MB009;MB013;12345
+C0091;38;14:09;15:14;PTPLA;MYVES;12*45
+C00M1;38;14:17;14:53;MB010;MB008;12345
+C0091;39;12:38;13:44;MYVES;PTPLA;12*45
+C00M1;39;09:44;10:16;MB009;MB101;12345
+C0091;40;14:56;15:45;ANJON;MYVES;12345
+C00M1;40;14:47;15:23;MB010;MB008;12345
+C0091;41;13:38;14:56;MYVES;CPCEC;12345
+C00M2;41;09:59;10:38;MB009;MB013;12345
+C0063;42;13:15;14:03;JUMA2;FOMET;12345
+C0091;42;15:35;15:47;THWAI;THHTT;12*45
+C00M1;42;15:17;15:53;MB010;MB008;12345
+C0091;43;14:34;15:57;MYVES;CPCEC;12345
+C00M1;43;10:14;10:46;MB009;MB101;12345
+C0091;44;14:57;16:15;CPCEC;MYVES;12345
+C00M1;44;15:47;16:23;MB010;MB008;12345
+C0091;45;15:06;16:18;MYVES;PTPLA;12345
+C00M2;45;10:29;11:08;MB009;MB013;12345
+C0063;46;14:15;15:03;JUMA2;FOMET;12345
+C0091;46;15:36;16:45;PTPLA;MYVES;12345
+C00M1;46;16:17;16:53;MB010;MB008;12345
+C0063;47;15:09;16:00;FOMET;JUMA1;12345
+C0091;47;15:47;16:09;THHTT;LBBO2;12*45
+C00M1;47;10:44;11:16;MB009;MB101;12345
+C0091;48;15:58;17:18;CPCEC;MYVES;12345
+C00M1;48;16:47;17:23;MB010;MB008;12345
+C0091;49;15:31;16:57;MYVES;CPCEC;12345
+C00M2;49;10:59;11:38;MB009;MB013;12345
+C0091;50;16:36;17:43;PTPLA;MYVES;12345
+C00M1;50;17:17;17:53;MB010;MB008;12345
+C0091;51;15:59;17:22;MYVES;CPPLA;12*45
+C00M1;51;11:14;11:46;MB009;MB101;12345
+C0091;52;16:58;18:15;CPCEC;MYVES;12345
+C00M1;52;17:47;18:23;MB010;MB008;12345
+C0063;53;16:10;16:46;FOMET;GPCHE;12*45
+C0091;53;16:21;16:55;THHTT;ANJON;12*45
+C00M2;53;11:29;12:08;MB009;MB013;12345
+C0091;54;17:55;19:11;CPCEC;MYVES;12345
+C00M1;54;18:17;18:53;MB010;MB008;12345
+C0041;55;17:55;18:40;CHPA9;JUMA1;12345
+C0091;55;16:14;16:53;THHTT;ANJON;12*45
+C00M1;55;11:44;12:16;MB009;MB101;12345
+C0091;56;19:08;20:23;CPCEC;MYVES;12345
+C0091;57;16:01;17:27;MYVES;CPCEC;12345
+C00M2;57;11:59;12:38;MB009;MB013;12345
+C0091;58;20:23;21:23;PTPLA;MYVES;12345
+C00M1;59;12:14;12:46;MB009;MB101;12345
+C0091;60;21:01;22:01;PTPLA;MYVES;12345
+C0091;61;16:45;18:04;MYVES;CPCEC;12345
+C00M2;61;12:29;13:08;MB009;MB013;12345
+C0041;62;16:30;17:32;JUMA2;CHPA0;12345
+C0091;63;17:41;18:00;LBGAR;ANJON;12*45
+C00M1;63;12:44;13:16;MB009;MB101;12345
+C0091;65;17:08;18:26;MYVES;CPCEC;12345
+C00M2;65;12:59;13:38;MB009;MB013;12345
+C0091;67;17:39;18:56;MYVES;CPCEC;12345
+C00M1;67;13:14;13:46;MB009;MB101;12345
+C0063;68;19:15;20:00;JUMA2;FOMET;12345
+C00M2;68;06:09;06:41;MB002;MB008;12345
+C0091;69;18:18;19:22;MYVES;PTPLA;12345
+C00M2;69;13:29;14:08;MB009;MB013;12345
+C00M2;70;06:39;07:11;MB002;MB008;12345
+C0063;71;06:53;07:24;SOFOR;JUMA1;12345
+C0091;71;19:23;20:20;MYVES;PTPLA;12345
+C00M1;71;13:44;14:16;MB009;MB101;12345
+C00M2;72;07:09;07:41;MB002;MB008;12345
+C0091;73;20:23;21:20;MYVES;PTPLA;12345
+C00M2;73;13:59;14:38;MB009;MB013;12345
+C00M2;74;07:39;08:11;MB002;MB008;12345
+C0091;75;21:23;22:02;MYVES;ANJON;12345
+C00M1;75;14:14;14:46;MB009;MB101;12345
+C00M2;76;08:09;08:41;MB002;MB008;12345
+C00M2;77;14:29;15:08;MB009;MB013;12345
+C00M2;78;08:39;09:11;MB002;MB008;12345
+C00M1;79;14:44;15:16;MB009;MB101;12345
+C00M2;80;09:09;09:41;MB002;MB008;12345
+C00M2;81;14:59;15:38;MB009;MB013;12345
+C00M2;82;09:39;10:11;MB002;MB008;12345
+C00M1;83;15:14;15:46;MB009;MB101;12345
+C00M2;84;10:09;10:41;MB002;MB008;12345
+C00M2;85;15:29;16:08;MB009;MB013;12345
+C00M2;86;10:39;11:11;MB002;MB008;12345
+C00M1;87;15:44;16:16;MB009;MB101;12345
+C00M2;88;11:09;11:41;MB002;MB008;12345
+C00M2;89;15:59;16:38;MB009;MB013;12345
+C00M2;90;11:39;12:11;MB002;MB008;12345
+C00M1;91;16:14;16:46;MB009;MB101;12345
+C00M2;92;12:09;12:41;MB002;MB008;12345
+C00M2;93;16:29;17:08;MB009;MB013;12345
+C00M2;94;12:39;13:11;MB002;MB008;12345
+C00M1;95;16:44;17:16;MB009;MB101;12345
+C00M2;96;13:09;13:41;MB002;MB008;12345
+C00M2;97;16:59;17:38;MB009;MB013;12345
+C00M2;98;13:39;14:11;MB002;MB008;12345
+C00M1;99;17:14;17:46;MB009;MB101;12345
+C00M2;100;14:09;14:41;MB002;MB008;12345
+C00M2;101;17:29;18:08;MB009;MB013;12345
+C00M2;102;14:39;15:11;MB002;MB008;12345
+C00M1;103;17:44;18:16;MB009;MB101;12345
+C00M2;104;15:09;15:41;MB002;MB008;12345
+C00M2;105;17:59;18:38;MB009;MB013;12345
+C00M2;106;15:39;16:11;MB002;MB008;12345
+C00M2;107;18:23;19:02;MB009;MB013;12345
+C00M2;108;16:09;16:41;MB002;MB008;12345
+C00M2;109;18:53;19:32;MB009;MB013;12345
+C00M2;110;16:39;17:11;MB002;MB008;12345
+C00M2;111;19:25;20:04;MB009;MB013;12345
+C0091;112;07:24;08:00;ANJON;THHTT;12345
+C00M2;112;17:09;17:41;MB002;MB008;12345
+C00M2;114;17:39;18:11;MB002;MB008;12345
+C00M2;116;18:09;18:41;MB002;MB008;12345
+C00M2;118;18:39;19:11;MB002;MB008;12345
+C00M2;120;19:10;19:42;MB002;MB008;12345
+C00M2;122;19:40;20:12;MB002;MB008;12345
+C00M2;124;20:10;20:42;MB002;MB008;12345
+C0091;393;15:19;15:58;THHTT;ANJON;12*45
+C00M2;400;08:00;08:29;MB002;MJONC;12345
+C00M2;401;07:24;08:00;MJONC;MB013;12345
+C00M2;501;07:10;07:46;MJONC;MB013;12345
+C109a;515;15:07;15:43;BMIND;CEN03;****5
+C00M2;520;07:47;08:16;MB002;MJONC;12345
+C00M1;521;15:44;16:13;MJONC;MB101;12*45
+C00M1;522;16:14;16:47;MB010;MJONC;12*45
