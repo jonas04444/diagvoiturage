@@ -7,7 +7,8 @@ class TableauCSV(ctk.CTkFrame):
     def __init__(self, parent, fichie_csv=None):
         super().__init__(parent)
         self.fichier_csv = fichie_csv
-        self.donnee = []
+        self.donnees = []
+        self.tableau = None
 
         if fichie_csv:
             self.charger_csv(fichie_csv)
@@ -18,13 +19,20 @@ class TableauCSV(ctk.CTkFrame):
     def charger_csv(self, chemin_fichier):
         try:
             #attention à l'encodage
-            with open(chemin_fichier, 'r', encoding='utf-8') as file:
-                lecture = csv.DictReader(file)
+            with open(chemin_fichier, 'r', encoding='utf-8-sig') as file:
+                premiere_ligne = file.readline()
+                file.seek(0)
+
+                if ';' in premiere_ligne:
+                    delimiter = ';'
+                else:
+                    delimiter = ','
+                lecture = csv.DictReader(file, delimiter=delimiter)
                 self.donnees = list(lecture)
 
         except Exception as e:
             msgbox.showerror("Erreur",f"Erreur lors du chargement du CSV : {e}")
-            self.donnee = []
+            self.donnees = []
     def selection_csv(self):
         fichier=filedialog.askopenfilename(
             title="Sélectionner un fichier CSV",
@@ -103,13 +111,13 @@ class TableauCSV(ctk.CTkFrame):
         scrollbar_y = ttk.Scrollbar(
             frame_tableau,
             orient='vertical',
-            command=self.tableau.yview
+            command=self.tableau.xview
         )
 
         scrollbar_x = ttk.Scrollbar(
             frame_tableau,
             orient='horizontal',
-        command = self.tableau.yview
+        command = self.tableau.xview
         )
 
         self.tableau.configure(
@@ -126,51 +134,23 @@ class TableauCSV(ctk.CTkFrame):
 
     def remplir_tableau(self):
         """Remplit le tableau avec les données"""
-        # Exemple de données si le CSV n'est pas chargé
-        if not self.donnees:
-            self.donnees = [
-                {
-                    'Ligne': '1',
-                    'Voy.': '101',
-                    'Début': '08:00',
-                    'Fin': '09:30',
-                    'De': 'Paris',
-                    'Destination': 'Lyon',
-                    'Js srv': 'Lundi'
-                },
-                {
-                    'Ligne': '2',
-                    'Voy.': '102',
-                    'Début': '10:00',
-                    'Fin': '11:30',
-                    'De': 'Lyon',
-                    'Destination': 'Marseille',
-                    'Js srv': 'Mardi'
-                },
-                {
-                    'Ligne': '3',
-                    'Voy.': '103',
-                    'Début': '14:00',
-                    'Fin': '15:45',
-                    'De': 'Marseille',
-                    'Destination': 'Nice',
-                    'Js srv': 'Mercredi'
-                }
-            ]
         for idx, ligne in enumerate(self.donnees):
+            # Nettoyer les espaces inutiles des données
+            ligne_nettoyee = {k: v.strip() if isinstance(v, str) else v for k, v in ligne.items()}
+
             self.tableau.insert(
                 '',
                 'end',
                 iid=idx,
                 values=(
                     '☐',  # Case à cocher (vide)
-                    ligne.get('Ligne', ''),
-                    ligne.get('Voy.', ''),
-                    ligne.get('Début', ''),
-                    ligne.get('Fin', ''),
-                    ligne.get('De', ''),
-                    ligne.get('Destination', ''),
-                    ligne.get('Js srv', '')
+                    ligne_nettoyee.get('Ligne', ''),
+                    ligne_nettoyee.get('Voy.', ''),
+                    ligne_nettoyee.get('Début', ''),
+                    ligne_nettoyee.get('Fin', ''),
+                    ligne_nettoyee.get('De', ''),
+                    ligne_nettoyee.get('À', ''),
+                    ligne_nettoyee.get('Js srv', '')
                 )
             )
     def selection_voyages(self):
@@ -184,7 +164,7 @@ class window_tableau_csv(ctk.CTk):
         self.title("Affichage CSV")
         self.geometry("1000x600")
 
-        self.tableau_widget = TableauCSV(self, fichie_csv="échantillon voyage BS.csv")
+        self.tableau_widget = TableauCSV(self)
         self.tableau_widget.pack(fill="both", expand=True)
 
 if __name__ == "__main__":
