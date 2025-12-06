@@ -70,7 +70,7 @@ class TableauCSV(ctk.CTkFrame):
             frame_boutons,
             text="exit",
             width=100,
-            command=lambda: msgbox.showinfo("exit")
+            command=lambda: exit()
         )
         exit_csv_window.pack(side="left", padx=5)
 
@@ -111,23 +111,15 @@ class TableauCSV(ctk.CTkFrame):
         scrollbar_y = ttk.Scrollbar(
             frame_tableau,
             orient='vertical',
-            command=self.tableau.xview
-        )
-
-        scrollbar_x = ttk.Scrollbar(
-            frame_tableau,
-            orient='horizontal',
-        command = self.tableau.xview
+            command=self.tableau.yview
         )
 
         self.tableau.configure(
-            yscroll=scrollbar_y.set,
-            xscroll=scrollbar_x.set
+            yscrollcommand=scrollbar_y.set,
         )
 
         self.tableau.grid(row=0, column=0, sticky='nsew')
         scrollbar_y.grid(row=0, column=1, sticky='ns')
-        scrollbar_x.grid(row=1, column=0, sticky='ew')
 
         frame_tableau.grid_rowconfigure(0, weight=1)
         frame_tableau.grid_columnconfigure(0, weight=1)
