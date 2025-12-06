@@ -70,9 +70,13 @@ class TableauCSV(ctk.CTkFrame):
             frame_boutons,
             text="exit",
             width=100,
-            command=lambda: exit()
+            command=lambda: self.quitter_avec_confirmation()
         )
         exit_csv_window.pack(side="left", padx=5)
+
+    def quitter_avec_confirmation(self):
+        if msgbox.askyesno("Confirmation", "Êtes-vous sûr de vouloir quitter ?"):
+            exit()
 
     def creer_tableau(self):
         #création tableau
