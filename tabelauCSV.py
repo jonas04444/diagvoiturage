@@ -3,6 +3,9 @@ import csv
 from tkinter import ttk, messagebox as msgbox, filedialog
 import tkinter as tk
 
+import self
+
+
 class TableauCSV(ctk.CTkFrame):
     def __init__(self, parent, fichie_csv=None):
         super().__init__(parent)
@@ -128,10 +131,12 @@ class TableauCSV(ctk.CTkFrame):
         frame_tableau.grid_rowconfigure(0, weight=1)
         frame_tableau.grid_columnconfigure(0, weight=1)
 
+        self.tableau.bind('<Button-1>', self.cocher_case)
+
     def remplir_tableau(self):
         """Remplit le tableau avec les données"""
         for idx, ligne in enumerate(self.donnees):
-            # Nettoyer les espaces inutiles des données
+
             ligne_nettoyee = {k: v.strip() if isinstance(v, str) else v for k, v in ligne.items()}
 
             self.tableau.insert(
@@ -139,7 +144,7 @@ class TableauCSV(ctk.CTkFrame):
                 'end',
                 iid=idx,
                 values=(
-                    '☐',  # Case à cocher (vide)
+                    '☐',
                     ligne_nettoyee.get('Ligne', ''),
                     ligne_nettoyee.get('Voy.', ''),
                     ligne_nettoyee.get('Début', ''),
@@ -152,6 +157,14 @@ class TableauCSV(ctk.CTkFrame):
     def selection_voyages(self):
         return self.tableau.selection()
 
+    def cocher_case(self, event):
+        item = self.tableau.identify('item', event.x, event.y)
+        column = self.tableau.identify_column(event.x)
+
+        if column == '#1' and item:
+            values = list(self.tableau.item(item, 'values'))
+            values[0] = '☑' if values[0] == '☐' else '☐'
+            self.tableau.item(item, values=values)
 
 class window_tableau_csv(ctk.CTk):
     def __init__(self):
