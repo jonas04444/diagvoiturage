@@ -1,10 +1,6 @@
 import customtkinter as ctk
 import csv
 from tkinter import ttk, messagebox as msgbox, filedialog
-import tkinter as tk
-
-import self
-
 
 class TableauCSV(ctk.CTkFrame):
     def __init__(self, parent, fichie_csv=None):
@@ -12,12 +8,58 @@ class TableauCSV(ctk.CTkFrame):
         self.fichier_csv = fichie_csv
         self.donnees = []
         self.tableau = None
+        self.tableau_selection = None
 
         if fichie_csv:
             self.charger_csv(fichie_csv)
 
         self.creer_boutons()
         self.creer_tableau()
+        self.creer_tableau_selection()
+
+    def creer_tableau_selection(self):  # S'assurer que cette méthode existe
+        """Crée un tableau pour afficher les voyages sélectionnés"""
+        frame_selection = ctk.CTkFrame(self)
+        frame_selection.grid(fill="both", expand=True, padx=10, pady=10)
+
+        label = ctk.CTkLabel(frame_selection, text="Voyages sélectionnés", font=("Arial", 14, "bold"))
+        label.grid(pady=5)
+
+        colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
+
+        self.tableau_selection = ttk.Treeview(
+            frame_selection,
+            columns=colonnes,
+            show='headings',
+            height=10
+        )
+
+        en_tetes = {
+            'Ligne': 50,
+            'Voy.': 50,
+            'Début': 80,
+            'Fin': 80,
+            'De': 120,
+            'À': 120,
+            'Js srv': 100
+        }
+
+        for col, largeur in en_tetes.items():
+            self.tableau_selection.column(col, width=largeur, anchor='center')
+            self.tableau_selection.heading(col, text=col)
+
+        scrollbar_y = ttk.Scrollbar(
+            frame_selection,
+            orient='vertical',
+            command=self.tableau_selection.yview
+        )
+
+        self.tableau_selection.configure(yscrollcommand=scrollbar_y.set)
+        self.tableau_selection.grid(row=0, column=0, sticky='nsew')
+        scrollbar_y.grid(row=0, column=1, sticky='ns')
+
+        frame_selection.grid_rowconfigure(0, weight=1)
+        frame_selection.grid_columnconfigure(0, weight=1)
 
     def charger_csv(self, chemin_fichier):
         try:
@@ -51,7 +93,7 @@ class TableauCSV(ctk.CTkFrame):
 
     def creer_boutons(self):
         frame_boutons = ctk.CTkFrame(self)
-        frame_boutons.pack(fill="x", padx=10, pady=10)
+        frame_boutons.grid(fill="x", padx=10, pady=10)
 
         download_csv = ctk.CTkButton(
             frame_boutons,
@@ -59,7 +101,7 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: self.selection_csv()
         )
-        download_csv.pack(side="left", padx=5)
+        download_csv.grid(side="left", padx=5)
 
         commit_csv = ctk.CTkButton(
             frame_boutons,
@@ -67,7 +109,7 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: msgbox.showinfo("fichier chargé dans la db")
         )
-        commit_csv.pack(side="left", padx=5)
+        commit_csv.grid(side="left", padx=5)
 
         exit_csv_window = ctk.CTkButton(
             frame_boutons,
@@ -75,16 +117,16 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: self.quitter_avec_confirmation()
         )
-        exit_csv_window.pack(side="left", padx=5)
+        exit_csv_window.grid(side="left", padx=5)
 
     def quitter_avec_confirmation(self):
         if msgbox.askyesno("Confirmation", "Êtes-vous sûr de vouloir quitter ?"):
             exit()
 
     def creer_tableau(self):
-        #création tableau
+
         frame_tableau = ctk.CTkFrame(self)
-        frame_tableau.pack(fill="both", expand=True, padx=10, pady=10)
+        frame_tableau.grid(fill="both", expand=True, padx=10, pady=10)
 
         style = ttk.Style()
         style.theme_use('clam')
@@ -174,7 +216,7 @@ class window_tableau_csv(ctk.CTk):
         self.geometry("1000x600")
 
         self.tableau_widget = TableauCSV(self)
-        self.tableau_widget.pack(fill="both", expand=True)
+        self.tableau_widget.grid(fill="both", expand=True)
 
 if __name__ == "__main__":
     app = window_tableau_csv()
