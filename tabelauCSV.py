@@ -2,6 +2,7 @@ import customtkinter as ctk
 import csv
 from tkinter import ttk, messagebox as msgbox, filedialog
 
+
 class TableauCSV(ctk.CTkFrame):
     def __init__(self, parent, fichie_csv=None):
         super().__init__(parent)
@@ -10,6 +11,11 @@ class TableauCSV(ctk.CTkFrame):
         self.tableau = None
         self.tableau_selection = None
 
+        # Configure le grid pour le frame principal
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         if fichie_csv:
             self.charger_csv(fichie_csv)
 
@@ -17,13 +23,12 @@ class TableauCSV(ctk.CTkFrame):
         self.creer_tableau()
         self.creer_tableau_selection()
 
-    def creer_tableau_selection(self):  # S'assurer que cette méthode existe
-        """Crée un tableau pour afficher les voyages sélectionnés"""
+    def creer_tableau_selection(self):
         frame_selection = ctk.CTkFrame(self)
-        frame_selection.grid(fill="both", expand=True, padx=10, pady=10)
+        frame_selection.grid(row=2, column=0, sticky='nsew', padx=10, pady=10)
 
         label = ctk.CTkLabel(frame_selection, text="Voyages sélectionnés", font=("Arial", 14, "bold"))
-        label.grid(pady=5)
+        label.grid(row=0, column=0, columnspan=2, pady=5)
 
         colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
 
@@ -55,15 +60,14 @@ class TableauCSV(ctk.CTkFrame):
         )
 
         self.tableau_selection.configure(yscrollcommand=scrollbar_y.set)
-        self.tableau_selection.grid(row=0, column=0, sticky='nsew')
-        scrollbar_y.grid(row=0, column=1, sticky='ns')
+        self.tableau_selection.grid(row=1, column=0, sticky='nsew')
+        scrollbar_y.grid(row=1, column=1, sticky='ns')
 
-        frame_selection.grid_rowconfigure(0, weight=1)
+        frame_selection.grid_rowconfigure(1, weight=1)
         frame_selection.grid_columnconfigure(0, weight=1)
 
     def charger_csv(self, chemin_fichier):
         try:
-            #attention à l'encodage
             with open(chemin_fichier, 'r', encoding='utf-8-sig') as file:
                 premiere_ligne = file.readline()
                 file.seek(0)
@@ -76,12 +80,13 @@ class TableauCSV(ctk.CTkFrame):
                 self.donnees = list(lecture)
 
         except Exception as e:
-            msgbox.showerror("Erreur",f"Erreur lors du chargement du CSV : {e}")
+            msgbox.showerror("Erreur", f"Erreur lors du chargement du CSV : {e}")
             self.donnees = []
+
     def selection_csv(self):
-        fichier=filedialog.askopenfilename(
+        fichier = filedialog.askopenfilename(
             title="Sélectionner un fichier CSV",
-            filetypes=[("Fichiers CSV","*.csv"), ("Tous les fichiers","*.*")]
+            filetypes=[("Fichiers CSV", "*.csv"), ("Tous les fichiers", "*.*")]
         )
 
         if fichier:
@@ -89,11 +94,11 @@ class TableauCSV(ctk.CTkFrame):
             for item in self.tableau.get_children():
                 self.tableau.delete(item)
             self.remplir_tableau()
-            msgbox.showinfo("Succès",f"Fichier chargé: {fichier}")
+            msgbox.showinfo("Succès", f"Fichier chargé: {fichier}")
 
     def creer_boutons(self):
         frame_boutons = ctk.CTkFrame(self)
-        frame_boutons.grid(fill="x", padx=10, pady=10)
+        frame_boutons.grid(row=0, column=0, sticky='ew', padx=10, pady=10)
 
         download_csv = ctk.CTkButton(
             frame_boutons,
@@ -101,7 +106,7 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: self.selection_csv()
         )
-        download_csv.grid(side="left", padx=5)
+        download_csv.pack(side="left", padx=5)
 
         commit_csv = ctk.CTkButton(
             frame_boutons,
@@ -109,7 +114,7 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: msgbox.showinfo("fichier chargé dans la db")
         )
-        commit_csv.grid(side="left", padx=5)
+        commit_csv.pack(side="left", padx=5)
 
         exit_csv_window = ctk.CTkButton(
             frame_boutons,
@@ -117,16 +122,15 @@ class TableauCSV(ctk.CTkFrame):
             width=100,
             command=lambda: self.quitter_avec_confirmation()
         )
-        exit_csv_window.grid(side="left", padx=5)
+        exit_csv_window.pack(side="left", padx=5)
 
     def quitter_avec_confirmation(self):
         if msgbox.askyesno("Confirmation", "Êtes-vous sûr de vouloir quitter ?"):
             exit()
 
     def creer_tableau(self):
-
         frame_tableau = ctk.CTkFrame(self)
-        frame_tableau.grid(fill="both", expand=True, padx=10, pady=10)
+        frame_tableau.grid(row=1, column=0, sticky='nsew', padx=10, pady=10)
 
         style = ttk.Style()
         style.theme_use('clam')
@@ -140,7 +144,7 @@ class TableauCSV(ctk.CTkFrame):
             height=15
         )
 
-        en_tetes={
+        en_tetes = {
             'Sélection': 50,
             'Ligne': 50,
             'Voy.': 50,
@@ -178,7 +182,6 @@ class TableauCSV(ctk.CTkFrame):
     def remplir_tableau(self):
         """Remplit le tableau avec les données"""
         for idx, ligne in enumerate(self.donnees):
-
             ligne_nettoyee = {k: v.strip() if isinstance(v, str) else v for k, v in ligne.items()}
 
             self.tableau.insert(
@@ -196,6 +199,7 @@ class TableauCSV(ctk.CTkFrame):
                     ligne_nettoyee.get('Js srv', '')
                 )
             )
+
     def selection_voyages(self):
         return self.tableau.selection()
 
@@ -208,15 +212,33 @@ class TableauCSV(ctk.CTkFrame):
             values[0] = '☑' if values[0] == '☐' else '☐'
             self.tableau.item(item, values=values)
 
+            # Mettre à jour le tableau de sélection
+            self.mettre_a_jour_selection()
+
+    def mettre_a_jour_selection(self):
+        """Met à jour le tableau des voyages sélectionnés"""
+        # Vider le tableau de sélection
+        for item in self.tableau_selection.get_children():
+            self.tableau_selection.delete(item)
+
+        # Parcourir le tableau principal et récupérer les cases cochées
+        for item in self.tableau.get_children():
+            values = self.tableau.item(item, 'values')
+            if values[0] == '☑':  # Si la case est cochée
+                # Ajouter au tableau de sélection (sans la colonne "Sélection")
+                self.tableau_selection.insert('', 'end', values=values[1:])
+
+
 class window_tableau_csv(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.title("Affichage CSV")
-        self.geometry("1000x600")
+        self.geometry("1000x700")
 
         self.tableau_widget = TableauCSV(self)
-        self.tableau_widget.grid(fill="both", expand=True)
+        self.tableau_widget.pack(fill="both", expand=True)
+
 
 if __name__ == "__main__":
     app = window_tableau_csv()
