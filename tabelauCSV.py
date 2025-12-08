@@ -179,6 +179,9 @@ class TableauCSV(ctk.CTkFrame):
 
         self.tableau.bind('<Button-1>', self.cocher_case)
 
+        for col in colonnes:
+            self.tableau.heading(col, command=lambda c=col: self.trier_colonne(c))
+
     def remplir_tableau(self):
         """Remplit le tableau avec les données"""
         for idx, ligne in enumerate(self.donnees):
@@ -227,6 +230,31 @@ class TableauCSV(ctk.CTkFrame):
             if values[0] == '☑':  # Si la case est cochée
                 # Ajouter au tableau de sélection (sans la colonne "Sélection")
                 self.tableau_selection.insert('', 'end', values=values[1:])
+
+    def trier_colonne(self, col):
+        """Trie le tableau par la colonne spécifiée"""
+        # Récupère tous les éléments avec leurs valeurs
+        items = [(self.tableau.item(item, 'values'), item) for item in self.tableau.get_children('')]
+
+        # Détermine l'index de la colonne
+        colonnes = ('Sélection', 'Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
+        col_index = colonnes.index(col)
+
+        # Trie les éléments
+        reverse = getattr(self, f'tri_reverse_{col}', False)
+        try:
+            # Essaie de trier comme des nombres
+            items.sort(key=lambda x: float(x[0][col_index]) if x[0][col_index] else 0, reverse=reverse)
+        except (ValueError, TypeError):
+            # Sinon, trie comme du texte
+            items.sort(key=lambda x: str(x[0][col_index]).lower(), reverse=reverse)
+
+        # Sauvegarde l'état du tri pour cette colonne
+        setattr(self, f'tri_reverse_{col}', not reverse)
+
+        # Réorganise les éléments dans le tableau
+        for index, (values, item) in enumerate(items):
+            self.tableau.move(item, '', index)
 
 
 class window_tableau_csv(ctk.CTk):
