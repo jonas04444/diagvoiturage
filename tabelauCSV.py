@@ -1,6 +1,7 @@
 import customtkinter as ctk
 import csv
-from tkinter import ttk, messagebox as msgbox, filedialog
+from tkinter import ttk, messagebox as msgbox, filedialog, Toplevel
+import numpy as np
 
 
 class TableauCSV(ctk.CTkFrame):
@@ -65,9 +66,9 @@ class TableauCSV(ctk.CTkFrame):
 
         commit_csv = ctk.CTkButton(
             frame_boutons,
-            text="Charger dans la db",
+            text="Charger dans la matrice",
             width=100,
-            command=lambda: msgbox.showinfo("fichier chargé dans la db")
+            command=lambda: self.creer_matrice_selection()
         )
         commit_csv.pack(side="left", padx=5)
 
@@ -198,6 +199,36 @@ class TableauCSV(ctk.CTkFrame):
 
         for index, (values, item) in enumerate(items):
             self.tableau.move(item, '', index)
+
+    def creer_matrice_selection(self):
+        self.donnees_selectionnees = []
+
+        for item in self.tableau.get_children():
+            values = self.tableau.item(item, 'values')
+            if values[0] == '☑':
+                idx = self.tableau.index(item)
+                self.donnees_selectionnees.append(self.donnees[idx])
+
+        if not self.donnees_selectionnees:
+            msgbox.showwarning("Attention", "Aucun voyage sélectionné")
+            return
+
+        colonnes = ['Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv']
+        matrice = []
+
+        for voyage in self.donnees_selectionnees:
+            ligne_matrice = []
+            for col in colonnes:
+                val = voyage.get(col,'').strip()
+                try:
+                    val = float(val)
+                except (ValueError, AttributeError):
+                    pass
+                ligne_matrice.append(val)
+            matrice.append(ligne_matrice)
+        self.matrice_donnees = np.array(matrice, dtype=object)
+
+        msgbox.showinfo("Succès", f"{len(self.donnees_selectionnees)} voyage(s) chargé(s) dans la matrice")
 
 
 class window_tableau_csv(ctk.CTk):
