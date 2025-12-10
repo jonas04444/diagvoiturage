@@ -5,7 +5,7 @@ import customtkinter as ctk
 from customtkinter import CTkTabview, filedialog
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
-
+from tabelauCSV import window_tableau_csv
 class TimelineCanvas:
 
     def __init__(self, canvas, trips_data, line):
@@ -365,6 +365,7 @@ def main():
     solutions_data = {'solutions': [], 'trips': []}
     canvas_ref = {'canvas': None, 'timeline': None}
 
+
     def solve():
         try:
             nb_matin = int(entry_matin.get())
@@ -401,6 +402,9 @@ def main():
 
     button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
     button_solve.grid(row=2, column=0, columnspan=2, pady=20)
+
+    button_charge_csv = ctk.CTkButton(master=config_frame, text="Charger voyage CSV", command=lambda:window_tableau_csv(), width=200, height=40)
+    button_charge_csv.grid(row=3, column=0, columnspan=2, pady=20)
 
     error_label = ctk.CTkLabel(master=config_frame, text="", text_color="red")
     error_label.grid(row=3, column=0, columnspan=2)

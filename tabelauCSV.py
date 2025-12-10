@@ -241,7 +241,4 @@ class window_tableau_csv(ctk.CTk):
         self.tableau_widget = TableauCSV(self)
         self.tableau_widget.pack(fill="both", expand=True)
 
-
-if __name__ == "__main__":
-    app = window_tableau_csv()
-    app.mainloop()
+        self.mainloop()
