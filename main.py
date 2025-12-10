@@ -371,27 +371,31 @@ def main():
             nb_matin = int(entry_matin.get())
             nb_aprem = int(entry_aprem.get())
 
-            # ajouter les données ici
-            trips = [
-                {"start": time_to_minutes("06:03"), "end": time_to_minutes("06:40"), "from": "FOMET", "to": "CEN05"},
-                {"start": time_to_minutes("06:54"), "end": time_to_minutes("07:48"), "from": "CEN07", "to": "PTSNC"},
-                {"start": time_to_minutes("08:58"), "end": time_to_minutes("10:13"), "from": "CPCEC", "to": "MYVES"},
-                {"start": time_to_minutes("10:38"), "end": time_to_minutes("11:44"), "from": "MYVES", "to": "PTPLA"},
-                {"start": time_to_minutes("12:09"), "end": time_to_minutes("13:13"), "from": "PTPLA", "to": "MYVES"},
-                {"start": time_to_minutes("13:38"), "end": time_to_minutes("14:56"), "from": "MYVES", "to": "CPCEC"},
-                {"start": time_to_minutes("06:40"), "end": time_to_minutes("07:36"), "from": "PTSNC", "to": "CEN05"},
-                {"start": time_to_minutes("07:54"), "end": time_to_minutes("08:50"), "from": "CEN07", "to": "PTSNC"}
-            ]
+            def traiter_voyages(voyages_data):
+                trips = []
+                for voyage in voyages_data:
+                    trip = {
+                        "ligne": voyage.get('Ligne', ''),
+                        "voy": voyage.get('Voy.', ''),
+                        "start": time_to_minutes(voyage.get('Début', '00:00')),
+                        "end": time_to_minutes(voyage.get('Fin', '00:00')),
+                        "from": voyage.get('De', ''),
+                        "to": voyage.get('À', ''),
+                        "js_srv": voyage.get('Js srv', '')
+                    }
+                    trips.append(trip)
 
-            solver = AdvancedODMSolver(trips)
-            result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
+                solver = AdvancedODMSolver(trips)
+                result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
 
-            solutions_data['solutions'] = result['solutions']
-            solutions_data['trips'] = trips
+                solutions_data['solutions'] = result['solutions']
+                solutions_data['trips'] = trips
 
-            canvas_ref['timeline'] = TimelineCanvas(canvas, trips)
+                canvas_ref['timeline'] = TimelineCanvas(canvas, trips)
 
-            display_solution(result['solutions'], trips)
+                display_solution(result['solutions'], trips)
+
+            window_tableau_csv(callback=traiter_voyages)
 
         except ValueError:
             error_label.configure(text="Erreur: entrez des nombres valides")  # ✅ Corrigé
@@ -403,7 +407,7 @@ def main():
     button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
     button_solve.grid(row=2, column=0, columnspan=2, pady=20)
 
-    button_charge_csv = ctk.CTkButton(master=config_frame, text="Charger voyage CSV", command=lambda:window_tableau_csv(), width=200, height=40)
+    button_charge_csv = ctk.CTkButton(master=config_frame, text="Charger voyage CSV", command=window_tableau_csv, width=200, height=40)
     button_charge_csv.grid(row=3, column=0, columnspan=2, pady=20)
 
     error_label = ctk.CTkLabel(master=config_frame, text="", text_color="red")

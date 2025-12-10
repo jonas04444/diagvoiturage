@@ -2,6 +2,7 @@ import customtkinter as ctk
 import csv
 from tkinter import ttk, messagebox as msgbox, filedialog, Toplevel
 import numpy as np
+from ortools.math_opt.python import callback
 
 
 class TableauCSV(ctk.CTkFrame):
@@ -82,7 +83,7 @@ class TableauCSV(ctk.CTkFrame):
 
     def quitter_avec_confirmation(self):
         if msgbox.askyesno("Confirmation", "Êtes-vous sûr de vouloir quitter ?"):
-            exit()
+            self.master.destroy()
 
     def creer_tableau(self):
         frame_tableau = ctk.CTkFrame(self)
@@ -228,15 +229,18 @@ class TableauCSV(ctk.CTkFrame):
             matrice.append(ligne_matrice)
         self.matrice_donnees = np.array(matrice, dtype=object)
 
+        if self.master.callback:
+            self.master.callback(self.donnees_selectionnees)
+
         msgbox.showinfo("Succès", f"{len(self.donnees_selectionnees)} voyage(s) chargé(s) dans la matrice")
 
-
 class window_tableau_csv(ctk.CTk):
-    def __init__(self):
+    def __init__(self, callback=None):
         super().__init__()
 
         self.title("Affichage CSV")
         self.geometry("1000x700")
+        self.callback = callback
 
         self.tableau_widget = TableauCSV(self)
         self.tableau_widget.pack(fill="both", expand=True)
