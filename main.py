@@ -450,6 +450,8 @@ def main():
 
                 display_solution(result['solutions'], trips)
 
+                remplir_tableau_matrice(solutions_data['tableau'], matrice_donnees)
+
             window_tableau_csv(callback=traiter_voyages)
 
         except ValueError:
@@ -512,6 +514,17 @@ def main():
 
     solutions_frame.grid_rowconfigure(0, weight=1)
     solutions_frame.grid_columnconfigure(0, weight=1)
+
+    def remplir_tableau_matrice(tableau, matrice_donnees):
+        """Remplit le tableau avec les données de la matrice"""
+        # Supprimer les anciennes données
+        for item in tableau.get_children():
+            tableau.delete(item)
+
+        # Remplir avec les nouvelles données
+        if matrice_donnees is not None:
+            for idx, ligne in enumerate(matrice_donnees):
+                tableau.insert('', 'end', values=tuple(ligne))
 
     def display_solution(solutions, trips):
         for widget in solutions_frame.winfo_children():
