@@ -1,7 +1,8 @@
 import csv
 import tkinter as tk
-from tkinter import messagebox as msgbox
+from tkinter import messagebox as msgbox, ttk
 import customtkinter as ctk
+import self
 from customtkinter import CTkTabview, filedialog
 from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
@@ -365,13 +366,67 @@ def main():
     solutions_data = {'solutions': [], 'trips': []}
     canvas_ref = {'canvas': None, 'timeline': None}
 
+    def afficher_matrice(matrice_donnees):
+        """Affiche la matrice dans un tableau"""
+
+        # Créer une nouvelle fenêtre
+        fenetre_matrice = ctk.CTkToplevel()
+        fenetre_matrice.title("Matrice des voyages")
+        fenetre_matrice.geometry("800x500")
+
+        # Créer un frame pour le tableau
+        frame_tableau = ctk.CTkFrame(fenetre_matrice)
+        frame_tableau.pack(fill="both", expand=True, padx=10, pady=10)
+
+        # Créer le Treeview
+        colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
+        tableau = ctk.Treeview(
+            frame_tableau,
+            columns=colonnes,
+            show='headings',
+            height=15
+        )
+
+        # Configurer les en-têtes et largeurs
+        en_tetes = {
+            'Ligne': 80,
+            'Voy.': 80,
+            'Début': 80,
+            'Fin': 80,
+            'De': 120,
+            'À': 120,
+            'Js srv': 100
+        }
+
+        for col, largeur in en_tetes.items():
+            tableau.column(col, width=largeur, anchor='center')
+            tableau.heading(col, text=col)
+
+        # Remplir le tableau avec les données de la matrice
+        for idx, ligne in enumerate(matrice_donnees):
+            tableau.insert('', 'end', values=tuple(ligne))
+
+        # Ajouter une scrollbar
+        scrollbar_y =  ctk.Scrollbar(
+            frame_tableau,
+            orient='vertical',
+            command=tableau.yview
+        )
+
+        tableau.configure(yscrollcommand=scrollbar_y.set)
+
+        tableau.grid(row=0, column=0, sticky='nsew')
+        scrollbar_y.grid(row=0, column=1, sticky='ns')
+
+        frame_tableau.grid_rowconfigure(0, weight=1)
+        frame_tableau.grid_columnconfigure(0, weight=1)
 
     def solve():
         try:
             nb_matin = int(entry_matin.get())
             nb_aprem = int(entry_aprem.get())
 
-            def traiter_voyages(voyages_data):
+            def traiter_voyages(voyages_data, matrice_donnees):
                 trips = []
                 for voyage in voyages_data:
                     trip = {
@@ -415,6 +470,48 @@ def main():
 
     solutions_frame = ctk.CTkFrame(tab4)
     solutions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
+
+    style = ttk.Style()
+    style.theme_use('clam')
+
+    colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
+
+    self.tableau = ttk.Treeview(
+        solutions_frame,
+        columns=colonnes,
+        show='headings',
+        height=15
+    )
+
+    en_tetes= {
+        'Ligne': 50,
+        'Voy.': 50,
+        'Début': 80,
+        'Fin': 80,
+        'De': 120,
+        'À': 120,
+        'Js srv': 100
+    }
+
+    for col, largeur in en_tetes.items():
+        self.tableau.column(col, width=largeur, anchor='center')
+        self.tableau.heading(col, text=col)
+
+    scrollbar_y = ttk.Scrollbar(
+        solutions_frame,
+        orient="vertical",
+        command=self.tableau.yview
+    )
+
+    self.tableau.configure(
+        yscrollcommand=scrollbar_y.set
+    )
+
+    self.tableau.grid(row=0, column=0, sticky='nsew')
+    scrollbar_y.grid(row=0, column=1, sticky='ns')
+
+    solutions_frame.grid_rowconfigure(0, weight=1)
+    solutions_frame.grid_columnconfigure(0, weight=1)
 
     def display_solution(solutions, trips):
         for widget in solutions_frame.winfo_children():

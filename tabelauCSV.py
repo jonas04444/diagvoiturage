@@ -230,7 +230,7 @@ class TableauCSV(ctk.CTkFrame):
         self.matrice_donnees = np.array(matrice, dtype=object)
 
         if self.master.callback:
-            self.master.callback(self.donnees_selectionnees)
+            self.master.callback(self.donnees_selectionnees, self.matrice_donnees)
 
         msgbox.showinfo("Succès", f"{len(self.donnees_selectionnees)} voyage(s) chargé(s) dans la matrice")
 
