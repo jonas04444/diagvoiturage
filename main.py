@@ -196,6 +196,17 @@ def main():
     tab4 = tabview.add("voiturage")
 
     """TAB 1"""
+
+    def charger_et_afficher():
+        """Charge le CSV et affiche les données dans le tableau"""
+
+        def traiter_voyages(voyages_data, matrice_donnees):
+            # Remplir le tableau avec les données de la matrice
+            remplir_tableau_matrice(self.tableau, matrice_donnees)
+
+        # Ouvrir la fenêtre de sélection CSV avec le callback
+        window_tableau_csv(callback=traiter_voyages)
+
     tab1.grid_columnconfigure(0, weight=1)
     tab1.grid_columnconfigure(1, weight=1)
     tab1.grid_columnconfigure(2, weight=1)
@@ -464,7 +475,13 @@ def main():
     button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
     button_solve.grid(row=2, column=0, columnspan=2, pady=20)
 
-    button_charge_csv = ctk.CTkButton(master=config_frame, text="Charger voyage CSV", command=window_tableau_csv, width=200, height=40)
+    button_charge_csv = ctk.CTkButton(
+        master=config_frame,
+        text="Charger voyage CSV",
+        command=charger_et_afficher,  # ✅ Nouveau callback
+        width=200,
+        height=40
+    )
     button_charge_csv.grid(row=3, column=0, columnspan=2, pady=20)
 
     error_label = ctk.CTkLabel(master=config_frame, text="", text_color="red")
