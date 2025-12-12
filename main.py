@@ -446,7 +446,7 @@ def main():
                 solutions_data['solutions'] = result['solutions']
                 solutions_data['trips'] = trips
 
-                canvas_ref['timeline'] = TimelineCanvas(canvas, trips)
+                canvas_ref['timeline'] = TimelineCanvas(trips)
 
                 display_solution(result['solutions'], trips)
 
@@ -471,7 +471,7 @@ def main():
     error_label.grid(row=3, column=0, columnspan=2)
 
     solutions_frame = ctk.CTkFrame(tab4)
-    solutions_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=10, pady=10)
+    solutions_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
 
     style = ttk.Style()
     style.theme_use('clam')
@@ -543,14 +543,6 @@ def main():
         )
         label_solutions.pack(pady=10)
 
-    canvas_frame = ctk.CTkFrame(tab4, fg_color="#1a1a1a")
-    canvas_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
-    tab4.grid_columnconfigure(1, weight=1)
-    tab4.grid_rowconfigure(1, weight=1)
-
-    canvas = tk.Canvas(canvas_frame, bg="#1a1a1a", highlightthickness=0, width=800, height=600)
-    canvas.pack(fill="both", expand=True, side="left")
-    canvas_ref['canvas'] = canvas
     win.mainloop()
 
 main()
