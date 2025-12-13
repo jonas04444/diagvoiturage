@@ -509,18 +509,8 @@ class AdvancedODMSolver:
             print(f"\n    Amplitude: {amplitude_str} | Travail: {total_work}min | Pause: {total_pause}min")
 
 
-def run_advanced_solver():
+def run_advanced_solver(trips):
     """Lance le solveur avancé"""
-    trips = [
-        {"start": time_to_minutes("06:03"), "end": time_to_minutes("06:40"), "from": "FOMET", "to": "CEN05"},
-        {"start": time_to_minutes("06:54"), "end": time_to_minutes("07:48"), "from": "CEN07", "to": "PTSNC"},
-        {"start": time_to_minutes("08:58"), "end": time_to_minutes("10:13"), "from": "CPCEC", "to": "MYVES"},
-        {"start": time_to_minutes("10:38"), "end": time_to_minutes("11:44"), "from": "MYVES", "to": "PTPLA"},
-        {"start": time_to_minutes("12:09"), "end": time_to_minutes("13:13"), "from": "PTPLA", "to": "MYVES"},
-        {"start": time_to_minutes("13:38"), "end": time_to_minutes("14:56"), "from": "MYVES", "to": "CPCEC"},
-        {"start": time_to_minutes("06:40"), "end": time_to_minutes("07:36"), "from": "PTSNC", "to": "CEN05"},
-        {"start": time_to_minutes("07:54"), "end": time_to_minutes("08:50"), "from": "CEN07", "to": "PTSNC"}
-    ]
 
     solver = AdvancedODMSolver(trips)
 
@@ -548,7 +538,3 @@ def run_advanced_solver():
         print(f"\n\nArrêt demandé")
     except Exception as e:
         print(f"Erreur: {e}")
-
-
-if __name__ == "__main__":
-    run_advanced_solver()

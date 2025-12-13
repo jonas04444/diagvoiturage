@@ -4,9 +4,11 @@ from tkinter import messagebox as msgbox, ttk
 import customtkinter as ctk
 import self
 from customtkinter import CTkTabview, filedialog
-from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
+#from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 from tabelauCSV import window_tableau_csv
+from testiacontrainte import *
+
 class TimelineCanvas:
 
     def __init__(self, canvas, trips_data, line):
@@ -374,8 +376,7 @@ def main():
     entry_aprem.insert(0, " ")
     entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
 
-    solutions_data = {'solutions': [], 'trips': []}
-    canvas_ref = {'canvas': None, 'timeline': None}
+    donnees_chargees = {'voyages': None, 'matrice': None}
 
     def afficher_matrice(matrice_donnees):
         """Affiche la matrice dans un tableau"""
@@ -434,36 +435,34 @@ def main():
 
     def solve():
         try:
+
+            if donnees_chargees['voyages'] is None:
+                msgbox.showerror("Erreur","Il n'y a aucun voyage selectionné")
+                return
+            
             nb_matin = int(entry_matin.get())
             nb_aprem = int(entry_aprem.get())
 
-            def traiter_voyages(voyages_data, matrice_donnees):
-                trips = []
-                for voyage in voyages_data:
-                    trip = {
-                        "ligne": voyage.get('Ligne', ''),
-                        "voy": voyage.get('Voy.', ''),
-                        "start": time_to_minutes(voyage.get('Début', '00:00')),
-                        "end": time_to_minutes(voyage.get('Fin', '00:00')),
-                        "from": voyage.get('De', ''),
-                        "to": voyage.get('À', ''),
-                        "js_srv": voyage.get('Js srv', '')
-                    }
-                    trips.append(trip)
+            trips = []
+            for voyage in donnees_chargees['voyages']:
+                trip = {
+                    "ligne": voyage.get('Ligne', ''),
+                    "voy": voyage.get('Voy.', ''),
+                    "start": time_to_minutes(voyage.get('Début', '00:00')),
+                    "end": time_to_minutes(voyage.get('Fin', '00:00')),
+                    "from": voyage.get('De', ''),
+                    "to": voyage.get('À', ''),
+                    "js_srv": voyage.get('Js srv', '')
+                }
+                trips.append(trip)
 
-                solver = AdvancedODMSolver(trips)
-                result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
+            solver = AdvancedODMSolver(trips)
+            result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
 
-                solutions_data['solutions'] = result['solutions']
-                solutions_data['trips'] = trips
-
-                canvas_ref['timeline'] = TimelineCanvas(trips)
-
-                display_solution(result['solutions'], trips)
-
-                remplir_tableau_matrice(solutions_data['tableau'], matrice_donnees)
-
-            window_tableau_csv(callback=traiter_voyages)
+            error_label.configure(
+                text=f"{len(result['solutions'])} solution(s) trouvées",
+                text_color="green"
+            )
 
         except ValueError:
             error_label.configure(text="Erreur: entrez des nombres valides")  # ✅ Corrigé
