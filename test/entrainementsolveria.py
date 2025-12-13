@@ -21,4 +21,23 @@ def solvertest():
     else:
         print("No solution!")
 
+    solution = SolutionPrinter([x, y, z])
+    solver.parameters.enumerate_all_solutions = True
+    status = solver.Solve(model, solution)
+
+class SolutionPrinter(cp_model.CpSolverSolutionCallback):
+
+    def __init__(self, variables: list[cp_model.IntVar]):
+        cp_model.CpSolverSolutionCallback.__init__(self)
+        self.__variables = variables
+        self.__solution_count = 0
+
+    def on_solution_callback(self) -> None:
+        self.__solution_count += 1
+        for v in self.__variables:
+            print(f"{v}={self.Value(v)}", end=" ")
+        print()
+    def solution_count(self) -> int:
+        return self.__solution_count
+
 solvertest()
