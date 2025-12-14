@@ -5,6 +5,10 @@ class voyage:
         self.hdebut = heure_debut
         self.hfin = heure_fin
 
+voyage1 = voyage(800,900)
+voyage2 = voyage(900,1000)
+listes = [voyage1, voyage2]
+
 def egalite(x,y,z):
     return x + y == z
 
@@ -16,6 +20,17 @@ def solvertest():
     x = model.NewIntVar(0, num_val - 1, 'x')
     y = model.NewIntVar(0, num_val - 1, 'y')
     z = model.NewIntVar(0, num_val - 1, 'z')
+
+    voyage_vars=[]
+
+
+
+
+    max_voyage = len(listes)
+
+    for i in max_voyage:
+        var = model.NewIntVar(0,1,f'voyage{i}')
+        voyage_vars.append(var)
 
     #model.Add(egalite(x,y,z))
 
@@ -50,11 +65,4 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
     def solution_count(self) -> int:
         return self.__solution_count
 
-
-voyage1 = voyage(800,900)
-voyage2 = voyage(900,1000)
-
-listes = [voyage1, voyage2]
-
-for i, v in enumerate(listes):
-    print(f"Voyage {i+1}: {v.hdebut}")
+solvertest()
