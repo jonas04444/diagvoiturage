@@ -18,6 +18,7 @@ def solvertest():
         for j in range(len(listes)):
             if i != j:
                 if listes[i].hfin < listes[j].hdebut:
+                    print("ok")
                     suit = model.NewBoolVar(f'suit_{i}_{j}')
                     model.AddImplication(suit, voyage_vars[i])
                     model.AddImplication(suit, voyage_vars[j])
