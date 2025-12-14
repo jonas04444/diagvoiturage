@@ -5,7 +5,7 @@ class voyage:
         self.hdebut = heure_debut
         self.hfin = heure_fin
 
-voyage1 = voyage(800,850)
+voyage1 = voyage(800,900)
 voyage2 = voyage(900,1000)
 listes = [voyage1, voyage2]
 
@@ -17,11 +17,11 @@ def solvertest():
 
     voyage_vars = [model.NewBoolVar(f'voyages_{i}') for i in range(len(listes))]
 
-    for i in listes:
-        for j in listes:
+    for i in range(len(listes)):
+        for j in range(len(listes)):
             if i != j:
-                if i.hfin < j.hdebut:
-                    print("ok")
+                if listes[i].hfin < listes[j].hdebut:
+                    print(f"ok: voyage {i} peut précéder voyage {j}")
                     suit = model.NewBoolVar(f'suit_{i}_{j}')
                     model.AddImplication(suit, voyage_vars[i])
                     model.AddImplication(suit, voyage_vars[j])
