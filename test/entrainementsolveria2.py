@@ -40,10 +40,18 @@ voyage2 = voyage(
     "4:30",
     "4:48"
     )
-listes = [voyage1, voyage2]
+voyage3 = voyage(
+    "A1",
+    6,
+    "CEN18",
+    "GOCAR",
+    "5:30",
+    "5:48"
+)
+listes = [voyage1, voyage2, voyage3]
 
 for i in listes:
-    print(f"voyage {i}", i.hdebut, i.hfin)
+    print(f"voyage {i}",i.num_ligne, i.hdebut, i.hfin)
 
 def solvertest():
     model = cp_model.CpModel()
@@ -54,7 +62,7 @@ def solvertest():
         for j in range(len(listes)):
             if i != j:
                 if listes[i].hfin < listes[j].hdebut:
-                    print(f"ok: voyage {i} peut précéder voyage {j}")
+                    print(f"ok: voyage", listes[i].num_ligne, listes[i].num_voyage, "peut précéder voyage", listes[j].num_ligne, listes[j].num_voyage)
                     suit = model.NewBoolVar(f'suit_{i}_{j}')
                     model.AddImplication(suit, voyage_vars[i])
                     model.AddImplication(suit, voyage_vars[j])
@@ -71,5 +79,3 @@ def solvertest():
         print("non solution")
 
 solvertest()
-
-print(voyage.time_to_minutes(voyage1.hfin))
