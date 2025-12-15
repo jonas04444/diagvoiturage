@@ -1,12 +1,30 @@
 from ortools.sat.python import cp_model
 
 class voyage:
-    def __init__(self, heure_debut, heure_fin):
+    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
+        self.num_ligne = (num_ligne)
+        self.num_voyage = num_voyage
+        self.arret_debut = arret_debut
+        self.arret_fin = arret_fin
         self.hdebut = heure_debut
         self.hfin = heure_fin
 
-voyage1 = voyage(800,900)
-voyage2 = voyage(900,1000)
+voyage1 = voyage(
+    "A1",
+    1,
+    "CEN05",
+    "GOCAR",
+    745,
+    803
+    )
+voyage2 = voyage(
+    "A1",
+    2,
+    "GOCAR",
+    "CEN18",
+    845,
+    903
+    )
 listes = [voyage1, voyage2]
 
 for i in listes:
