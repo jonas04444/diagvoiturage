@@ -70,7 +70,7 @@ def solvertest(battement_minimum):
     model = cp_model.CpModel()
 
     voyage_vars = [model.NewBoolVar(f'voyages_{i}') for i in range(len(listes))]
-
+    positions = [model.NewIntVar( 0, len(listes)-1, f'postion_{i}') for i in range(len(listes))]
     for i in range(len(listes)):
         for j in range(len(listes)):
             if i != j:
