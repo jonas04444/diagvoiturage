@@ -76,7 +76,15 @@ def solvertest(battement_minimum):
             if i != j:
 
                 temps_battement = listes[j].hdebut - listes[i].hfin
-                if (listes[i].hfin < listes[j].hdebut and temps_battement > battement_minimum):
+                arret_compatible = (
+                    listes[i].arret_fin_id()==
+                    listes[j].arret_debut_id()
+                )
+
+                if (listes[i].hfin < listes[j].hdebut and
+                        temps_battement > battement_minimum and
+                        arret_compatible
+                    ):
                     print(
                         f"ok: voyage", listes[i].num_ligne, listes[i].num_voyage,
                         "peut précéder voyage", listes[j].num_ligne, listes[j].num_voyage
@@ -99,25 +107,3 @@ def solvertest(battement_minimum):
 
 BM = 5
 solvertest(BM)
-
-voyage4 = voyage(
-    "A1",
-    1,
-    "GOCAR",
-    "CEN05",
-    "5:00",
-    "5:21"
-    )
-voyage5 = voyage(
-    "A1",
-    2,
-    "CEN18",
-    "GOCAR",
-    "4:30",
-    "4:48"
-    )
-jum2102 = service()
-jum2102.ajout_voyages(voyage4)
-jum2102.ajout_voyages(voyage5)
-
-print(jum2102.get_voyages())
