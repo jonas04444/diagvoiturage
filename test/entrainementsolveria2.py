@@ -6,8 +6,8 @@ class voyage:
         self.num_voyage = num_voyage
         self.arret_debut = arret_debut
         self.arret_fin = arret_fin
-        self.hdebut = heure_debut
-        self.hfin = heure_fin
+        self.hdebut = self.time_to_minutes(heure_debut)
+        self.hfin = self.time_to_minutes(heure_fin)
 
     def arret_debut_id(self):
         return self.arret_debut[:3]
@@ -15,10 +15,12 @@ class voyage:
     def arret_fin_id(self):
         return self.arret_fin[:3]
 
+    @staticmethod
     def time_to_minutes(time_str):
         h, m = map(int, time_str.split(':'))
         return h * 60 + m
 
+    @staticmethod
     def minutes_to_time(minutes: int) -> str:
         h = minutes // 60
         m = minutes % 60
@@ -53,7 +55,7 @@ listes = [voyage1, voyage2, voyage3]
 for i in listes:
     print(f"voyage {i}",i.num_ligne, i.hdebut, i.hfin)
 
-def solvertest():
+def solvertest(battement_minimum):
     model = cp_model.CpModel()
 
     voyage_vars = [model.NewBoolVar(f'voyages_{i}') for i in range(len(listes))]
@@ -61,8 +63,13 @@ def solvertest():
     for i in range(len(listes)):
         for j in range(len(listes)):
             if i != j:
-                if listes[i].hfin < listes[j].hdebut:
-                    print(f"ok: voyage", listes[i].num_ligne, listes[i].num_voyage, "peut précéder voyage", listes[j].num_ligne, listes[j].num_voyage)
+
+                temps_battement = listes[j].hdebut - listes[i].hfin
+                if (listes[i].hfin < listes[j].hdebut and temps_battement > battement_minimum):
+                    print(
+                        f"ok: voyage", listes[i].num_ligne, listes[i].num_voyage,
+                        "peut précéder voyage", listes[j].num_ligne, listes[j].num_voyage
+                    )
                     suit = model.NewBoolVar(f'suit_{i}_{j}')
                     model.AddImplication(suit, voyage_vars[i])
                     model.AddImplication(suit, voyage_vars[j])
@@ -78,4 +85,7 @@ def solvertest():
     else:
         print("non solution")
 
-solvertest()
+
+BM = 5
+
+solvertest(BM)
