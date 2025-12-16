@@ -1,4 +1,15 @@
+from numpy.ma.core import append
 from ortools.sat.python import cp_model
+
+class service:
+    def __init__(self):
+        self.voyages = []
+
+    def ajout_voyages(self, voyage):
+        self.voyages.append(voyage)
+
+    def get_voyages(self):
+        return self.voyages
 
 class voyage:
     def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
@@ -87,5 +98,26 @@ def solvertest(battement_minimum):
 
 
 BM = 5
-
 solvertest(BM)
+
+voyage4 = voyage(
+    "A1",
+    1,
+    "GOCAR",
+    "CEN05",
+    "5:00",
+    "5:21"
+    )
+voyage5 = voyage(
+    "A1",
+    2,
+    "CEN18",
+    "GOCAR",
+    "4:30",
+    "4:48"
+    )
+jum2102 = service()
+jum2102.ajout_voyages(voyage4)
+jum2102.ajout_voyages(voyage5)
+
+print(jum2102.get_voyages())
