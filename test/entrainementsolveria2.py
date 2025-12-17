@@ -11,6 +11,13 @@ class service:
     def get_voyages(self):
         return self.voyages
 
+    def duree_services(self):
+        if not self.voyages:
+            return 0
+        debut = min(v.hdebut for v in self.voyages)
+        fin = max(v.hfin for v in self.voyages)
+        return fin - debut
+
 class voyage:
     def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
         self.num_ligne = (num_ligne)
@@ -71,6 +78,7 @@ def solvertest(battement_minimum):
 
     voyage_vars = [model.NewBoolVar(f'voyages_{i}') for i in range(len(listes))]
     positions = [model.NewIntVar( 0, len(listes)-1, f'postion_{i}') for i in range(len(listes))]
+
     for i in range(len(listes)):
         for j in range(len(listes)):
             if i != j:
