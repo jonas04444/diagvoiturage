@@ -83,11 +83,26 @@ voyage3 = voyage(
     )
 listes = [voyage1, voyage2, voyage3]
 
-for i in listes:
-    print(f"voyage {i}",i.num_ligne, i.hdebut, i.hfin)
-
-def solvertest(battement_minimum):
+def solvertest(battement_minimum, max_solutions):
     model = cp_model.CpModel()
+
+    class SolutionCollector(cp_model.CpSolverSolutionCallback):
+        def __init__(self, variables, limit):
+            cp_model.CpSolverSolutionCallback.__init__(self)
+            self._variables = variables
+            self._solution_count = 0
+            self.solution_limit = limit
+            self.solutions = []
+        def on_solution_callback(self):
+            self._solution_count += 1
+            solution = [self.Value(v) for v in self._variables]
+            self.solutions.append(solution)
+
+            if self._solution_count >= self.solution_limit:
+                self.StopSearch()
+
+        def solution_count(self):
+            return self._solution_count
 
     n = len(listes)
 
@@ -111,17 +126,13 @@ def solvertest(battement_minimum):
                     print(f"Voyage {listes[i].num_voyage} ({listes[i].arret_fin[:3]}) → Voyage {listes[j].num_voyage} ({listes[j].arret_debut[:3]}): "
                           f"battement={temps_battement}min | {compat_msg}")
 
-
-                #model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(chaine_arret)
-                #model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(chaine_arret.Not())
-
                 meme_service = model.NewBoolVar(f'meme_service_{i}_{j}')
                 model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
-                model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+                #model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
 
                 suit = model.NewBoolVar(f'suit_{i}_{j}')
                 model.Add(positions[j] == positions[i] + 1).OnlyEnforceIf(suit)
-                model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
+                #model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
 
                 model.AddImplication(suit, meme_service)
 
@@ -135,8 +146,40 @@ def solvertest(battement_minimum):
     for i in range(n):
         model.Add(voyage_vars[i] > 0)
 
+    solution_collector = SolutionCollector(voyage_vars + positions, max_solutions)
+
     solver = cp_model.CpSolver()
-    status = solver.Solve(model)
+
+    status = solver.SearchForAllSolutions(model, solution_collector)
+
+    print(f"\n{solution_collector.solution_count()} solutions trouvée")
+
+    for sol_idx, solution in enumerate(solution_collector.solutions, 1):
+        print(f"=== PROPOSITION {sol_idx} ===")
+        services_dict = {}
+
+        for i in range(n):
+            num_services = solution[i]
+            order = solution[n + i]
+            if num_services not in services_dict:
+                services_dict[num_services] = []
+            services_dict[num_services].append((order, i, listes[i]))
+
+        services_crees = []
+        for num_service in sorted(services_dict.keys()):
+            if num_service > 0:
+                nouveau_service = service_agent(num_service=num_service)
+
+                voyages_trier = sorted(services_dict[num_service], key=lambda x: x[0])
+
+                for order, idx, v in voyages_trier:
+                    nouveau_service.ajout_voyages(v)
+                services_crees.append(nouveau_service)
+
+        for service in services_crees:
+            print(service)
+
+        print()  # Ligne vide entre les propositions
 
     if status == cp_model.OPTIMAL:
         print("solution trouvée")
@@ -165,4 +208,5 @@ def solvertest(battement_minimum):
             print(service)
 
 BM = 5
-solvertest(BM)
+MS=5
+solvertest(BM,MS)
