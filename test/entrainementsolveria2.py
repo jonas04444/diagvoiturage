@@ -67,7 +67,7 @@ voyage3 = voyage(
     "GOCAR",
     "5:30",
     "5:48"
-)
+    )
 listes = [voyage1, voyage2, voyage3]
 
 for i in listes:
@@ -76,8 +76,11 @@ for i in listes:
 def solvertest(battement_minimum):
     model = cp_model.CpModel()
 
-    voyage_vars = [model.NewBoolVar(f'voyages_{i}') for i in range(len(listes))]
-    positions = [model.NewIntVar( 0, len(listes)-1, f'postion_{i}') for i in range(len(listes))]
+    n = len(listes)
+
+    voyage_vars = [model.NewIntVar(0,n,f'service_{i}')for i in range(n)]
+    positions = [model.NewIntVar( 0, n, f'ordre_{i}') for i in range(n)]
+
 
     for i in range(len(listes)):
         for j in range(len(listes)):
@@ -89,26 +92,46 @@ def solvertest(battement_minimum):
                     listes[j].arret_debut_id()
                 )
 
+                meme_service = model.NewBoolVar(f'meme_service_{i}_{j}')
+                model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
+                model.add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+
+                suit = model.NewBoolVar(f'suit_{i}_{j}')
+                model.Add(positions[j] == positions[i] + 1).OnlyEnforceIf(suit)
+                model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
+
+                model.AddImplication(suit, meme_service)
+
                 if (listes[i].hfin < listes[j].hdebut and
-                        temps_battement > battement_minimum and
-                        arret_compatible
-                    ):
-                    print(
-                        f"ok: voyage", listes[i].num_ligne, listes[i].num_voyage,
-                        "peut précéder voyage", listes[j].num_ligne, listes[j].num_voyage
-                    )
-                    suit = model.NewBoolVar(f'suit_{i}_{j}')
-                    model.AddImplication(suit, voyage_vars[i])
-                    model.AddImplication(suit, voyage_vars[j])
+                        temps_battement >= battement_minimum and
+                        arret_compatible):
+                    pass
+                else:
+                    model.add(suit == 0)
+
+    for i in range(n):
+        model.add(voyage_vars[i] > 0)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model)
 
     if status == cp_model.OPTIMAL:
         print("solution trouvée")
-        for i in range(len(voyage_vars)):
-            if solver.Value(voyage_vars[i]) == 1:
-                print(f"voyage {i}: début={listes[i].hdebut}, fin={listes[i].hfin}")
+        services = {}
+        for i in range(n):
+            num_services = solver.Value(voyage_vars[i])
+            order = solver.Value(positions[i])
+            if num_services not in services:
+                services[num_services] = []
+            services[num_services].append((order,i, listes[i]))
+
+        for num_service in sorted(services.keys()):
+            if num_service > 0:
+                voyages_tries = sorted(services[num_service], key=lambda x: x[0])
+                print(f"service {num_service}")
+                for ordre, idx, v in voyages_tries:
+                    print(f"  {ordre}. Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
+                          f"({voyage.minutes_to_time(v.hdebut)} - {voyage.minutes_to_time(v.hfin)})")
     else:
         print("non solution")
 
