@@ -129,11 +129,11 @@ def solvertest(battement_minimum, max_solutions):
 
                 meme_service = model.NewBoolVar(f'meme_service_{i}_{j}')
                 model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
-                #model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+                model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
 
                 suit = model.NewBoolVar(f'suit_{i}_{j}')
                 model.Add(positions[j] == positions[i] + 1).OnlyEnforceIf(suit)
-                #model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
+                model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
 
                 model.AddImplication(suit, meme_service)
 
