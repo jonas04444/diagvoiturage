@@ -18,36 +18,6 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
-    def dernier_voyage(self):
-        if not self.voyages:
-            return None
-        return max(self.voyages, key=lambda v: v.hfin)
-
-    def peut_ajouter_voyage(self, nouveau_voyage, battement_minimum, verifier_arrets=False):
-        if not self.voyages:
-            return True
-        for v in self.voyages:
-            if self._voyages_se_chevauche(v, nouveau_voyage):
-                return False
-
-        dernier = self.dernier_voyage()
-
-        if nouveau_voyage.hdebut < dernier.hfin:
-            return False
-
-        battement = nouveau_voyage.hdebut - dernier.hfin
-        if battement < battement_minimum:
-            return False
-
-        if verifier_arrets:
-            if dernier.arret_fin_id() != nouveau_voyage.arret_debut_id():
-                return False
-
-        return True
-
-    def _voyages_se_chevauche(self, v1, v2):
-        return (v1.hdebut < v2.hfin and v2.hdebut < v1.hfin)
-
     def __str__(self):
         if not self.voyages:
             return f"Service {self.num_service}: vide"
@@ -134,34 +104,97 @@ voyage5 = voyage(
 
 listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
 
-def solvertest(listes, battement_minimum, verifier_arrets=False, verbose=True):
-    voyages_tries = sorted(listes, key=lambda v: v.hdebut)
+def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions = 10):
 
-    services = []
-    num_service_actuel = 1
+    if not listes:
+        return []
 
-    for v in voyages_tries:
-        service_trouve = None
+    model = cp_model.CpModel()
+    n = len(listes)
 
-        for service in services:
-            peut_ajouter, raison = service.peut_ajouter_voyage(v, battement_minimum, verifier_arrets)
-            if peut_ajouter:
-                service_trouve = service
-                break
+    voyage_vars = [model.NewIntVar(1,n,f'service_{i}') for i in range(n)]
 
-        if service_trouve:
-            service_trouve.ajout_voyages(v)
-        else:
-            nouveau_service = service_agent(num_service=num_service_actuel)
-            nouveau_service.ajout_voyages(v)
-            services.append(nouveau_service)
-            num_service_actuel += 1
+    positions = [model.NewIntVar(0,n-1,f'position_{i}') for i in range(n)]
 
-    for service in services:
-        print(service)
-        print()
-    return services
+    for i in range (n):
+        for j in range (n):
+            if i == j:
+                continue
+            voyage_i = listes[i]
+            voyage_j = listes[j]
+
+            meme_service = model.NewBoolVar(f"meme_service_{i}_{j}")
+            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
+            model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+
+            chevauchement = (
+                voyage_i.hdebut < voyage_j.hfin and
+                voyage_j.hdebut < voyage_i.hfin
+            )
+
+            if chevauchement:
+                model.Add(meme_service == 0)
+
+            suit_directement = model.NewBoolVar(f"suit_{i}_{j}")
+            model.Add(positions[i] == positions[j]).OnlyEnforceIf(suit_directement)
+            model.Add(positions[i] != positions[j]).OnlyEnforceIf(suit_directement.Not())
+
+            model.AddImplication(suit_directement, meme_service)
+
+            temps_battement = voyage_j.hdebut - voyage_i.hfin
+            arret_compatible =  (voyage_i.arret_fin_id() == voyage_j.arret_debut_id())
+
+            peut_suivre = (
+                voyage_i.hfin < voyage_j.hdebut and
+                temps_battement >= battement_minimum
+            )
+
+            if verifier_arrets:
+                peut_suivre = peut_suivre and arret_compatible
+
+            if not peut_suivre:
+                model.Add(suit_directement == 0)
+
+    for i in range(n):
+        for j in range(n):
+            meme_service = model.NewBoolVar(f"check_pos_{i}_{j}")
+            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
+            model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+            model.Add(positions[i] != positions[j]).OnlyEnforceIf(meme_service)
+
+    for i in range(n):
+        clauses = []
+        for j in range(n):
+            meme_service_pos_zero = model.NewBoolVar(f"meme_service_pos0_{i}_{j}")
+            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service_pos_zero)
+            model.Add(positions[j] == 0).OnlyEnforceIf(meme_service_pos_zero)
+            clauses.append(meme_service_pos_zero)
+        model.AddBoolOr(clauses)
+
+    class SolutionCollector(cp_model.CpSolverSolutionCallback):
+        def __init__(self, variables, limit):
+            cp_model.CpSolverSolutionCallback.__init__(self)
+            self._variables = variables
+            self._solution_count = 0
+            self.solution_limit = limit
+            self.solutions = []
+
+        def on_solution_callback(self):
+            self._solution_count += 1
+            solution = [self.Value(v) for v in self._variables]
+            self.solutions.append(solution)
+
+            if self._solution_count >= self.solution_limit:
+                self.StopSearch()
+
+        def solution_count(self):
+            return self._solution_count
+
+    solution_collector = SolutionCollector(voyage_vars + positions, max_solutions)
+
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model, solution_collector)
 
 BM = 5
-MS=5
-solvertest(BM,MS)
+
+solvertest(listes,BM)
