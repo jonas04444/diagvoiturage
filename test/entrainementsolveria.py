@@ -24,7 +24,7 @@ class service_agent:
 
         voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
         duree = self.duree_services()
-        result = f"service {self.num_service}: {len(self.voyages)} voyages, "
+        result = f"service {self.num_service}: {len(voyages_chronologiques)} voyages, "
         result += f"duree totale: {duree} min ({duree//60}h{duree%60:02d})\n"
 
         for v in self.voyages_chronologiques:
@@ -61,50 +61,7 @@ class voyage:
         m = minutes % 60
         return f"{h:02d}h{m:02d}"
 
-voyage1 = voyage(
-    "A1",
-    1,
-    "GOCAR",
-    "CEN05",
-    "5:00",
-    "5:21"
-    )
-voyage2 = voyage(
-    "A1",
-    2,
-    "CEN18",
-    "GOCAR",
-    "4:30",
-    "4:48"
-    )
-voyage3 = voyage(
-    "A1",
-    6,
-    "CEN18",
-    "GOCAR",
-    "5:30",
-    "5:48"
-    )
-voyage4 = voyage(
-    "A1",
-    3,
-    "GOCAR",
-    "CEN05",
-    "5:30",
-    "5:51"
-    )
-voyage5 = voyage(
-    "A1",
-    4,
-    "CEN18",
-    "GOCAR",
-    "5:00",
-    "5:18"
-    )
-
-listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
-
-def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions = 10):
+def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10):
 
     if not listes:
         return []
@@ -112,64 +69,35 @@ def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions =
     model = cp_model.CpModel()
     n = len(listes)
 
-    voyage_vars = [model.NewIntVar(1,n,f'service_{i}') for i in range(n)]
-
-    positions = [model.NewIntVar(0,n-1,f'position_{i}') for i in range(n)]
+    service = [model.NewIntVar(0,n-1,f"service{i}") for i in range(n)]
 
     for i in range (n):
-        for j in range (n):
-            if i == j:
-                continue
-            voyage_i = listes[i]
-            voyage_j = listes[j]
+        for j in range (i+1, n):
 
-            meme_service = model.NewBoolVar(f"meme_service_{i}_{j}")
-            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
-            model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
+            vi = listes[i]
+            vj = listes[j]
 
             chevauchement = (
-                voyage_i.hdebut < voyage_j.hfin and
-                voyage_j.hdebut < voyage_i.hfin
+                vi.hdebut < vj.hfin and
+                vj.hdebut < vi.hfin
             )
 
             if chevauchement:
-                model.Add(meme_service == 0)
+                model.Add(service[i] != service[j])
+                continue
 
-            suit_directement = model.NewBoolVar(f"suit_{i}_{j}")
-            model.Add(positions[i] == positions[j]).OnlyEnforceIf(suit_directement)
-            model.Add(positions[i] != positions[j]).OnlyEnforceIf(suit_directement.Not())
-
-            model.AddImplication(suit_directement, meme_service)
-
-            temps_battement = voyage_j.hdebut - voyage_i.hfin
-            arret_compatible =  (voyage_i.arret_fin_id() == voyage_j.arret_debut_id())
-
-            peut_suivre = (
-                voyage_i.hfin < voyage_j.hdebut and
-                temps_battement >= battement_minimum
-            )
+            if vj.hfin <= vi.hdebut:
+                if vi.hdebut - vj.hfin <= battement_minimum:
+                    model.Add(service[i] != service[j])
 
             if verifier_arrets:
-                peut_suivre = peut_suivre and arret_compatible
+                if vi.hfin <= vj.hdebut:
+                    if vi.arret_fin_id() != vj.arret_debut_id():
+                        model.Add(service[i] != service[j])
 
-            if not peut_suivre:
-                model.Add(suit_directement == 0)
-
-    for i in range(n):
-        for j in range(n):
-            meme_service = model.NewBoolVar(f"check_pos_{i}_{j}")
-            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
-            model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
-            model.Add(positions[i] != positions[j]).OnlyEnforceIf(meme_service)
-
-    for i in range(n):
-        clauses = []
-        for j in range(n):
-            meme_service_pos_zero = model.NewBoolVar(f"meme_service_pos0_{i}_{j}")
-            model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service_pos_zero)
-            model.Add(positions[j] == 0).OnlyEnforceIf(meme_service_pos_zero)
-            clauses.append(meme_service_pos_zero)
-        model.AddBoolOr(clauses)
+                if vi.hfin <= vj.hdebut:
+                    if vi.arret_fin_id() != vj.arret_debut_id():
+                        model.Add(service[i] != service[j])
 
     class SolutionCollector(cp_model.CpSolverSolutionCallback):
         def __init__(self, variables, limit):
@@ -190,7 +118,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions =
         def solution_count(self):
             return self._solution_count
 
-    solution_collector = SolutionCollector(voyage_vars + positions, max_solutions)
+    solution_collector = SolutionCollector(service, max_solutions)
 
     solver = cp_model.CpSolver()
     status = solver.Solve(model, solution_collector)
@@ -238,6 +166,48 @@ def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions =
 
     return toutes_solutions
 
-BM = 5
+if __name__ == "__main__":
+    voyage1 = voyage(
+        "A1",
+        1,
+        "GOCAR",
+        "CEN05",
+        "5:00",
+        "5:21"
+    )
+    voyage2 = voyage(
+        "A1",
+        2,
+        "CEN18",
+        "GOCAR",
+        "4:30",
+        "4:48"
+    )
+    voyage3 = voyage(
+        "A1",
+        6,
+        "CEN18",
+        "GOCAR",
+        "5:30",
+        "5:48"
+    )
+    voyage4 = voyage(
+        "A1",
+        3,
+        "GOCAR",
+        "CEN05",
+        "5:30",
+        "5:51"
+    )
+    voyage5 = voyage(
+        "A1",
+        4,
+        "CEN18",
+        "GOCAR",
+        "5:00",
+        "5:18"
+    )
 
-solvertest(listes,BM)
+    listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
+    BM = 5
+    solvertest(listes,BM)
