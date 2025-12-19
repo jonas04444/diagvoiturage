@@ -81,7 +81,24 @@ voyage3 = voyage(
     "5:30",
     "5:48"
     )
-listes = [voyage1, voyage2, voyage3]
+voyage4 = voyage(
+    "A1",
+    3,
+    "GOCAR",
+    "CEN05",
+    "5:30",
+    "5:51"
+    )
+voyage5 = voyage(
+    "A1",
+    4,
+    "CEN18",
+    "GOCAR",
+    "5:00",
+    "5:18"
+    )
+
+listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
 
 def solvertest(battement_minimum, max_solutions):
     model = cp_model.CpModel()
@@ -108,7 +125,7 @@ def solvertest(battement_minimum, max_solutions):
 
     voyage_vars = [model.NewIntVar(0,n,f'service_{i}')for i in range(n)]
     positions = [model.NewIntVar( 0, n, f'ordre_{i}') for i in range(n)]
-    #chaine_arret = [model.NewIntVar(0,n,f'arret_{i}') for i in range(n)]
+    chaine_arret = [model.NewIntVar(0,n,f'arret_{i}') for i in range(n)]
 
 
     for i in range(len(listes)):
@@ -124,7 +141,7 @@ def solvertest(battement_minimum, max_solutions):
 
                 if listes[i].hfin < listes[j].hdebut and temps_battement >= battement_minimum:
                     compat_msg = "✓ Compatible" if arret_compatible else "✗ Arrêts incompatibles"
-                    print(f"Voyage {listes[i].num_voyage} ({listes[i].arret_fin[:3]}) → Voyage {listes[j].num_voyage} ({listes[j].arret_debut[:3]}): "
+                    print(f"Voyage {listes[i].num_voyage} ({listes[i].arret_fin[:3]}) → Voyage {listes[j].num_voyage} ({listes[j].arret_debut[:3]} ): "
                           f"battement={temps_battement}min | {compat_msg}")
 
                 meme_service = model.NewBoolVar(f'meme_service_{i}_{j}')
@@ -143,6 +160,19 @@ def solvertest(battement_minimum, max_solutions):
                     pass
                 else:
                     model.Add(suit == 0)
+
+                voyage_i_debut = listes[i].hdebut
+                voyage_j_debut = listes[j].hdebut
+                voyage_i_fin = listes[i].hfin
+                voyage_j_fin = listes[j].hfin
+
+                chevauchement_possible = (
+                    voyage_i_debut < voyage_j_fin and
+                    voyage_j_debut <voyage_i_fin
+                )
+
+                if chevauchement_possible:
+                    model.Add(meme_service == 0)
 
     for i in range(n):
         model.Add(voyage_vars[i] > 0)
@@ -171,7 +201,7 @@ def solvertest(battement_minimum, max_solutions):
             if num_service > 0:
                 nouveau_service = service_agent(num_service=num_service)
 
-                voyages_trier = sorted(services_dict[num_service], key=lambda x: x[0])
+                voyages_trier = sorted(services_dict[num_service], key=lambda x: x[2].hdebut)
 
                 for order, idx, v in voyages_trier:
                     nouveau_service.ajout_voyages(v)
