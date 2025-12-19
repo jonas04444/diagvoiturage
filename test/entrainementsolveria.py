@@ -195,6 +195,11 @@ def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions =
     solver = cp_model.CpSolver()
     status = solver.Solve(model, solution_collector)
 
+    print(f"\n{'=' * 70}")
+    print(f"Statut: {solver.StatusName(status)}")
+    print(f"Solutions trouvées: {solution_collector.solution_count()}")
+    print(f"{'=' * 70}\n")
+
     toutes_solutions = []
 
     for sol_idx, solution in enumerate(solution_collector.solutions, 1):
