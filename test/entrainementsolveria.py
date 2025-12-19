@@ -27,7 +27,7 @@ class service_agent:
         result = f"service {self.num_service}: {len(voyages_chronologiques)} voyages, "
         result += f"duree totale: {duree} min ({duree//60}h{duree%60:02d})\n"
 
-        for v in self.voyages_chronologiques:
+        for v in voyages_chronologiques:
             hdebut_str = voyage.minutes_to_time(v.hdebut)
             hfin_str = voyage.minutes_to_time(v.hfin)
             result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
@@ -91,10 +91,6 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                     model.Add(service[i] != service[j])
 
             if verifier_arrets:
-                if vi.hfin <= vj.hdebut:
-                    if vi.arret_fin_id() != vj.arret_debut_id():
-                        model.Add(service[i] != service[j])
-
                 if vi.hfin <= vj.hdebut:
                     if vi.arret_fin_id() != vj.arret_debut_id():
                         model.Add(service[i] != service[j])
@@ -207,7 +203,40 @@ if __name__ == "__main__":
         "5:00",
         "5:18"
     )
-
-    listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
+    voyage6 = voyage(
+        "A1",
+        5,
+        "GOCAR",
+        "CEN05",
+        "6:00",
+        "6:21"
+    )
+    voyage7 = voyage(
+        "A1",
+        7,
+        "GOCAR",
+        "CEN05",
+        "6:30",
+        "6:51"
+    )
+    voyage8 = voyage(
+        "A1",
+        4,
+        "CEN18",
+        "GOCAR",
+        "6:00",
+        "6:18"
+    )
+    listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8]
     BM = 5
-    solvertest(listes,BM)
+    solutions = solvertest(listes, BM)
+
+    for idx, services in enumerate(solutions, 1):
+        print("\n" + "#" * 70)
+        print(f"SOLUTION {idx}")
+        print("#" * 70)
+
+        for s in services:
+            print(s)
+
+
