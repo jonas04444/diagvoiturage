@@ -1,6 +1,8 @@
 from ortools.sat.python import cp_model
 
+
 class service_agent:
+
     def __init__(self, num_service=None):
         self.voyages = []
         self.num_service = num_service
@@ -24,6 +26,7 @@ class service_agent:
 
         voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
         duree = self.duree_services()
+
         result = f"service {self.num_service}: {len(voyages_chronologiques)} voyages, "
         result += f"duree totale: {duree} min ({duree//60}h{duree%60:02d})\n"
 
@@ -36,6 +39,7 @@ class service_agent:
         return result.rstrip()
 
 class voyage:
+
     def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
         self.num_ligne = (num_ligne)
         self.num_voyage = num_voyage
@@ -60,6 +64,23 @@ class voyage:
         h = minutes // 60
         m = minutes % 60
         return f"{h:02d}h{m:02d}"
+
+
+def valider_service(voyages, battement_minimum, verifier_arrets=True):
+
+    if len(voyages) == 0:
+        return True, []
+    if len(voyages) == 1:
+        return True, list(voyages[0].service)
+
+    voyages_list = list(voyages)
+    for i in range(len(voyages_list)):
+        for j in range(i+1, len(voyages_list)):
+            vi = voyages_list[i]
+            vj = voyages_list[j]
+            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
+                return False, []
+
 
 def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10):
 
