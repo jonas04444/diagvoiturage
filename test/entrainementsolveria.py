@@ -134,143 +134,33 @@ voyage5 = voyage(
 
 listes = [voyage1, voyage2, voyage3, voyage4, voyage5]
 
-def solvertest(battement_minimum, max_solutions):
-    model = cp_model.CpModel()
+def solvertest(listes, battement_minimum, verifier_arrets=False, verbose=True):
+    voyages_tries = sorted(listes, key=lambda v: v.hdebut)
 
-    class SolutionCollector(cp_model.CpSolverSolutionCallback):
-        def __init__(self, variables, limit):
-            cp_model.CpSolverSolutionCallback.__init__(self)
-            self._variables = variables
-            self._solution_count = 0
-            self.solution_limit = limit
-            self.solutions = []
-        def on_solution_callback(self):
-            self._solution_count += 1
-            solution = [self.Value(v) for v in self._variables]
-            self.solutions.append(solution)
+    services = []
+    num_service_actuel = 1
 
-            if self._solution_count >= self.solution_limit:
-                self.StopSearch()
+    for v in voyages_tries:
+        service_trouve = None
 
-        def solution_count(self):
-            return self._solution_count
+        for service in services:
+            peut_ajouter, raison = service.peut_ajouter_voyage(v, battement_minimum, verifier_arrets)
+            if peut_ajouter:
+                service_trouve = service
+                break
 
-    n = len(listes)
+        if service_trouve:
+            service_trouve.ajout_voyages(v)
+        else:
+            nouveau_service = service_agent(num_service=num_service_actuel)
+            nouveau_service.ajout_voyages(v)
+            services.append(nouveau_service)
+            num_service_actuel += 1
 
-    voyage_vars = [model.NewIntVar(0,n,f'service_{i}')for i in range(n)]
-    positions = [model.NewIntVar( 0, n, f'ordre_{i}') for i in range(n)]
-    chaine_arret = [model.NewIntVar(0,n,f'arret_{i}') for i in range(n)]
-
-
-    for i in range(len(listes)):
-        for j in range(len(listes)):
-            if i != j:
-                if i < j:
-                    premier_voyage = listes[i]
-                temps_battement = listes[j].hdebut - listes[i].hfin
-                arret_compatible = (
-                    listes[i].arret_fin_id()==
-                    listes[j].arret_debut_id()
-                )
-
-                if listes[i].hfin < listes[j].hdebut and temps_battement >= battement_minimum:
-                    compat_msg = "✓ Compatible" if arret_compatible else "✗ Arrêts incompatibles"
-                    print(f"Voyage {listes[i].num_voyage} ({listes[i].arret_fin[:3]}) → Voyage {listes[j].num_voyage} ({listes[j].arret_debut[:3]} ): "
-                          f"battement={temps_battement}min | {compat_msg}")
-
-                meme_service = model.NewBoolVar(f'meme_service_{i}_{j}')
-                model.Add(voyage_vars[i] == voyage_vars[j]).OnlyEnforceIf(meme_service)
-                model.Add(voyage_vars[i] != voyage_vars[j]).OnlyEnforceIf(meme_service.Not())
-
-                suit = model.NewBoolVar(f'suit_{i}_{j}')
-                model.Add(positions[j] == positions[i] + 1).OnlyEnforceIf(suit)
-                model.Add(positions[j] != positions[i] + 1).OnlyEnforceIf(suit.Not())
-
-                model.AddImplication(suit, meme_service)
-
-                if (listes[i].hfin < listes[j].hdebut and
-                        temps_battement >= battement_minimum and
-                        arret_compatible):
-                    pass
-                else:
-                    model.Add(suit == 0)
-
-                voyage_i_debut = listes[i].hdebut
-                voyage_j_debut = listes[j].hdebut
-                voyage_i_fin = listes[i].hfin
-                voyage_j_fin = listes[j].hfin
-
-                chevauchement_possible = (
-                    voyage_i_debut < voyage_j_fin and
-                    voyage_j_debut <voyage_i_fin
-                )
-
-                if chevauchement_possible:
-                    model.Add(meme_service == 0)
-
-    for i in range(n):
-        model.Add(voyage_vars[i] > 0)
-
-    solution_collector = SolutionCollector(voyage_vars + positions, max_solutions)
-
-    solver = cp_model.CpSolver()
-
-    status = solver.SearchForAllSolutions(model, solution_collector)
-
-    print(f"\n{solution_collector.solution_count()} solutions trouvée")
-
-    for sol_idx, solution in enumerate(solution_collector.solutions, 1):
-        print(f"=== PROPOSITION {sol_idx} ===")
-        services_dict = {}
-
-        for i in range(n):
-            num_services = solution[i]
-            order = solution[n + i]
-            if num_services not in services_dict:
-                services_dict[num_services] = []
-            services_dict[num_services].append((order, i, listes[i]))
-
-        services_crees = []
-        for num_service in sorted(services_dict.keys()):
-            if num_service > 0:
-                nouveau_service = service_agent(num_service=num_service)
-
-                voyages_trier = sorted(services_dict[num_service], key=lambda x: x[2].hdebut)
-
-                for order, idx, v in voyages_trier:
-                    nouveau_service.ajout_voyages(v)
-                services_crees.append(nouveau_service)
-
-        for service in services_crees:
-            print(service)
-
-        print()  # Ligne vide entre les propositions
-
-    if status == cp_model.OPTIMAL:
-        print("solution trouvée")
-
-        services_dict = {}
-
-        for i in range(n):
-            num_services = solver.Value(voyage_vars[i])
-            order = solver.Value(positions[i])
-            if num_services not in services_dict:
-                services_dict[num_services] = []
-            services_dict[num_services].append((order,i, listes[i]))
-
-        services_crees = []
-        for num_service in sorted(services_dict.keys()):
-            if num_service > 0:
-                nouveau_service = service_agent(num_service=num_service)
-
-                voyages_trier = sorted(services_dict[num_service], key=lambda x: x[0])
-
-                for order, idx, v in voyages_trier:
-                    nouveau_service.ajout_voyages(v)
-                services_crees.append(nouveau_service)
-
-        for service in services_crees:
-            print(service)
+    for service in services:
+        print(service)
+        print()
+    return services
 
 BM = 5
 MS=5
