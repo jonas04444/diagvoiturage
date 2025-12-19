@@ -18,16 +18,50 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
+    def dernier_voyage(self):
+        if not self.voyages:
+            return None
+        return max(self.voyages, key=lambda v: v.hfin)
+
+    def peut_ajouter_voyage(self, nouveau_voyage, battement_minimum, verifier_arrets=False):
+        if not self.voyages:
+            return True
+        for v in self.voyages:
+            if self._voyages_se_chevauche(v, nouveau_voyage):
+                return False
+
+        dernier = self.dernier_voyage()
+
+        if nouveau_voyage.hdebut < dernier.hfin:
+            return False
+
+        battement = nouveau_voyage.hdebut - dernier.hfin
+        if battement < battement_minimum:
+            return False
+
+        if verifier_arrets:
+            if dernier.arret_fin_id() != nouveau_voyage.arret_debut_id():
+                return False
+
+        return True
+
+    def _voyages_se_chevauche(self, v1, v2):
+        return (v1.hdebut < v2.hfin and v2.hdebut < v1.hfin)
+
     def __str__(self):
         if not self.voyages:
             return f"Service {self.num_service}: vide"
 
+        voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
         duree = self.duree_services()
         result = f"service {self.num_service}: {len(self.voyages)} voyages, "
         result += f"duree totale: {duree} min ({duree//60}h{duree%60:02d})\n"
 
-        for v in self.voyages:
-            result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}\n"
+        for v in self.voyages_chronologiques:
+            hdebut_str = voyage.minutes_to_time(v.hdebut)
+            hfin_str = voyage.minutes_to_time(v.hfin)
+            result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
+            result += f"({hdebut_str} - {hfin_str})\n"
 
         return result.rstrip()
 
