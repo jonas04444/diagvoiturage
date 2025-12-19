@@ -195,6 +195,44 @@ def solvertest(listes, battement_minimum, verifier_arrets=False, max_solutions =
     solver = cp_model.CpSolver()
     status = solver.Solve(model, solution_collector)
 
+    toutes_solutions = []
+
+    for sol_idx, solution in enumerate(solution_collector.solutions, 1):
+
+        services_dict = {}
+
+        for i in range (n):
+            num_service = solution[i]
+
+            if num_service not in services_dict:
+                services_dict[num_service] = []
+
+            services_dict[num_service].append(listes[i])
+
+        services_crees = []
+        for num_service in sorted(services_dict.keys()):
+            nouveau_service = service_agent(num_service=num_service)
+
+            voyages_chronologiques = sorted(services_dict[num_service], key=lambda v: v.hdebut)
+
+            for v in voyages_chronologiques:
+                nouveau_service.ajout_voyages(v)
+
+            services_crees.append(nouveau_service)
+
+        toutes_solutions.append(services_crees)
+
+        print("=" * 70)
+        print("RÉSUMÉ")
+        print("=" * 70)
+        print(f"Total solutions trouvées: {len(toutes_solutions)}")
+        if toutes_solutions:
+            nb_services = [len(sol) for sol in toutes_solutions]
+            print(f"Services min/max par solution: {min(nb_services)} / {max(nb_services)}")
+        print("=" * 70)
+
+    return toutes_solutions
+
 BM = 5
 
 solvertest(listes,BM)
