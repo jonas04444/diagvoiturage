@@ -71,7 +71,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     if len(voyages) == 0:
         return True, []
     if len(voyages) == 1:
-        return True, list(voyages[0].service)
+        return True, list(voyages)
 
     voyages_list = list(voyages)
     for i in range(len(voyages_list)):
@@ -157,15 +157,21 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
     model = cp_model.CpModel()
     n = len(listes)
 
-    service = [model.NewIntVar(0,n-1,f"service{i}") for i in range(n)]
+    max_services = n
+    service = [model.NewIntVar(0, max_services -1, f"service{i}") for i in range(n)]
+
+    max_service_utilise = model.NewIntVar(0, max_services -1,"max_service_utilise")
 
     for i in range (n):
-        for j in range (i+1, n):
+        model.Add(max_service_utilise >= service[i])
 
+    for i in range(n):
+        for j in range (i+1, n):
             vi = listes[i]
             vj = listes[j]
 
-            chevauchement = (
+            #contrainte de chevauchement
+            chevauchement =(
                 vi.hdebut < vj.hfin and
                 vj.hdebut < vi.hfin
             )
@@ -174,17 +180,56 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                 model.Add(service[i] != service[j])
                 continue
 
-            if vj.hfin <= vi.hdebut:
-                if vi.hdebut - vj.hfin <= battement_minimum:
+            #contrainte qui vérifier si un voyage ne commence pas avant la fin du précédent
+            if vj.hfin < vi.hdebut:
+                temps_entre = vi.hdebut - vj.hfin
+                if temps_entre >= battement_minimum:
                     model.Add(service[i] != service[j])
+                    continue
 
-            if verifier_arrets:
-                if vi.hfin <= vj.hdebut:
-                    if vi.arret_fin_id() != vj.arret_debut_id():
+                #vérification du temps de battement entre deux voyages
+                if verifier_arrets and  temps_entre >= battement_minimum:
+                    peut_connecter = False
+                    for k in range(n):
+                        if k == i or k == j:
+                            continue
+                        vk = listes[k]
+                        if (vj.hfin <= vk.hdebut and vk.hfin <= vi.hdebut and
+                                vj.arret_fin_id() == vk.arret_debut_id() and
+                                vk.arret_fin_id() == vi.arret_debut_id()):
+                            peut_connecter = True
+                            break
+
+                    if (vj.arret_fin_id() != vi.arret_debut_id() and not peut_connecter):
                         model.Add(service[i] != service[j])
 
+            #suite contrainte battement
+            if vi.hfin <= vj.hdebut:
+                temps_entre = vj.hdebut - vi.hfin
+                if temps_entre < battement_minimum:
+                    model.Add(service[i] != service[j])
+                    continue
+
+                #si temps suffisant vérifier les arrets
+                if verifier_arrets and temps_entre >= battement_minimum:
+                    peut_connecter = False
+                    for k in range(n):
+                        if k == i or k == j:
+                            continue
+                        vk = listes[k]
+                        if (vi.hfin <= vk.hdebut and vk.hfin <= vj.hdebut and
+                                vi.arret_fin_id() == vk.arret_debut_id() and
+                                vk.arret_fin_id() == vj.arret_debut_id()):
+                            peut_connecter = True
+                            break
+
+                    #si condition fausse ils ne peuvent pas etre sur le meme service
+                    if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
+                        model.Add(service[i] != service[j])
+
+
     class SolutionCollector(cp_model.CpSolverSolutionCallback):
-        def __init__(self, variables, limit):
+        def __init__(self, variables , limit):
             cp_model.CpSolverSolutionCallback.__init__(self)
             self._variables = variables
             self._solution_count = 0
@@ -193,9 +238,8 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
         def on_solution_callback(self):
             self._solution_count += 1
-            solution = [self.Value(v) for v in self._variables]
+            solution = [self.value(v) for v in self._variables]
             self.solutions.append(solution)
-
             if self._solution_count >= self.solution_limit:
                 self.StopSearch()
 
@@ -203,50 +247,70 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
             return self._solution_count
 
     solution_collector = SolutionCollector(service, max_solutions)
-
     solver = cp_model.CpSolver()
+
+    solver.parameters.enumerate_all_solutions = False
+    solver.parameters.num_search_workers = 4
+
     status = solver.Solve(model, solution_collector)
 
-    print(f"\n{'=' * 70}")
-    print(f"Statut: {solver.StatusName(status)}")
-    print(f"Solutions trouvées: {solution_collector.solution_count()}")
-    print(f"{'=' * 70}\n")
+    print(f"status: {solver.StatusName(status)}")
+    print(f"solution: {solution_collector.solution_count()}")
 
     toutes_solutions = []
 
     for sol_idx, solution in enumerate(solution_collector.solutions, 1):
-
         services_dict = {}
 
-        for i in range (n):
+        for i in range(n):
             num_service = solution[i]
-
             if num_service not in services_dict:
                 services_dict[num_service] = []
-
             services_dict[num_service].append(listes[i])
+
+        #afficher les services
+        for num_service in sorted(services_dict.keys()):
+            voyages_du_service = services_dict[num_service]
+            print(f"service: {num_service}: {len(voyages_du_service)}voyages")
+            for v in sorted(voyages_du_service, key=lambda x: x.hdebut):
+                print(
+                    f"voyage {v.num_voyage}: {v.arret_debut_id()} -> {v.arret_fin} ({v.hdebut //60:02d}:{v.hdebut % 60:02d}-{v.hfin // 60:02d}:{v.hfin % 60:02d})"
+                )
 
         services_crees = []
         for num_service in sorted(services_dict.keys()):
+            voyages_du_service = services_dict[num_service]
+
+            est_valide, ordre_voyages = valider_service(
+                voyages_du_service, battement_minimum, verifier_arrets
+            )
+
+            if not est_valide:
+                print(f"service {num_service} pas valide")
+                continue
+
+            print(f"service {num_service}valide avec {len(ordre_voyages)} voyages")
+
             nouveau_service = service_agent(num_service=num_service)
-
-            voyages_chronologiques = sorted(services_dict[num_service], key=lambda v: v.hdebut)
-
-            for v in voyages_chronologiques:
+            for v in ordre_voyages:
                 nouveau_service.ajout_voyages(v)
 
             services_crees.append(nouveau_service)
 
-        toutes_solutions.append(services_crees)
+        if services_crees:
+            toutes_solutions.append(services_crees)
 
-        print("=" * 70)
-        print("RÉSUMÉ")
-        print("=" * 70)
-        print(f"Total solutions trouvées: {len(toutes_solutions)}")
-        if toutes_solutions:
-            nb_services = [len(sol) for sol in toutes_solutions]
-            print(f"Services min/max par solution: {min(nb_services)} / {max(nb_services)}")
-        print("=" * 70)
+    print(f"Total solutions trouvées: {len(toutes_solutions)}")
+    if toutes_solutions:
+        nb_services = [len(sol) for sol in toutes_solutions]
+        print(f"Services min/max par solution: {min(nb_services)} / {max(nb_services)}")
+
+        # Afficher le nombre de voyages par service pour chaque solution
+        for idx, sol in enumerate(toutes_solutions, 1):
+            nb_voyages_par_service = [len(s.get_voyages()) for s in sol]
+            print(f"Solution {idx}: {len(sol)} services, "
+                  f"voyages par service: {nb_voyages_par_service}")
+    print("=" * 70)
 
     return toutes_solutions
 
