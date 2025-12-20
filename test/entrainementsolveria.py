@@ -114,7 +114,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
                 if v.hdebut >= dernier.hfin:
                     temps_entre = v.hdebut - dernier.hfin
                     if temps_entre >= battement_minimum:
-                        if not verifier_arrets or dernier.arret_fin_id() == v.arret_debut_id:
+                        if not verifier_arrets or dernier.arret_fin_id() == v.arret_debut_id():
                             peut_suivre_directement = True
                         else:
                             for v_pont in restants:
@@ -131,8 +131,8 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
                 if peut_suivre_directement:
                     nouveau_restants = restants.copy()
                     nouveau_restants.remove(v)
-                    valid , resultat = contruire_chaine(chaine_actuelle + [v], nouveau_restants)
-                    if valid:
+                    valide , resultat = contruire_chaine(chaine_actuelle + [v], nouveau_restants)
+                    if valide:
                         return True, resultat
 
                 if peut_suivre_avec_pont and v_pont_candidat:
@@ -140,8 +140,8 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
                     nouveau_restants.remove(v_pont_candidat)
                     nouveau_restants.remove(v)
 
-                    valid, resultat = contruire_chaine(chaine_actuelle + [v_pont_candidat, v], nouveau_restants)
-                    if valid:
+                    valide, resultat = contruire_chaine(chaine_actuelle + [v_pont_candidat, v], nouveau_restants)
+                    if valide:
                         return True, resultat
 
         return False, []
@@ -181,9 +181,9 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                 continue
 
             #contrainte qui vérifier si un voyage ne commence pas avant la fin du précédent
-            if vj.hfin < vi.hdebut:
+            if vj.hfin <= vi.hdebut:
                 temps_entre = vi.hdebut - vj.hfin
-                if temps_entre >= battement_minimum:
+                if temps_entre < battement_minimum:
                     model.Add(service[i] != service[j])
                     continue
 
@@ -227,6 +227,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                     if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
                         model.Add(service[i] != service[j])
 
+    model.Minimize(max_service_utilise)
 
     class SolutionCollector(cp_model.CpSolverSolutionCallback):
         def __init__(self, variables , limit):
@@ -373,7 +374,7 @@ if __name__ == "__main__":
     )
     voyage8 = voyage(
         "A1",
-        4,
+        8,
         "CEN18",
         "GOCAR",
         "6:00",
