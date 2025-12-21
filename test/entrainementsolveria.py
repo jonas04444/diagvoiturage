@@ -1,11 +1,11 @@
 from ortools.sat.python import cp_model
 
-
 class service_agent:
 
-    def __init__(self, num_service=None):
+    def __init__(self, num_service=None, type_service = "matin"):
         self.voyages = []
         self.num_service = num_service
+        self.type_service = type_service
 
     def ajout_voyages(self, voyage):
         self.voyages.append(voyage)
@@ -33,8 +33,12 @@ class service_agent:
         voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
         duree = self.duree_services()
 
-        result = f"service {self.num_service}: {len(voyages_chronologiques)} voyages, "
-        result += f"duree totale: {duree} min ({duree//60}h{duree%60:02d})\n"
+        debut_service = min(v.hdebut for v in self.voyages)
+        fin_service = max(v.hfin for v in self.voyages)
+
+        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages, "
+        result += f"duree totale: {duree} min ({duree // 60}h{duree % 60:02d})\n"
+        result += f"  Début service: {voyage.minutes_to_time(debut_service)}, Fin service: {voyage.minutes_to_time(fin_service)}\n"
 
         for v in voyages_chronologiques:
             hdebut_str = voyage.minutes_to_time(v.hdebut)
@@ -43,6 +47,7 @@ class service_agent:
             result += f"({hdebut_str} - {hfin_str})\n"
 
         return result.rstrip()
+
 
 class voyage:
 
@@ -73,7 +78,6 @@ class voyage:
 
 
 def valider_service(voyages, battement_minimum, verifier_arrets=True):
-
     if len(voyages) == 0:
         return True, []
     if len(voyages) == 1:
@@ -155,40 +159,43 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     valide, chaine = contruire_chaine([], set(voyages_list))
     return valide, chaine
 
+
 def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True,
-               duree_max_service=540):
+               max_service_matin = None, max_service_apres_midi = None,
+               heure_debut_apres_midi = 660, heure_fin_matin = 1080,duree_max_service=540):
 
     if not listes:
         return []
 
+    if max_service_matin is None:
+        max_service_matin = len(listes)
+    if max_service_apres_midi is None:
+        max_service_apres_midi = len(listes)
+
     model = cp_model.CpModel()
     n = len(listes)
 
-    if max_service_choisi:
-        max_services = max_service_choisi
-    else:
-        max_services = n
+    max_service_total = max_service_matin + max_service_apres_midi
 
-    service = [model.NewIntVar(0, max_services -1, f"service{i}") for i in range(n)]
+    service = [model.NewIntVar(0, max_service_total -1, f"service{i}") for i in range(n)]
 
-    max_service_utilise = model.NewIntVar(0, max_services -1,"max_service_utilise")
+    max_service_utilise_matin = model.NewIntVar(0, max_service_total -1,"max_service_utilise")
+    max_service_utilise_apres_midi = model.NewIntVar(max_service_matin, max_service_apres_midi -1,
+                                                     "max_service_utilise_apres_midi")
 
-    for i in range (n):
-        model.Add(max_service_utilise >= service[i])
-
-    debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_services)]
-    fin_service = [model.NewIntVar(0, 24 * 60,f"fin_service{s}")for s in range(max_services)]
+    debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_service_total)]
+    fin_service = [model.NewIntVar(0, 24 * 60,f"fin_service{s}")for s in range(max_service_total)]
 
     affectation = {}
 
     for i in range(n):
-        for s in range(max_services):
+        for s in range(max_service_total):
             affectation[(i, s)] = model.NewBoolVar(f"voyage_{i}_service_{s}")
 
             model.Add(service[i] == s).OnlyEnforceIf(affectation[(i, s)])
             model.Add(service[i] != s).OnlyEnforceIf(affectation[(i, s)].Not())
 
-    for s in range(max_services):
+    for s in range(max_service_total):
         service_utilise = model.NewBoolVar(f"service_{s}_utilise")
 
         model.Add(sum(affectation[(i, s)] for i in range(n)) >= 1).OnlyEnforceIf(service_utilise)
