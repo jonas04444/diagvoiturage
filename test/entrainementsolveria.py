@@ -24,6 +24,7 @@ class service_agent:
         duree = self.duree_services()
         if duree > duree_maximum:
             return False
+        return True
 
     def __str__(self):
         if not self.voyages:
