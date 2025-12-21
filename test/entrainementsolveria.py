@@ -195,11 +195,11 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
         model.Add(sum(affectation[(i, s)] for i in range(n)) == 0).OnlyEnforceIf(service_utilise.Not())
 
         for i in range(n):
-            model.Add(debut_service[s] <- listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
+            model.Add(debut_service[s] <= listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
             model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
 
         duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
-        model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(duree_service)
+        model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(service_utilise)
         model.Add(duree_service <= duree_max_service).OnlyEnforceIf(service_utilise)
 
     for i in range(n):
@@ -417,7 +417,41 @@ if __name__ == "__main__":
         "6:00",
         "6:18"
     )
-    listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8]
+    voyage9 = voyage(
+        "A1",
+        9,
+        "GOCAR",
+        "CEN05",
+        "7:00",
+        "7:21"
+    )
+    voyage10 = voyage(
+        "A1",
+        10,
+        "CEN18",
+        "GOCAR",
+        "6:30",
+        "6:48"
+    )
+    voyage11 = voyage(
+        "A1",
+        11,
+        "GOCAR",
+        "CEN05",
+        "7:30",
+        "7:51"
+    )
+    voyage12 = voyage(
+        "A1",
+        12,
+        "CEN18",
+        "GOCAR",
+        "7:00",
+        "7:18"
+    )
+
+    listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8,
+              voyage9, voyage10, voyage11, voyage12]
     BM = 5
     solutions = solvertest(listes, BM, True,10,2, duree_max_service=540)
 
