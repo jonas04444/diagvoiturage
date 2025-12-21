@@ -155,7 +155,8 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     valide, chaine = contruire_chaine([], set(voyages_list))
     return valide, chaine
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True):
+def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True,
+               duree_max_service=540):
 
     if not listes:
         return []
@@ -174,6 +175,32 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
     for i in range (n):
         model.Add(max_service_utilise >= service[i])
+
+    debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_services)]
+    fin_service = [model.NewIntVar(0, 24 * 60,f"fin_service{s}")for s in range(max_services)]
+
+    affectation = {}
+
+    for i in range(n):
+        for s in range(max_services):
+            affectation[(i, s)] = model.NewBoolVar(f"voyage_{i}_service_{s}")
+
+            model.Add(service[i] == s).OnlyEnforceIf(affectation[(i, s)])
+            model.Add(service[i] != s).OnlyEnforceIf(affectation[(i, s)].Not())
+
+    for s in range(max_services):
+        service_utilise = model.NewBoolVar(f"service_{s}_utilise")
+
+        model.Add(sum(affectation[(i, s)] for i in range(n)) >= 1).OnlyEnforceIf(service_utilise)
+        model.Add(sum(affectation[(i, s)] for i in range(n)) == 0).OnlyEnforceIf(service_utilise.Not())
+
+        for i in range(n):
+            model.Add(debut_service[s] <- listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
+            model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
+
+        duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
+        model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(duree_service)
+        model.Add(duree_service <= duree_max_service).OnlyEnforceIf(service_utilise)
 
     for i in range(n):
         for j in range (i+1, n):
@@ -392,7 +419,7 @@ if __name__ == "__main__":
     )
     listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8]
     BM = 5
-    solutions = solvertest(listes, BM, True,10,2)
+    solutions = solvertest(listes, BM, True,10,2, duree_max_service=540)
 
     for idx, services in enumerate(solutions, 1):
         print("\n" + "#" * 70)
