@@ -154,7 +154,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     valide, chaine = contruire_chaine([], set(voyages_list))
     return valide, chaine
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = False):
+def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True):
 
     if not listes:
         return []
@@ -391,7 +391,7 @@ if __name__ == "__main__":
     )
     listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8]
     BM = 5
-    solutions = solvertest(listes, BM)
+    solutions = solvertest(listes, BM, True,10,2)
 
     for idx, services in enumerate(solutions, 1):
         print("\n" + "#" * 70)
