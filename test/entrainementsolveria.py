@@ -20,6 +20,11 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
+    def duree_services_maximum(self, duree_maximum):
+        duree = self.duree_services()
+        if duree > duree_maximum:
+            return False
+
     def __str__(self):
         if not self.voyages:
             return f"Service {self.num_service}: vide"
@@ -149,7 +154,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     valide, chaine = contruire_chaine([], set(voyages_list))
     return valide, chaine
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10):
+def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_matin = 2, max_service_aprem = 0):
 
     if not listes:
         return []
@@ -157,10 +162,14 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
     model = cp_model.CpModel()
     n = len(listes)
 
-    max_services = n
-    service = [model.NewIntVar(0, max_services -1, f"service{i}") for i in range(n)]
+    max_services_am = max_service_matin
+    max_service_pm = max_service_aprem
 
-    max_service_utilise = model.NewIntVar(0, max_services -1,"max_service_utilise")
+    service = [model.NewIntVar(0, max_services_am -1, f"service{i}") for i in range(n)]
+    service_pm = [model.NewIntVar(0, max_service_pm -1, f"service{i}") for i in range(n)]
+
+    max_service_utilise = model.NewIntVar(0, max_services_am -1,"max_service_utilise")
+    max_service_utilise_pm = model.NewIntVar(0, max_service_pm -1,"max_service_utilise_pm")
 
     for i in range (n):
         model.Add(max_service_utilise >= service[i])

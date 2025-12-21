@@ -20,6 +20,11 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
+    def duree_services_maximum(self, duree_maximum):
+        duree = self.duree_services()
+        if duree > duree_maximum:
+            return False
+
     def __str__(self):
         if not self.voyages:
             return f"Service {self.num_service}: vide"
@@ -286,6 +291,9 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions=10
                     if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
                         # Empêcher qu'ils soient dans le même service
                         model.Add(service[i] != service[j])
+
+            #contrainte durée maximum des services
+            #duree_service = 2
 
     # Contraintes pour matin/après-midi si spécifiées
     heure_separation_minutes = voyage.time_to_minutes(heure_separation)
