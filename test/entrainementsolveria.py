@@ -204,6 +204,13 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
         for i in range(n):
             model.Add(debut_service[s] <= listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
             model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
+        if s < max_service_matin:
+            model.Add(debut_service[s] < heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
+            model.Add(fin_service[s] <= heure_fin_matin).OnlyEnforceIf(service_utilise)
+            model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
+        else:
+            model.Add(debut_service[s] >= heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
+            model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
 
         duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
         model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(service_utilise)
@@ -271,7 +278,10 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                     if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
                         model.Add(service[i] != service[j])
 
-    model.Minimize(max_service_utilise)
+    nb_services_matin = model.NewIntVar(0, max_service_matin, "nb_services_matin")
+    nb_services_apres_midi = model.NewIntVar(0, max_service_matin, "nb_services_apres_midi")
+
+    model.Minimize(nb_services_matin + nb_services_apres_midi)
 
     class SolutionCollector(cp_model.CpSolverSolutionCallback):
         def __init__(self, variables , limit):
@@ -460,7 +470,16 @@ if __name__ == "__main__":
     listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8,
               voyage9, voyage10, voyage11, voyage12]
     BM = 5
-    solutions = solvertest(listes, BM, True,10,2, duree_max_service=540)
+    solutions = solvertest(
+        listes,
+        BM,
+        True,
+        10,
+        max_service_matin=2,
+        max_service_apres_midi=0,
+        heure_debut_apres_midi=660,
+        heure_fin_matin=1080,
+        duree_max_service=540)
 
     for idx, services in enumerate(solutions, 1):
         print("\n" + "#" * 70)
