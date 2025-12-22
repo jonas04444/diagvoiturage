@@ -161,26 +161,26 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
 
 
 def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True,
-               max_service_matin = None, max_service_apres_midi = None,
+               max_services_matin = None, max_services_apres_midi = None,
                heure_debut_apres_midi = 660, heure_fin_matin = 1080,duree_max_service=540):
 
     if not listes:
         return []
 
-    if max_service_matin is None:
-        max_service_matin = len(listes)
-    if max_service_apres_midi is None:
-        max_service_apres_midi = len(listes)
+    if max_services_matin is None:
+        max_services_matin = len(listes)
+    if max_services_apres_midi is None:
+        max_services_apres_midi = len(listes)
 
     model = cp_model.CpModel()
     n = len(listes)
 
-    max_service_total = max_service_matin + max_service_apres_midi
+    max_service_total = max_services_matin + max_services_apres_midi
 
     service = [model.NewIntVar(0, max_service_total -1, f"service{i}") for i in range(n)]
 
     max_service_utilise_matin = model.NewIntVar(0, max_service_total -1,"max_service_utilise")
-    max_service_utilise_apres_midi = model.NewIntVar(max_service_matin, max_service_apres_midi -1,
+    max_service_utilise_apres_midi = model.NewIntVar(max_services_matin, max_services_apres_midi -1,
                                                      "max_service_utilise_apres_midi")
 
     debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_service_total)]
@@ -204,7 +204,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
         for i in range(n):
             model.Add(debut_service[s] <= listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
             model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
-        if s < max_service_matin:
+        if s < max_services_matin:
             model.Add(debut_service[s] < heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
             model.Add(fin_service[s] <= heure_fin_matin).OnlyEnforceIf(service_utilise)
             model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
@@ -278,8 +278,8 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                     if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
                         model.Add(service[i] != service[j])
 
-    nb_services_matin = model.NewIntVar(0, max_service_matin, "nb_services_matin")
-    nb_services_apres_midi = model.NewIntVar(0, max_service_matin, "nb_services_apres_midi")
+    nb_services_matin = model.NewIntVar(0, max_services_matin, "nb_services_matin")
+    nb_services_apres_midi = model.NewIntVar(0, max_services_apres_midi, "nb_services_apres_midi")
 
     model.Minimize(nb_services_matin + nb_services_apres_midi)
 
@@ -326,10 +326,20 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
         #afficher les services
         for num_service in sorted(services_dict.keys()):
             voyages_du_service = services_dict[num_service]
-            print(f"service: {num_service}: {len(voyages_du_service)}voyages")
+            type_service = "MATIN" if num_service < max_services_matin else "APRÈS-MIDI"
+
+            # Calculer le début et la fin du service
+            debut_serv = min(v.hdebut for v in voyages_du_service)
+            fin_serv = max(v.hfin for v in voyages_du_service)
+
+            print(f"\nService {num_service} ({type_service}): {len(voyages_du_service)} voyages")
+            print(
+                f"  Plage horaire: {debut_serv // 60:02d}:{debut_serv % 60:02d} - {fin_serv // 60:02d}:{fin_serv % 60:02d}")
+
             for v in sorted(voyages_du_service, key=lambda x: x.hdebut):
                 print(
-                    f"voyage {v.num_voyage}: {v.arret_debut_id()} -> {v.arret_fin} ({v.hdebut //60:02d}:{v.hdebut % 60:02d}-{v.hfin // 60:02d}:{v.hfin % 60:02d})"
+                    f"  Voyage {v.num_voyage}: {v.arret_debut_id()} → {v.arret_fin} "
+                    f"({v.hdebut // 60:02d}:{v.hdebut % 60:02d} - {v.hfin // 60:02d}:{v.hfin % 60:02d})"
                 )
 
         services_crees = []
@@ -346,6 +356,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
             print(f"service {num_service}valide avec {len(ordre_voyages)} voyages")
 
+            type_service = "matin" if num_service < max_services_matin else "apres_midi"
             nouveau_service = service_agent(num_service=num_service)
             for v in ordre_voyages:
                 nouveau_service.ajout_voyages(v)
@@ -357,15 +368,26 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
     print(f"Total solutions trouvées: {len(toutes_solutions)}")
     if toutes_solutions:
-        nb_services = [len(sol) for sol in toutes_solutions]
-        print(f"Services min/max par solution: {min(nb_services)} / {max(nb_services)}")
-
         # Afficher le nombre de voyages par service pour chaque solution
         for idx, sol in enumerate(toutes_solutions, 1):
-            nb_voyages_par_service = [len(s.get_voyages()) for s in sol]
-            print(f"Solution {idx}: {len(sol)} services, "
-                  f"voyages par service: {nb_voyages_par_service}")
+            services_matin = [s for s in sol if s.type_service == "matin"]
+            services_apres_midi = [s for s in sol if s.type_service =="apres_midi"]
+
+            print(f"\nSolution {idx}:")
+            print(f"  - Services matin: {len(services_matin)}")
+            print(f"  - Services après-midi: {len(services_apres_midi)}")
+            print(f"  - Total: {len(sol)} services")
+
+            if services_matin:
+                nb_voyages_matin = [len(s.get_voyages()) for s in services_matin]
+                print(f"  - Voyages matin: {nb_voyages_matin}")
+
+            if services_apres_midi:
+                nb_voyages_apres_midi = [len(s.get_voyages()) for s in services_apres_midi]
+                print(f"  - Voyages après-midi: {nb_voyages_apres_midi}")
+
     print("=" * 70)
+
 
     return toutes_solutions
 
@@ -475,8 +497,8 @@ if __name__ == "__main__":
         BM,
         True,
         10,
-        max_service_matin=2,
-        max_service_apres_midi=0,
+        max_services_matin=3,
+        max_services_apres_midi=0,
         heure_debut_apres_midi=660,
         heure_fin_matin=1080,
         duree_max_service=540)
