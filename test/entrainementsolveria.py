@@ -160,7 +160,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     return valide, chaine
 
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10, max_service_choisi = True,
+def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10,
                max_services_matin = None, max_services_apres_midi = None,
                heure_debut_apres_midi = 660, heure_fin_matin = 1080,duree_max_service=540):
 
@@ -180,7 +180,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
     service = [model.NewIntVar(0, max_service_total -1, f"service{i}") for i in range(n)]
 
     max_service_utilise_matin = model.NewIntVar(0, max_service_total -1,"max_service_utilise")
-    max_service_utilise_apres_midi = model.NewIntVar(max_services_matin, max_services_apres_midi -1,
+    max_service_utilise_apres_midi = model.NewIntVar(max_services_matin, max_service_total -1,
                                                      "max_service_utilise_apres_midi")
 
     debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_service_total)]
@@ -210,7 +210,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
             model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
         else:
             model.Add(debut_service[s] >= heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
-            model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
+            model.Add(max_service_utilise_apres_midi>=s).OnlyEnforceIf(service_utilise)
 
         duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
         model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(service_utilise)
@@ -280,6 +280,10 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
     nb_services_matin = model.NewIntVar(0, max_services_matin, "nb_services_matin")
     nb_services_apres_midi = model.NewIntVar(0, max_services_apres_midi, "nb_services_apres_midi")
+
+    model.Add(nb_services_matin == max_service_utilise_matin + 1)
+    if max_services_apres_midi > 0:
+        model.Add(nb_services_apres_midi == max_service_utilise_apres_midi - max_services_matin + 1)
 
     model.Minimize(nb_services_matin + nb_services_apres_midi)
 
@@ -357,7 +361,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
             print(f"service {num_service}valide avec {len(ordre_voyages)} voyages")
 
             type_service = "matin" if num_service < max_services_matin else "apres_midi"
-            nouveau_service = service_agent(num_service=num_service)
+            nouveau_service = service_agent(num_service=num_service, type_service=type_service)
             for v in ordre_voyages:
                 nouveau_service.ajout_voyages(v)
 
@@ -497,7 +501,7 @@ if __name__ == "__main__":
         BM,
         True,
         10,
-        max_services_matin=3,
+        max_services_matin=2,
         max_services_apres_midi=0,
         heure_debut_apres_midi=660,
         heure_fin_matin=1080,
