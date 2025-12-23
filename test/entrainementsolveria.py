@@ -502,7 +502,7 @@ if __name__ == "__main__":
         True,
         10,
         max_services_matin=2,
-        max_services_apres_midi=0,
+        max_services_apres_midi=None,
         heure_debut_apres_midi=660,
         heure_fin_matin=1080,
         duree_max_service=540)
