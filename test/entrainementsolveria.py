@@ -82,10 +82,35 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
             battement_minimum,
             verifier_arrets
         ):
-            return False []
+            return False, []
 
     return True, voyages_ordonnes
 
+def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True):
+    if v2.hdebut > v1.hfin:
+        return False
+
+    temps_entre = v2.hdebut - v1.hfin
+    if temps_entre < battement_minimum:
+        return False
+
+    if not verifier_arrets:
+        return True
+
+    if v1.arret_debut_id() == v2.arret_fin_id():
+        return True
+
+    for vp in voyages:
+        if vp is v1 or vp is v2:
+            continue
+
+        if (v1.hfin <= vp.hdebut and vp.hfin <= v2.hdebut and
+                v1.arret_debut_id() == v.arret_fin_id() and
+                vp.arret_debut_id() == v2.arret_fin_id()
+        ):
+            return True
+
+    return False
 
 def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10,
                max_services_matin = None, max_services_apres_midi = None,
