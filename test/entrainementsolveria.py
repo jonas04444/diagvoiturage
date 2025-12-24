@@ -20,31 +20,21 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
-    def duree_services_maximum(self, duree_maximum):
-        duree = self.duree_services()
-        if duree > duree_maximum:
-            return False
-        return True
-
     def __str__(self):
         if not self.voyages:
             return f"Service {self.num_service}: vide"
 
         voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
-        duree = self.duree_services()
-
         debut_service = min(v.hdebut for v in self.voyages)
         fin_service = max(v.hfin for v in self.voyages)
+        duree = fin_service - debut_service
 
         result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages, "
-        result += f"duree totale: {duree} min ({duree // 60}h{duree % 60:02d})\n"
-        result += f"  Début service: {voyage.minutes_to_time(debut_service)}, Fin service: {voyage.minutes_to_time(fin_service)}\n"
+        result += f"duree totale: début {voyage.minutes_to_time(debut_service)} fin : {voyage.minutes_to_time(fin_service)} total : {duree}\n"
 
         for v in voyages_chronologiques:
-            hdebut_str = voyage.minutes_to_time(v.hdebut)
-            hfin_str = voyage.minutes_to_time(v.hfin)
             result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
-            result += f"({hdebut_str} - {hfin_str})\n"
+            result += f"({voyage.minutes_to_time(v.hdebut)} - {voyage.minutes_to_time(v.hfin)})\n"
 
         return result.rstrip()
 
