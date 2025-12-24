@@ -1,5 +1,8 @@
 from ortools.sat.python import cp_model
 
+from test.proposition_claude import voyages_compatibles
+
+
 class service_agent:
 
     def __init__(self, num_service=None, type_service = "matin"):
@@ -68,84 +71,20 @@ class voyage:
 def valider_service(voyages, battement_minimum, verifier_arrets=True):
     if len(voyages) == 0:
         return True, []
-    if len(voyages) == 1:
-        return True, list(voyages)
 
-    voyages_list = list(voyages)
-    for i in range(len(voyages_list)):
-        for j in range(i+1, len(voyages_list)):
-            vi = voyages_list[i]
-            vj = voyages_list[j]
-            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
-                return False, []
+    voyages_ordonnes = sorted(voyages, key=lambda v: v.hdebut)
 
-    def contruire_chaine(chaine_actuelle, restants):
-        if not restants:
-            return True, chaine_actuelle
+    for i in range(len(voyages_ordonnes)-1):
+        if not voyages_compatibles(
+            voyages_ordonnes[i],
+            voyages_ordonnes[i+1],
+            voyages_ordonnes,
+            battement_minimum,
+            verifier_arrets
+        ):
+            return False []
 
-        dernier =  chaine_actuelle[-1] if chaine_actuelle else None
-
-        if dernier is None:
-            voyage_plus_tot = min(restants, key=lambda x: x.hdebut)
-            nouveau_restants = restants.copy()
-            nouveau_restants.remove(voyage_plus_tot)
-            valide, resultat = contruire_chaine([voyage_plus_tot], nouveau_restants)
-
-            if valide:
-                return True, resultat
-
-        else:
-            for v in sorted(restants, key=lambda x: x.hdebut):
-                chevauche = False
-                for v_existant in chaine_actuelle:
-                    if v.hdebut < v_existant.hfin and v_existant.hdebut < v.hfin:
-                        chevauche = True
-                        break
-
-                if chevauche:
-                    continue
-
-                peut_suivre_directement = False
-                peut_suivre_avec_pont = False
-                v_pont_candidat = None
-
-                if v.hdebut >= dernier.hfin:
-                    temps_entre = v.hdebut - dernier.hfin
-                    if temps_entre >= battement_minimum:
-                        if not verifier_arrets or dernier.arret_fin_id() == v.arret_debut_id():
-                            peut_suivre_directement = True
-                        else:
-                            for v_pont in restants:
-                                if v_pont.hdebut == v:
-                                    continue
-
-                                if (dernier.hfin <= v_pont.hdebut and v_pont.hfin <= v.hdebut and
-                                        dernier.arret_fin_id() == v_pont.arret_debut_id() and
-                                        v_pont.arret_fin_id() == v.arret_debut_id()):
-                                    peut_suivre_avec_pont = True
-                                    v_pont_candidat = v_pont
-                                    break
-
-                if peut_suivre_directement:
-                    nouveau_restants = restants.copy()
-                    nouveau_restants.remove(v)
-                    valide , resultat = contruire_chaine(chaine_actuelle + [v], nouveau_restants)
-                    if valide:
-                        return True, resultat
-
-                if peut_suivre_avec_pont and v_pont_candidat:
-                    nouveau_restants = restants.copy()
-                    nouveau_restants.remove(v_pont_candidat)
-                    nouveau_restants.remove(v)
-
-                    valide, resultat = contruire_chaine(chaine_actuelle + [v_pont_candidat, v], nouveau_restants)
-                    if valide:
-                        return True, resultat
-
-        return False, []
-
-    valide, chaine = contruire_chaine([], set(voyages_list))
-    return valide, chaine
+    return True, voyages_ordonnes
 
 
 def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10,
