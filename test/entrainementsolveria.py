@@ -61,10 +61,8 @@ class voyage:
         return h * 60 + m
 
     @staticmethod
-    def minutes_to_time(minutes: int) -> str:
-        h = minutes // 60
-        m = minutes % 60
-        return f"{h:02d}h{m:02d}"
+    def minutes_to_time(minutes)
+        return f"{minutes // 60:02d}h{minutes % 60:02d}"
 
 
 def valider_service(voyages, battement_minimum, verifier_arrets=True):
