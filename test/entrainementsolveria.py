@@ -1,8 +1,5 @@
 from ortools.sat.python import cp_model
 
-from test.proposition_claude import voyages_compatibles
-
-
 class service_agent:
 
     def __init__(self, num_service=None, type_service = "matin"):
@@ -64,7 +61,7 @@ class voyage:
         return h * 60 + m
 
     @staticmethod
-    def minutes_to_time(minutes)
+    def minutes_to_time(minutes):
         return f"{minutes // 60:02d}h{minutes % 60:02d}"
 
 
@@ -87,7 +84,7 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
     return True, voyages_ordonnes
 
 def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True):
-    if v2.hdebut > v1.hfin:
+    if v2.hdebut < v1.hfin:
         return False
 
     temps_entre = v2.hdebut - v1.hfin
@@ -97,7 +94,7 @@ def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True
     if not verifier_arrets:
         return True
 
-    if v1.arret_debut_id() == v2.arret_fin_id():
+    if v1.arret_fin_id() == v2.arret_debut_id():
         return True
 
     for vp in voyages:
@@ -105,8 +102,8 @@ def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True
             continue
 
         if (v1.hfin <= vp.hdebut and vp.hfin <= v2.hdebut and
-                v1.arret_debut_id() == v.arret_fin_id() and
-                vp.arret_debut_id() == v2.arret_fin_id()
+                vp.arret_debut_id() == v1.arret_fin_id() and
+                v2.arret_debut_id() == vp.arret_fin_id()
         ):
             return True
 
@@ -116,236 +113,76 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                max_services_matin = None, max_services_apres_midi = None,
                heure_debut_apres_midi = 660, heure_fin_matin = 1080,duree_max_service=540):
 
-    if not listes:
-        return []
-
-    if max_services_matin is None:
-        max_services_matin = len(listes)
-    if max_services_apres_midi is None:
-        max_services_apres_midi = len(listes)
-
     model = cp_model.CpModel()
     n = len(listes)
 
-    max_service_total = max_services_matin + max_services_apres_midi
+    if max_services_matin is None:
+        max_services_matin = n
+    if max_services_apres_midi is None:
+        max_services_apres_midi = n
 
-    service = [model.NewIntVar(0, max_service_total -1, f"service{i}") for i in range(n)]
+    max_services_total =  max_services_matin + max_services_apres_midi
+    service = [model.NewIntVar(0, max_services_total -1, f"service{i}") for i in range(n)]
 
-    max_service_utilise_matin = model.NewIntVar(0, max_service_total -1,"max_service_utilise")
-    max_service_utilise_apres_midi = model.NewIntVar(max_services_matin, max_service_total -1,
-                                                     "max_service_utilise_apres_midi")
+    service_utilise = []
 
-    debut_service =  [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_service_total)]
-    fin_service = [model.NewIntVar(0, 24 * 60,f"fin_service{s}")for s in range(max_service_total)]
+    for s in range(max_services_total):
+        b = model.NewBoolVar(f"service_{s}_utilise")
+        service_utilise.append(b)
 
-    affectation = {}
-
-    for i in range(n):
-        for s in range(max_service_total):
-            affectation[(i, s)] = model.NewBoolVar(f"voyage_{i}_service_{s}")
-
-            model.Add(service[i] == s).OnlyEnforceIf(affectation[(i, s)])
-            model.Add(service[i] != s).OnlyEnforceIf(affectation[(i, s)].Not())
-
-    for s in range(max_service_total):
-        service_utilise = model.NewBoolVar(f"service_{s}_utilise")
-
-        model.Add(sum(affectation[(i, s)] for i in range(n)) >= 1).OnlyEnforceIf(service_utilise)
-        model.Add(sum(affectation[(i, s)] for i in range(n)) == 0).OnlyEnforceIf(service_utilise.Not())
-
+        affectation = []
         for i in range(n):
-            model.Add(debut_service[s] <= listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
-            model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
-        if s < max_services_matin:
-            model.Add(debut_service[s] < heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
-            model.Add(fin_service[s] <= heure_fin_matin).OnlyEnforceIf(service_utilise)
-            model.Add(max_service_utilise_matin>=s).OnlyEnforceIf(service_utilise)
-        else:
-            model.Add(debut_service[s] >= heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
-            model.Add(max_service_utilise_apres_midi>=s).OnlyEnforceIf(service_utilise)
+            a = model.NewBoolVar(f"voyage_{i}_dans_service_{s}")
+            model.Add(service[i] == s).OnlyEnforceIf(a)
+            model.Add(service[i] != s).OnlyEnforceIf(a.Not())
+            affectation.append(a)
 
-        duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
-        model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(service_utilise)
-        model.Add(duree_service <= duree_max_service).OnlyEnforceIf(service_utilise)
+        model.Add(sum(affectation) >= 1).OnlyEnforceIf(b)
+        model.Add(sum(affectation) == 0).OnlyEnforceIf(b.Not())
+
+    model.Minimize(sum(service_utilise))
 
     for i in range(n):
-        for j in range (i+1, n):
+        for j in range(i+1, n):
             vi = listes[i]
             vj = listes[j]
 
-            #contrainte de chevauchement
-            chevauchement =(
-                vi.hdebut < vj.hfin and
-                vj.hdebut < vi.hfin
-            )
-
-            if chevauchement:
+            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
                 model.Add(service[i] != service[j])
                 continue
 
-            #contrainte qui vérifier si un voyage ne commence pas avant la fin du précédent
-            if vj.hfin <= vi.hdebut:
-                temps_entre = vi.hdebut - vj.hfin
-                if temps_entre < battement_minimum:
-                    model.Add(service[i] != service[j])
-                    continue
-
-                #vérification du temps de battement entre deux voyages
-                if verifier_arrets and  temps_entre >= battement_minimum:
-                    peut_connecter = False
-                    for k in range(n):
-                        if k == i or k == j:
-                            continue
-                        vk = listes[k]
-                        if (vj.hfin <= vk.hdebut and vk.hfin <= vi.hdebut and
-                                vj.arret_fin_id() == vk.arret_debut_id() and
-                                vk.arret_fin_id() == vi.arret_debut_id()):
-                            peut_connecter = True
-                            break
-
-                    if (vj.arret_fin_id() != vi.arret_debut_id() and not peut_connecter):
-                        model.Add(service[i] != service[j])
-
-            #suite contrainte battement
             if vi.hfin <= vj.hdebut:
-                temps_entre = vj.hdebut - vi.hfin
-                if temps_entre < battement_minimum:
+                if not voyages_compatibles(vi, vj, listes, battement_minimum, verifier_arrets):
                     model.Add(service[i] != service[j])
-                    continue
 
-                #si temps suffisant vérifier les arrets
-                if verifier_arrets and temps_entre >= battement_minimum:
-                    peut_connecter = False
-                    for k in range(n):
-                        if k == i or k == j:
-                            continue
-                        vk = listes[k]
-                        if (vi.hfin <= vk.hdebut and vk.hfin <= vj.hdebut and
-                                vi.arret_fin_id() == vk.arret_debut_id() and
-                                vk.arret_fin_id() == vj.arret_debut_id()):
-                            peut_connecter = True
-                            break
+            if vj.hfin <= vi.hdebut:
+                if not voyages_compatibles(vi, vj, listes, battement_minimum, verifier_arrets):
+                    model.Add(service[i] != service[j])
 
-                    #si condition fausse ils ne peuvent pas etre sur le meme service
-                    if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
-                        model.Add(service[i] != service[j])
-
-    nb_services_matin = model.NewIntVar(0, max_services_matin, "nb_services_matin")
-    nb_services_apres_midi = model.NewIntVar(0, max_services_apres_midi, "nb_services_apres_midi")
-
-    model.Add(nb_services_matin == max_service_utilise_matin + 1)
-    if max_services_apres_midi > 0:
-        model.Add(nb_services_apres_midi == max_service_utilise_apres_midi - max_services_matin + 1)
-
-    model.Minimize(nb_services_matin + nb_services_apres_midi)
-
-    class SolutionCollector(cp_model.CpSolverSolutionCallback):
-        def __init__(self, variables , limit):
-            cp_model.CpSolverSolutionCallback.__init__(self)
-            self._variables = variables
-            self._solution_count = 0
-            self.solution_limit = limit
-            self.solutions = []
-
-        def on_solution_callback(self):
-            self._solution_count += 1
-            solution = [self.value(v) for v in self._variables]
-            self.solutions.append(solution)
-            if self._solution_count >= self.solution_limit:
-                self.StopSearch()
-
-        def solution_count(self):
-            return self._solution_count
-
-    solution_collector = SolutionCollector(service, max_solutions)
     solver = cp_model.CpSolver()
+    solver.parameters.max_time_in_seconds = 30
+    status = solver.Solve(model)
 
-    solver.parameters.enumerate_all_solutions = False
-    solver.parameters.num_search_workers = 4
+    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
+        return []
 
-    status = solver.Solve(model, solution_collector)
+    services = {}
+    for i in range(n):
+        s = solver.Value(service[i])
+        services.setdefault(s, []).append(listes[i])
 
-    print(f"status: {solver.StatusName(status)}")
-    print(f"solution: {solution_collector.solution_count()}")
+    resultat = []
+    for s, voyages_service in services.items():
+        valide, ordre = valider_service(voyages_service, battement_minimum, verifier_arrets)
+        if valide:
+            type_service = "matin" if s < max_services_matin else "apres_midi"
+            sa = service_agent(s, type_service)
+            for v in ordre:
+                sa.ajout_voyages(v)
+            resultat.append(sa)
 
-    toutes_solutions = []
+    return [resultat]
 
-    for sol_idx, solution in enumerate(solution_collector.solutions, 1):
-        services_dict = {}
-
-        for i in range(n):
-            num_service = solution[i]
-            if num_service not in services_dict:
-                services_dict[num_service] = []
-            services_dict[num_service].append(listes[i])
-
-        #afficher les services
-        for num_service in sorted(services_dict.keys()):
-            voyages_du_service = services_dict[num_service]
-            type_service = "MATIN" if num_service < max_services_matin else "APRÈS-MIDI"
-
-            # Calculer le début et la fin du service
-            debut_serv = min(v.hdebut for v in voyages_du_service)
-            fin_serv = max(v.hfin for v in voyages_du_service)
-
-            print(f"\nService {num_service} ({type_service}): {len(voyages_du_service)} voyages")
-            print(
-                f"  Plage horaire: {debut_serv // 60:02d}:{debut_serv % 60:02d} - {fin_serv // 60:02d}:{fin_serv % 60:02d}")
-
-            for v in sorted(voyages_du_service, key=lambda x: x.hdebut):
-                print(
-                    f"  Voyage {v.num_voyage}: {v.arret_debut_id()} → {v.arret_fin} "
-                    f"({v.hdebut // 60:02d}:{v.hdebut % 60:02d} - {v.hfin // 60:02d}:{v.hfin % 60:02d})"
-                )
-
-        services_crees = []
-        for num_service in sorted(services_dict.keys()):
-            voyages_du_service = services_dict[num_service]
-
-            est_valide, ordre_voyages = valider_service(
-                voyages_du_service, battement_minimum, verifier_arrets
-            )
-
-            if not est_valide:
-                print(f"service {num_service} pas valide")
-                continue
-
-            print(f"service {num_service}valide avec {len(ordre_voyages)} voyages")
-
-            type_service = "matin" if num_service < max_services_matin else "apres_midi"
-            nouveau_service = service_agent(num_service=num_service, type_service=type_service)
-            for v in ordre_voyages:
-                nouveau_service.ajout_voyages(v)
-
-            services_crees.append(nouveau_service)
-
-        if services_crees:
-            toutes_solutions.append(services_crees)
-
-    print(f"Total solutions trouvées: {len(toutes_solutions)}")
-    if toutes_solutions:
-        # Afficher le nombre de voyages par service pour chaque solution
-        for idx, sol in enumerate(toutes_solutions, 1):
-            services_matin = [s for s in sol if s.type_service == "matin"]
-            services_apres_midi = [s for s in sol if s.type_service =="apres_midi"]
-
-            print(f"\nSolution {idx}:")
-            print(f"  - Services matin: {len(services_matin)}")
-            print(f"  - Services après-midi: {len(services_apres_midi)}")
-            print(f"  - Total: {len(sol)} services")
-
-            if services_matin:
-                nb_voyages_matin = [len(s.get_voyages()) for s in services_matin]
-                print(f"  - Voyages matin: {nb_voyages_matin}")
-
-            if services_apres_midi:
-                nb_voyages_apres_midi = [len(s.get_voyages()) for s in services_apres_midi]
-                print(f"  - Voyages après-midi: {nb_voyages_apres_midi}")
-
-    print("=" * 70)
-
-
-    return toutes_solutions
 
 if __name__ == "__main__":
     voyage1 = voyage(
