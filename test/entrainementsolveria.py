@@ -65,8 +65,8 @@ class voyage:
         return f"{minutes // 60:02d}h{minutes % 60:02d}"
 
 
-def valider_service(voyages, battement_minimum, verifier_arrets=True, duree_cible=450,
-                    tolerance_duree=400):
+def valider_service(voyages, battement_minimum, battement_maximum, verifier_arrets=True,
+                    duree_cible=450, tolerance_duree=400):
     if len(voyages) <= 1:
         return True, list(voyages)
 
@@ -78,24 +78,29 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True, duree_cibl
             voyages_ordonnes[i + 1],
             voyages_ordonnes,
             battement_minimum,
+            battement_maximum,
             verifier_arrets
         ):
             return False, []
 
     debut = min(v.hdebut for v in voyages_ordonnes)
     fin = max(v.hfin for v in voyages_ordonnes)
-    durée = fin-debut
+    duree = fin-debut
 
-    if abs(durée - duree_cible) > tolerance_duree:
+    if abs(duree - duree_cible) > tolerance_duree:
         return False, []
 
     return True, voyages_ordonnes
-def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True):
+
+def voyages_compatibles(v1, v2, voyages, battement_minimum, battement_maximum,verifier_arrets=True):
     if v2.hdebut < v1.hfin:
         return False
 
     temps_entre = v2.hdebut - v1.hfin
     if temps_entre < battement_minimum:
+        return False
+
+    if battement_maximum is not None and temps_entre> battement_maximum:
         return False
 
     if not verifier_arrets:
@@ -117,7 +122,7 @@ def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True
 
     return False
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 10,
+def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arrets=True, max_solutions = 10,
                max_services_matin = None, max_services_apres_midi = None,
                heure_debut_apres_midi = 660, heure_fin_matin = 1080,duree_max_service=540):
 
@@ -160,11 +165,11 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                 continue
 
             if vi.hfin <= vj.hdebut:
-                if not voyages_compatibles(vi, vj, listes, battement_minimum, verifier_arrets):
+                if not voyages_compatibles(vi, vj, listes, battement_minimum, None, verifier_arrets):
                     model.Add(service[i] != service[j])
 
             if vj.hfin <= vi.hdebut:
-                if not voyages_compatibles(vj, vi, listes, battement_minimum, verifier_arrets):
+                if not voyages_compatibles(vj, vi, listes, battement_minimum, None, verifier_arrets):
                     model.Add(service[i] != service[j])
 
     solver = cp_model.CpSolver()
@@ -181,7 +186,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
 
     resultat = []
     for s, voyages_service in services.items():
-        valide, ordre = valider_service(voyages_service, battement_minimum, verifier_arrets)
+        valide, ordre = valider_service(voyages_service, battement_minimum,battement_maximum, verifier_arrets)
         if valide:
             type_service = "matin" if s < max_services_matin else "apres_midi"
             sa = service_agent(s, type_service)
@@ -295,9 +300,10 @@ if __name__ == "__main__":
     BM = 5
     solutions = solvertest(
         listes,
-        BM,
-        True,
-        10,
+        battement_minimum=BM,
+        verifier_arrets=True,
+        battement_maximum=50,
+        max_solutions=10,
         max_services_matin=2,
         max_services_apres_midi=None,
         heure_debut_apres_midi=660,
