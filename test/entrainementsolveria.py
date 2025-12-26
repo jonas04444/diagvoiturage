@@ -65,7 +65,8 @@ class voyage:
         return f"{minutes // 60:02d}h{minutes % 60:02d}"
 
 
-def valider_service(voyages, battement_minimum, verifier_arrets=True):
+def valider_service(voyages, battement_minimum, verifier_arrets=True, duree_cible=450,
+                    tolerance_duree=400):
     if len(voyages) <= 1:
         return True, list(voyages)
 
@@ -81,8 +82,14 @@ def valider_service(voyages, battement_minimum, verifier_arrets=True):
         ):
             return False, []
 
-    return True, voyages_ordonnes
+    debut = min(v.hdebut for v in voyages_ordonnes)
+    fin = max(v.hfin for v in voyages_ordonnes)
+    durée = fin-debut
 
+    if abs(durée - duree_cible) > tolerance_duree:
+        return False, []
+
+    return True, voyages_ordonnes
 def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True):
     if v2.hdebut < v1.hfin:
         return False
