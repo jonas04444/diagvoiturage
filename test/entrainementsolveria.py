@@ -2,7 +2,7 @@ from ortools.sat.python import cp_model
 
 class service_agent:
 
-    def __init__(self, num_service=None, type_service = "matin"):
+    def __init__(self, num_service=None, type_service="matin"):
         self.voyages = []
         self.num_service = num_service
         self.type_service = type_service
@@ -29,8 +29,8 @@ class service_agent:
         fin_service = max(v.hfin for v in self.voyages)
         duree = fin_service - debut_service
 
-        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages, "
-        result += f"duree totale: début {voyage.minutes_to_time(debut_service)} fin : {voyage.minutes_to_time(fin_service)} total : {duree}\n"
+        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages\n"
+        result += f"  Début: {voyage.minutes_to_time(debut_service)}, Fin: {voyage.minutes_to_time(fin_service)}\n"
 
         for v in voyages_chronologiques:
             result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
@@ -42,7 +42,7 @@ class service_agent:
 class voyage:
 
     def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
-        self.num_ligne = (num_ligne)
+        self.num_ligne = num_ligne
         self.num_voyage = num_voyage
         self.arret_debut = arret_debut
         self.arret_fin = arret_fin
@@ -66,15 +66,15 @@ class voyage:
 
 
 def valider_service(voyages, battement_minimum, verifier_arrets=True):
-    if len(voyages) == 0:
-        return True, []
+    if len(voyages) <= 1:
+        return True, list(voyages)
 
     voyages_ordonnes = sorted(voyages, key=lambda v: v.hdebut)
 
-    for i in range(len(voyages_ordonnes)-1):
+    for i in range(len(voyages_ordonnes) - 1):
         if not voyages_compatibles(
             voyages_ordonnes[i],
-            voyages_ordonnes[i+1],
+            voyages_ordonnes[i + 1],
             voyages_ordonnes,
             battement_minimum,
             verifier_arrets
@@ -97,13 +97,14 @@ def voyages_compatibles(v1, v2, voyages, battement_minimum, verifier_arrets=True
     if v1.arret_fin_id() == v2.arret_debut_id():
         return True
 
+    #voyage pont hlp
     for vp in voyages:
         if vp is v1 or vp is v2:
             continue
 
         if (v1.hfin <= vp.hdebut and vp.hfin <= v2.hdebut and
-                vp.arret_debut_id() == v1.arret_fin_id() and
-                v2.arret_debut_id() == vp.arret_fin_id()
+                v1.arret_fin_id() == vp.arret_debut_id() and
+                vp.arret_fin_id() == v2.arret_debut_id()
         ):
             return True
 
@@ -130,15 +131,15 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
         b = model.NewBoolVar(f"service_{s}_utilise")
         service_utilise.append(b)
 
-        affectation = []
+        affectations = []
         for i in range(n):
             a = model.NewBoolVar(f"voyage_{i}_dans_service_{s}")
             model.Add(service[i] == s).OnlyEnforceIf(a)
             model.Add(service[i] != s).OnlyEnforceIf(a.Not())
-            affectation.append(a)
+            affectations.append(a)
 
-        model.Add(sum(affectation) >= 1).OnlyEnforceIf(b)
-        model.Add(sum(affectation) == 0).OnlyEnforceIf(b.Not())
+        model.Add(sum(affectations) >= 1).OnlyEnforceIf(b)
+        model.Add(sum(affectations) == 0).OnlyEnforceIf(b.Not())
 
     model.Minimize(sum(service_utilise))
 
@@ -156,7 +157,7 @@ def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions = 
                     model.Add(service[i] != service[j])
 
             if vj.hfin <= vi.hdebut:
-                if not voyages_compatibles(vi, vj, listes, battement_minimum, verifier_arrets):
+                if not voyages_compatibles(vj, vi, listes, battement_minimum, verifier_arrets):
                     model.Add(service[i] != service[j])
 
     solver = cp_model.CpSolver()
