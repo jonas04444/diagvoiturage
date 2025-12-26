@@ -92,6 +92,24 @@ def valider_service(voyages, battement_minimum, battement_maximum, verifier_arre
 
     return True, voyages_ordonnes
 
+def calculer_duree_service(voyages_list):
+    if not voyages_list:
+        return 0
+    debut = min(v.hdebut for v in voyages_list)
+    fin = max(v.hfin for v in voyages_list)
+    return fin-debut
+
+class SolutionCollector(cp_model.CpSolverSolutionCallback):
+    def __init__(self, service):
+        cp_model.CpSolverSolutionCallback.__init__(self)
+        self.service = service
+        self.solutions = []
+
+    def OnSolutionCallback(self):
+        sol = [self.Value(s) for s in self.service]
+        self.solutions.append(sol)
+
+
 def voyages_compatibles(v1, v2, voyages, battement_minimum, battement_maximum,verifier_arrets=True):
     if v2.hdebut < v1.hfin:
         return False
@@ -174,6 +192,8 @@ def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arret
 
     solver = cp_model.CpSolver()
     solver.parameters.max_time_in_seconds = 30
+    collector = SolutionCollector(service)
+    solver.Solve(model, collector)
     status = solver.Solve(model)
 
     if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
@@ -188,7 +208,8 @@ def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arret
     for s, voyages_service in services.items():
         valide, ordre = valider_service(voyages_service, battement_minimum,battement_maximum, verifier_arrets)
         if valide:
-            type_service = "matin" if s < max_services_matin else "apres_midi"
+            debut_service = min(v.hdebut for v in ordre)
+            type_service = "matin" if debut_service < heure_debut_apres_midi else "apres_midi"
             sa = service_agent(s, type_service)
             for v in ordre:
                 sa.ajout_voyages(v)
@@ -294,9 +315,25 @@ if __name__ == "__main__":
         "7:00",
         "7:18"
     )
+    voyage13 = voyage(
+        "A1",
+        13,
+        "GOCAR",
+        "CEN05",
+        "7:40",
+        "8:01"
+    )
+    voyage14 = voyage(
+        "A1",
+        14,
+        "CEN18",
+        "GOCAR",
+        "7:10",
+        "7:28"
+    )
 
     listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8,
-              voyage9, voyage10, voyage11, voyage12]
+              voyage9, voyage10, voyage11, voyage12, voyage13, voyage14]
     BM = 5
     solutions = solvertest(
         listes,
@@ -304,7 +341,7 @@ if __name__ == "__main__":
         verifier_arrets=True,
         battement_maximum=50,
         max_solutions=10,
-        max_services_matin=2,
+        max_services_matin=3,
         max_services_apres_midi=None,
         heure_debut_apres_midi=660,
         heure_fin_matin=1080,
