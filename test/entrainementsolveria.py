@@ -100,15 +100,18 @@ def calculer_duree_service(voyages_list):
     return fin-debut
 
 class SolutionCollector(cp_model.CpSolverSolutionCallback):
-    def __init__(self, service):
+    def __init__(self, service, max_solutions=None):
         cp_model.CpSolverSolutionCallback.__init__(self)
         self.service = service
         self.solutions = []
+        self.max_solutions = max_solutions
 
     def OnSolutionCallback(self):
         sol = [self.Value(s) for s in self.service]
         self.solutions.append(sol)
 
+        if self.max_solutions is not None and len(self.solutions) >= self.max_solutions:
+            self.StopSearch()
 
 def voyages_compatibles(v1, v2, voyages, battement_minimum, battement_maximum,verifier_arrets=True):
     if v2.hdebut < v1.hfin:
@@ -171,8 +174,6 @@ def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arret
         model.Add(sum(affectations) >= 1).OnlyEnforceIf(b)
         model.Add(sum(affectations) == 0).OnlyEnforceIf(b.Not())
 
-    model.Minimize(sum(service_utilise))
-
     for i in range(n):
         for j in range(i+1, n):
             vi = listes[i]
@@ -206,14 +207,14 @@ def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arret
 
         resultat = []
         for s, vs in services.items():
-            valide, ordre = valider_service(vs, battement_minimum, battement_maximum, verifier_arrets)
-            if valide:
-                debut = min(v.hdebut for v in ordre)
-                type_service = "matin" if debut < heure_debut_apres_midi else "apres_midi"
-                sa = service_agent(s, type_service)
-                for v in ordre:
-                    sa.ajout_voyages(v)
-                resultat.append(sa)
+            voyage_ordonnes = sorted(vs, key=lambda v: v.hdebut)
+
+            debut = min(v.hdebut for v in voyage_ordonnes)
+            type_service = "matin" if debut < heure_debut_apres_midi else "apres"
+            sa = service_agent(s, type_service)
+            for v in voyage_ordonnes:
+                sa.ajout_voyages(v)
+            resultat.append(sa)
 
         toutes_les_solutions.append(resultat)
 
