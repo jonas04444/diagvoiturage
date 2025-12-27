@@ -191,31 +191,33 @@ def solvertest(listes, battement_minimum, battement_maximum = 50, verifier_arret
                     model.Add(service[i] != service[j])
 
     solver = cp_model.CpSolver()
+    solver.parameters.enumerate_all_solutions = True
     solver.parameters.max_time_in_seconds = 30
-    collector = SolutionCollector(service)
-    solver.Solve(model, collector)
-    status = solver.Solve(model)
 
-    if status not in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        return []
+    collector = SolutionCollector(service, max_solutions)
+    solver.SearchForAllSolutions(model, collector)
 
-    services = {}
-    for i in range(n):
-        s = solver.Value(service[i])
-        services.setdefault(s, []).append(listes[i])
+    toutes_les_solutions = []
 
-    resultat = []
-    for s, voyages_service in services.items():
-        valide, ordre = valider_service(voyages_service, battement_minimum,battement_maximum, verifier_arrets)
-        if valide:
-            debut_service = min(v.hdebut for v in ordre)
-            type_service = "matin" if debut_service < heure_debut_apres_midi else "apres_midi"
-            sa = service_agent(s, type_service)
-            for v in ordre:
-                sa.ajout_voyages(v)
-            resultat.append(sa)
+    for sol in collector.solutions:
+        services = {}
+        for i, s in enumerate(sol):
+            services.setdefault(s, []).append(listes[i])
 
-    return [resultat]
+        resultat = []
+        for s, vs in services.items():
+            valide, ordre = valider_service(vs, battement_minimum, battement_maximum, verifier_arrets)
+            if valide:
+                debut = min(v.hdebut for v in ordre)
+                type_service = "matin" if debut < heure_debut_apres_midi else "apres_midi"
+                sa = service_agent(s, type_service)
+                for v in ordre:
+                    sa.ajout_voyages(v)
+                resultat.append(sa)
+
+        toutes_les_solutions.append(resultat)
+
+    return toutes_les_solutions
 
 
 if __name__ == "__main__":
