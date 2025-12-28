@@ -207,7 +207,7 @@ class TableauCSV(ctk.CTkFrame):
         for item in self.tableau.get_children():
             values = self.tableau.item(item, 'values')
             if values[0] == '☑':
-                idx = self.tableau.index(item)
+                idx = int(item)
                 self.donnees_selectionnees.append(self.donnees[idx])
 
         if not self.donnees_selectionnees:
@@ -222,7 +222,11 @@ class TableauCSV(ctk.CTkFrame):
             for col in colonnes:
                 val = voyage.get(col,'').strip()
                 try:
-                    val = float(val)
+                    val_float = float(val)
+                    if val_float.is_integer():
+                        val = int(val_float)
+                    else:
+                        val = val_float
                 except (ValueError, AttributeError):
                     pass
                 ligne_matrice.append(val)
