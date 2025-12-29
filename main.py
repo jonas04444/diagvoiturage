@@ -25,7 +25,6 @@ class TimelineCanvas:
         self.colors = self._generate_colors()
 
     def _generate_colors(self,i):
-        """couleur pour les différents voyages"""
         colors = {
             "A1": "#FF6B6B",
             "25": "#4ECDC4",
@@ -200,11 +199,18 @@ def main():
     """TAB 1"""
 
     def charger_et_afficher():
-        """Charge le CSV et affiche les données dans le tableau"""
 
-        def traiter_voyages(voyages_data, matrice_donnees):
-            # Remplir le tableau avec les données de la matrice
+        def traiter_voyages(objets_voyages, matrice_donnees):
+
+            donnees_chargees["voyages"] = objets_voyages
+            donnees_chargees["matrice"] = matrice_donnees
+
             remplir_tableau_matrice(self.tableau, matrice_donnees)
+
+            print(f"\n📦 {len(objets_voyages)} voyages chargés :")
+            for v in objets_voyages:
+                print(f"  • {v}")
+
 
         # Ouvrir la fenêtre de sélection CSV avec le callback
         window_tableau_csv(callback=traiter_voyages)

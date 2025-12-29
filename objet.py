@@ -39,13 +39,14 @@ class service_agent:
 
 class voyage:
 
-    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
+    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin,js_srv=""):
         self.num_ligne = num_ligne
         self.num_voyage = num_voyage
         self.arret_debut = arret_debut
         self.arret_fin = arret_fin
         self.hdebut = self.time_to_minutes(heure_debut)
         self.hfin = self.time_to_minutes(heure_fin)
+        self.js_srv = js_srv
 
     def arret_debut_id(self):
         return self.arret_debut[:3]

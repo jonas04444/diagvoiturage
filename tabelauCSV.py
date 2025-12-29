@@ -3,6 +3,7 @@ import csv
 from tkinter import ttk, messagebox as msgbox, filedialog, Toplevel
 import numpy as np
 from ortools.math_opt.python import callback
+from objet import voyage
 
 
 class TableauCSV(ctk.CTkFrame):
@@ -203,12 +204,27 @@ class TableauCSV(ctk.CTkFrame):
 
     def creer_matrice_selection(self):
         self.donnees_selectionnees = []
+        objet_voyages = []
 
         for item in self.tableau.get_children():
             values = self.tableau.item(item, 'values')
             if values[0] == '☑':
                 idx = int(item)
-                self.donnees_selectionnees.append(self.donnees[idx])
+                voyage_dict = self.donnees[idx]
+
+                v_obj = voyage(
+                    num_ligne = voyage_dict.get('Ligne', '').strip(),
+                    num_voyage = voyage_dict.get('Voy.', '').strip(),
+                    arret_debut = voyage_dict.get('De', '').strip(),
+                    arret_fin = voyage_dict.get('Fin', '').strip(),
+                    heure_debut = voyage_dict.get('Début', '00:00').strip(),
+                    heure_fin = voyage_dict.get('Fin', '00:00').strip(),
+                    js_srv = voyage_dict.get('Js srv', '').strip()
+                )
+
+                objet_voyages.append(v_obj)
+                self.donnees_selectionnees.append(voyage_dict)
+
 
         if not self.donnees_selectionnees:
             msgbox.showwarning("Attention", "Aucun voyage sélectionné")
@@ -217,10 +233,10 @@ class TableauCSV(ctk.CTkFrame):
         colonnes = ['Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv']
         matrice = []
 
-        for voyage in self.donnees_selectionnees:
+        for voyage_dict in self.donnees_selectionnees:
             ligne_matrice = []
             for col in colonnes:
-                val = voyage.get(col,'').strip()
+                val = voyage_dict.get(col,'').strip()
                 try:
                     val_float = float(val)
                     if val_float.is_integer():
@@ -234,7 +250,7 @@ class TableauCSV(ctk.CTkFrame):
         self.matrice_donnees = np.array(matrice, dtype=object)
 
         if self.master.callback:
-            self.master.callback(self.donnees_selectionnees, self.matrice_donnees)
+            self.master.callback(objet_voyages, self.matrice_donnees)
 
         msgbox.showinfo("Succès", f"{len(self.donnees_selectionnees)} voyage(s) chargé(s) dans la matrice")
 

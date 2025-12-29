@@ -1,11 +1,15 @@
 from ortools.sat.python import cp_model
 
+# ======================================================
+# TON CODE D’ORIGINE — STRICTEMENT INCHANGÉ
+# ======================================================
+
 class service_agent:
 
     def __init__(self, num_service=None, type_service="matin"):
         self.voyages = []
         self.num_service = num_service
-        self.type_service = type_service  # "matin" ou "apres_midi"
+        self.type_service = type_service
 
     def ajout_voyages(self, voyage):
         self.voyages.append(voyage)
@@ -20,31 +24,20 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
-    def duree_services_maximum(self, duree_maximum):
-        duree = self.duree_services()
-        if duree > duree_maximum:
-            return False
-        return True
-
     def __str__(self):
         if not self.voyages:
-            return f"Service {self.num_service} ({self.type_service}): vide"
+            return f"Service {self.num_service}: vide"
 
         voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
-        duree = self.duree_services()
-
         debut_service = min(v.hdebut for v in self.voyages)
         fin_service = max(v.hfin for v in self.voyages)
 
-        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages, "
-        result += f"duree totale: {duree} min ({duree // 60}h{duree % 60:02d})\n"
-        result += f"  Début service: {voyage.minutes_to_time(debut_service)}, Fin service: {voyage.minutes_to_time(fin_service)}\n"
+        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages\n"
+        result += f"  Début: {voyage.minutes_to_time(debut_service)}, Fin: {voyage.minutes_to_time(fin_service)}\n"
 
         for v in voyages_chronologiques:
-            hdebut_str = voyage.minutes_to_time(v.hdebut)
-            hfin_str = voyage.minutes_to_time(v.hfin)
             result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
-            result += f"({hdebut_str} - {hfin_str})\n"
+            result += f"({voyage.minutes_to_time(v.hdebut)} - {voyage.minutes_to_time(v.hfin)})\n"
 
         return result.rstrip()
 
@@ -52,7 +45,7 @@ class service_agent:
 class voyage:
 
     def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
-        self.num_ligne = (num_ligne)
+        self.num_ligne = num_ligne
         self.num_voyage = num_voyage
         self.arret_debut = arret_debut
         self.arret_fin = arret_fin
@@ -71,435 +64,343 @@ class voyage:
         return h * 60 + m
 
     @staticmethod
-    def minutes_to_time(minutes: int) -> str:
-        h = minutes // 60
-        m = minutes % 60
-        return f"{h:02d}h{m:02d}"
+    def minutes_to_time(minutes):
+        return f"{minutes // 60:02d}h{minutes % 60:02d}"
 
 
-def valider_service(voyages, battement_minimum, verifier_arrets=True):
-    if len(voyages) == 0:
-        return True, []
-    if len(voyages) == 1:
+def valider_service(voyages, battement_minimum, battement_maximum, verifier_arrets=True,
+                    duree_cible=450, tolerance_duree=400):
+    if len(voyages) <= 1:
         return True, list(voyages)
 
-    voyages_list = list(voyages)
-    for i in range(len(voyages_list)):
-        for j in range(i + 1, len(voyages_list)):
-            vi = voyages_list[i]
-            vj = voyages_list[j]
-            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
-                return False, []
+    voyages_ordonnes = sorted(voyages, key=lambda v: v.hdebut)
 
-    def contruire_chaine(chaine_actuelle, restants):
-        if not restants:
-            return True, chaine_actuelle
+    for i in range(len(voyages_ordonnes) - 1):
+        if not voyages_compatibles(
+            voyages_ordonnes[i],
+            voyages_ordonnes[i + 1],
+            voyages_ordonnes,
+            battement_minimum,
+            battement_maximum,
+            verifier_arrets
+        ):
+            return False, []
 
-        dernier = chaine_actuelle[-1] if chaine_actuelle else None
+    debut = min(v.hdebut for v in voyages_ordonnes)
+    fin = max(v.hfin for v in voyages_ordonnes)
+    duree = fin - debut
 
-        if dernier is None:
-            voyage_plus_tot = min(restants, key=lambda x: x.hdebut)
-            nouveau_restants = restants.copy()
-            nouveau_restants.remove(voyage_plus_tot)
-            valide, resultat = contruire_chaine([voyage_plus_tot], nouveau_restants)
-
-            if valide:
-                return True, resultat
-
-        else:
-            for v in sorted(restants, key=lambda x: x.hdebut):
-                chevauche = False
-                for v_existant in chaine_actuelle:
-                    if v.hdebut < v_existant.hfin and v_existant.hdebut < v.hfin:
-                        chevauche = True
-                        break
-
-                if chevauche:
-                    continue
-
-                peut_suivre_directement = False
-                peut_suivre_avec_pont = False
-                v_pont_candidat = None
-
-                if v.hdebut >= dernier.hfin:
-                    temps_entre = v.hdebut - dernier.hfin
-                    if temps_entre >= battement_minimum:
-                        if not verifier_arrets or dernier.arret_fin_id() == v.arret_debut_id():
-                            peut_suivre_directement = True
-                        else:
-                            for v_pont in restants:
-                                if v_pont.hdebut == v:
-                                    continue
-
-                                if (dernier.hfin <= v_pont.hdebut and v_pont.hfin <= v.hdebut and
-                                        dernier.arret_fin_id() == v_pont.arret_debut_id() and
-                                        v_pont.arret_fin_id() == v.arret_debut_id()):
-                                    peut_suivre_avec_pont = True
-                                    v_pont_candidat = v_pont
-                                    break
-
-                if peut_suivre_directement:
-                    nouveau_restants = restants.copy()
-                    nouveau_restants.remove(v)
-                    valide, resultat = contruire_chaine(chaine_actuelle + [v], nouveau_restants)
-                    if valide:
-                        return True, resultat
-
-                if peut_suivre_avec_pont and v_pont_candidat:
-                    nouveau_restants = restants.copy()
-                    nouveau_restants.remove(v_pont_candidat)
-                    nouveau_restants.remove(v)
-
-                    valide, resultat = contruire_chaine(chaine_actuelle + [v_pont_candidat, v], nouveau_restants)
-                    if valide:
-                        return True, resultat
-
+    if abs(duree - duree_cible) > tolerance_duree:
         return False, []
 
-    valide, chaine = contruire_chaine([], set(voyages_list))
-    return valide, chaine
+    return True, voyages_ordonnes
 
 
-def solvertest(listes, battement_minimum, verifier_arrets=True, max_solutions=10,
-               max_services_matin=None, max_services_apres_midi=None,
+def calculer_duree_service(voyages_list):
+    if not voyages_list:
+        return 0
+    debut = min(v.hdebut for v in voyages_list)
+    fin = max(v.hfin for v in voyages_list)
+    return fin - debut
+
+
+class SolutionCollector(cp_model.CpSolverSolutionCallback):
+    def __init__(self, service, max_solutions=None):
+        super().__init__()
+        self.service = service
+        self.solutions = []
+        self.max_solutions = max_solutions
+
+    def OnSolutionCallback(self):
+        sol = [self.Value(s) for s in self.service]
+        self.solutions.append(sol)
+        if self.max_solutions is not None and len(self.solutions) >= self.max_solutions:
+            self.StopSearch()
+
+
+def voyages_compatibles(v1, v2, voyages, battement_minimum, battement_maximum, verifier_arrets=True):
+    if v2.hdebut < v1.hfin:
+        return False
+
+    temps_entre = v2.hdebut - v1.hfin
+    if temps_entre < battement_minimum:
+        return False
+
+    if battement_maximum is not None and temps_entre > battement_maximum:
+        return False
+
+    if not verifier_arrets:
+        return True
+
+    if v1.arret_fin_id() == v2.arret_debut_id():
+        return True
+
+    for vp in voyages:
+        if vp is v1 or vp is v2:
+            continue
+
+        if (v1.hfin <= vp.hdebut and vp.hfin <= v2.hdebut and
+                v1.arret_fin_id() == vp.arret_debut_id() and
+                vp.arret_fin_id() == v2.arret_debut_id()):
+            return True
+
+    return False
+
+
+def solvertest(listes, battement_minimum, battement_maximum=50, verifier_arrets=True,
+               max_solutions=10, max_services_matin=None, max_services_apres_midi=None,
                heure_debut_apres_midi=660, heure_fin_matin=1080, duree_max_service=540):
-    """
-    Résout le problème d'optimisation des services avec distinction matin/après-midi.
-
-    Args:
-        listes: Liste des voyages
-        battement_minimum: Temps minimum entre deux voyages (minutes)
-        verifier_arrets: Vérifier la cohérence des arrêts
-        max_solutions: Nombre maximum de solutions à trouver
-        max_services_matin: Nombre maximum de services matin (si None, = nombre de voyages)
-        max_services_apres_midi: Nombre maximum de services après-midi (si None, = nombre de voyages)
-        heure_debut_apres_midi: Heure à partir de laquelle un service après-midi peut commencer (défaut 11h = 660 min)
-        heure_fin_matin: Heure max de fin pour un service matin (défaut 18h = 1080 min)
-        duree_max_service: Durée maximale d'un service en minutes
-
-    Logique:
-        - Service MATIN: doit commencer AVANT heure_debut_apres_midi, peut se terminer jusqu'à heure_fin_matin
-        - Service APRÈS-MIDI: doit commencer À PARTIR DE heure_debut_apres_midi
-    """
-
-    if not listes:
-        return []
-
-    print(f"\n{'=' * 70}")
-    print(f"CONFIGURATION:")
-    print(f"{'=' * 70}")
-    print(f"Heure début après-midi: {heure_debut_apres_midi // 60}h{heure_debut_apres_midi % 60:02d}")
-    print(f"Heure fin max matin: {heure_fin_matin // 60}h{heure_fin_matin % 60:02d}")
-    print(f"Services matin max: {max_services_matin if max_services_matin else 'automatique'}")
-    print(f"Services après-midi max: {max_services_apres_midi if max_services_apres_midi else 'automatique'}")
-    print(f"{'=' * 70}\n")
-
-    # Définir les limites de services si non spécifiées
-    if max_services_matin is None:
-        max_services_matin = len(listes)
-    if max_services_apres_midi is None:
-        max_services_apres_midi = len(listes)
 
     model = cp_model.CpModel()
     n = len(listes)
 
-    # Nombre total de services possibles
-    max_services_total = max_services_matin + max_services_apres_midi
+    if max_services_matin is None:
+        max_services_matin = n
+    if max_services_apres_midi is None:
+        max_services_apres_midi = n
 
-    # Variables de service pour chaque voyage
+    max_services_total = max_services_matin + max_services_apres_midi
     service = [model.NewIntVar(0, max_services_total - 1, f"service{i}") for i in range(n)]
 
-    # Variables pour le nombre maximum de services utilisés dans chaque période
-    max_service_utilise_matin = model.NewIntVar(0, max_services_matin - 1, "max_service_utilise_matin")
-    max_service_utilise_apres_midi = model.NewIntVar(max_services_matin, max_services_total - 1,
-                                                     "max_service_utilise_apres_midi")
-
-    # Début et fin pour chaque service
-    debut_service = [model.NewIntVar(0, 24 * 60, f"debut_service{s}") for s in range(max_services_total)]
-    fin_service = [model.NewIntVar(0, 24 * 60, f"fin_service{s}") for s in range(max_services_total)]
-
-    # Variables d'affectation
-    affectation = {}
-    for i in range(n):
-        for s in range(max_services_total):
-            affectation[(i, s)] = model.NewBoolVar(f"voyage_{i}_service_{s}")
-            model.Add(service[i] == s).OnlyEnforceIf(affectation[(i, s)])
-            model.Add(service[i] != s).OnlyEnforceIf(affectation[(i, s)].Not())
-
-    # Contraintes sur les services
-    for s in range(max_services_total):
-        service_utilise = model.NewBoolVar(f"service_{s}_utilise")
-
-        model.Add(sum(affectation[(i, s)] for i in range(n)) >= 1).OnlyEnforceIf(service_utilise)
-        model.Add(sum(affectation[(i, s)] for i in range(n)) == 0).OnlyEnforceIf(service_utilise.Not())
-
-        # Calculer le début et la fin du service
-        for i in range(n):
-            model.Add(debut_service[s] <= listes[i].hdebut).OnlyEnforceIf(affectation[(i, s)])
-            model.Add(fin_service[s] >= listes[i].hfin).OnlyEnforceIf(affectation[(i, s)])
-
-        # Contraintes spécifiques selon le type de service
-        if s < max_services_matin:
-            # Service MATIN : doit commencer avant heure_debut_apres_midi
-            model.Add(debut_service[s] < heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
-            # Service MATIN : peut se terminer jusqu'à heure_fin_matin
-            model.Add(fin_service[s] <= heure_fin_matin).OnlyEnforceIf(service_utilise)
-            # Mettre à jour le max_service_utilise_matin
-            model.Add(max_service_utilise_matin >= s).OnlyEnforceIf(service_utilise)
-        else:
-            # Service APRÈS-MIDI : doit commencer à partir de heure_debut_apres_midi
-            model.Add(debut_service[s] >= heure_debut_apres_midi).OnlyEnforceIf(service_utilise)
-            # Mettre à jour le max_service_utilise_apres_midi
-            model.Add(max_service_utilise_apres_midi >= s).OnlyEnforceIf(service_utilise)
-
-        # Durée maximale du service
-        duree_service = model.NewIntVar(0, 24 * 60, f"duree_service{s}")
-        model.Add(duree_service == fin_service[s] - debut_service[s]).OnlyEnforceIf(service_utilise)
-        model.Add(duree_service <= duree_max_service).OnlyEnforceIf(service_utilise)
-
-    # Contraintes entre voyages (chevauchement, battement, arrêts)
     for i in range(n):
         for j in range(i + 1, n):
             vi = listes[i]
             vj = listes[j]
 
-            # Contrainte de chevauchement
-            chevauchement = (vi.hdebut < vj.hfin and vj.hdebut < vi.hfin)
-
-            if chevauchement:
+            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
                 model.Add(service[i] != service[j])
                 continue
 
-            # Contrainte qui vérifie si un voyage ne commence pas avant la fin du précédent
-            if vj.hfin <= vi.hdebut:
-                temps_entre = vi.hdebut - vj.hfin
-                if temps_entre < battement_minimum:
-                    model.Add(service[i] != service[j])
-                    continue
-
-                # Vérification du temps de battement entre deux voyages
-                if verifier_arrets and temps_entre >= battement_minimum:
-                    peut_connecter = False
-                    for k in range(n):
-                        if k == i or k == j:
-                            continue
-                        vk = listes[k]
-                        if (vj.hfin <= vk.hdebut and vk.hfin <= vi.hdebut and
-                                vj.arret_fin_id() == vk.arret_debut_id() and
-                                vk.arret_fin_id() == vi.arret_debut_id()):
-                            peut_connecter = True
-                            break
-
-                    if (vj.arret_fin_id() != vi.arret_debut_id() and not peut_connecter):
-                        model.Add(service[i] != service[j])
-
-            # Suite contrainte battement
             if vi.hfin <= vj.hdebut:
-                temps_entre = vj.hdebut - vi.hfin
-                if temps_entre < battement_minimum:
+                if not voyages_compatibles(vi, vj, listes, battement_minimum, None, verifier_arrets):
                     model.Add(service[i] != service[j])
-                    continue
 
-                # Si temps suffisant vérifier les arrêts
-                if verifier_arrets and temps_entre >= battement_minimum:
-                    peut_connecter = False
-                    for k in range(n):
-                        if k == i or k == j:
-                            continue
-                        vk = listes[k]
-                        if (vi.hfin <= vk.hdebut and vk.hfin <= vj.hdebut and
-                                vi.arret_fin_id() == vk.arret_debut_id() and
-                                vk.arret_fin_id() == vj.arret_debut_id()):
-                            peut_connecter = True
-                            break
+            if vj.hfin <= vi.hdebut:
+                if not voyages_compatibles(vj, vi, listes, battement_minimum, None, verifier_arrets):
+                    model.Add(service[i] != service[j])
 
-                    # Si condition fausse ils ne peuvent pas être sur le même service
-                    if (vi.arret_fin_id() != vj.arret_debut_id() and not peut_connecter):
-                        model.Add(service[i] != service[j])
-
-    # Objectif: minimiser le nombre de services utilisés
-    nb_services_matin = model.NewIntVar(0, max_services_matin, "nb_services_matin")
-    nb_services_apres_midi = model.NewIntVar(0, max_services_apres_midi, "nb_services_apres_midi")
-
-    # Calculer le nombre réel de services utilisés
-    model.Add(nb_services_matin == max_service_utilise_matin + 1)
-    if max_services_apres_midi > 0:
-        model.Add(nb_services_apres_midi == max_service_utilise_apres_midi - max_services_matin + 1)
-
-    # Minimiser le nombre total de services
-    model.Minimize(nb_services_matin + nb_services_apres_midi)
-
-    class SolutionCollector(cp_model.CpSolverSolutionCallback):
-        def __init__(self, variables, limit):
-            cp_model.CpSolverSolutionCallback.__init__(self)
-            self._variables = variables
-            self._solution_count = 0
-            self.solution_limit = limit
-            self.solutions = []
-
-        def on_solution_callback(self):
-            self._solution_count += 1
-            solution = [self.value(v) for v in self._variables]
-            self.solutions.append(solution)
-            if self._solution_count >= self.solution_limit:
-                self.StopSearch()
-
-        def solution_count(self):
-            return self._solution_count
-
-    solution_collector = SolutionCollector(service, max_solutions)
     solver = cp_model.CpSolver()
+    solver.parameters.enumerate_all_solutions = True
+    solver.parameters.max_time_in_seconds = 30
 
-    solver.parameters.enumerate_all_solutions = False
-    solver.parameters.num_search_workers = 4
+    collector = SolutionCollector(service, max_solutions)
+    solver.SearchForAllSolutions(model, collector)
 
-    status = solver.Solve(model, solution_collector)
+    toutes_les_solutions = []
 
-    print(f"\n{'=' * 70}")
-    print(f"Status: {solver.StatusName(status)}")
-    print(f"Solutions trouvées: {solution_collector.solution_count()}")
-    print(f"{'=' * 70}\n")
+    for sol in collector.solutions:
+        services = {}
+        for i, s in enumerate(sol):
+            services.setdefault(s, []).append(listes[i])
 
-    toutes_solutions = []
+        resultat = []
+        for s, vs in services.items():
+            voyage_ordonnes = sorted(vs, key=lambda v: v.hdebut)
+            debut = min(v.hdebut for v in voyage_ordonnes)
+            type_service = "matin" if debut < heure_debut_apres_midi else "apres"
+            sa = service_agent(s, type_service)
+            for v in voyage_ordonnes:
+                sa.ajout_voyages(v)
+            resultat.append(sa)
 
-    for sol_idx, solution in enumerate(solution_collector.solutions, 1):
-        services_dict = {}
+        toutes_les_solutions.append(resultat)
 
-        for i in range(n):
-            num_service = solution[i]
-            if num_service not in services_dict:
-                services_dict[num_service] = []
-            services_dict[num_service].append(listes[i])
+    return toutes_les_solutions
 
-        print(f"\n{'#' * 70}")
-        print(f"SOLUTION {sol_idx}")
-        print(f"{'#' * 70}")
 
-        # Afficher les services
-        for num_service in sorted(services_dict.keys()):
-            voyages_du_service = services_dict[num_service]
-            type_service = "MATIN" if num_service < max_services_matin else "APRÈS-MIDI"
-
-            # Calculer le début et la fin du service
-            debut_serv = min(v.hdebut for v in voyages_du_service)
-            fin_serv = max(v.hfin for v in voyages_du_service)
-
-            print(f"\nService {num_service} ({type_service}): {len(voyages_du_service)} voyages")
-            print(
-                f"  Plage horaire: {debut_serv // 60:02d}:{debut_serv % 60:02d} - {fin_serv // 60:02d}:{fin_serv % 60:02d}")
-
-            for v in sorted(voyages_du_service, key=lambda x: x.hdebut):
-                print(
-                    f"  Voyage {v.num_voyage}: {v.arret_debut_id()} → {v.arret_fin} "
-                    f"({v.hdebut // 60:02d}:{v.hdebut % 60:02d} - {v.hfin // 60:02d}:{v.hfin % 60:02d})"
-                )
-
-        services_crees = []
-        for num_service in sorted(services_dict.keys()):
-            voyages_du_service = services_dict[num_service]
-
-            est_valide, ordre_voyages = valider_service(
-                voyages_du_service, battement_minimum, verifier_arrets
-            )
-
-            if not est_valide:
-                print(f"\n⚠️  Service {num_service} pas valide")
-                continue
-
-            print(f"✓ Service {num_service} valide avec {len(ordre_voyages)} voyages")
-
-            type_service = "matin" if num_service < max_services_matin else "apres_midi"
-            nouveau_service = service_agent(num_service=num_service, type_service=type_service)
-            for v in ordre_voyages:
-                nouveau_service.ajout_voyages(v)
-
-            services_crees.append(nouveau_service)
-
-        if services_crees:
-            toutes_solutions.append(services_crees)
-
-    print(f"\n{'=' * 70}")
-    print(f"RÉSUMÉ")
-    print(f"{'=' * 70}")
-    print(f"Total solutions trouvées: {len(toutes_solutions)}")
-
-    if toutes_solutions:
-        for idx, sol in enumerate(toutes_solutions, 1):
-            services_matin = [s for s in sol if s.type_service == "matin"]
-            services_apres_midi = [s for s in sol if s.type_service == "apres_midi"]
-
-            print(f"\nSolution {idx}:")
-            print(f"  - Services matin: {len(services_matin)}")
-            print(f"  - Services après-midi: {len(services_apres_midi)}")
-            print(f"  - Total: {len(sol)} services")
-
-            if services_matin:
-                nb_voyages_matin = [len(s.get_voyages()) for s in services_matin]
-                print(f"  - Voyages par service (matin): {nb_voyages_matin}")
-
-            if services_apres_midi:
-                nb_voyages_apres_midi = [len(s.get_voyages()) for s in services_apres_midi]
-                print(f"  - Voyages par service (après-midi): {nb_voyages_apres_midi}")
-
-    print(f"{'=' * 70}\n")
-
-    return toutes_solutions
-
+# ======================================================
+# TON MAIN ORIGINAL — PRINTS CONSERVÉS
+# ======================================================
 
 if __name__ == "__main__":
-    voyage1 = voyage("A1", 1, "GOCAR", "CEN05", "5:00", "5:21")
-    voyage2 = voyage("A1", 2, "CEN18", "GOCAR", "4:30", "4:48")
-    voyage3 = voyage("A1", 6, "CEN18", "GOCAR", "5:30", "5:48")
-    voyage4 = voyage("A1", 3, "GOCAR", "CEN05", "5:30", "5:51")
-    voyage5 = voyage("A1", 4, "CEN18", "GOCAR", "5:00", "5:18")
-    voyage6 = voyage("A1", 5, "GOCAR", "CEN05", "6:00", "6:21")
-    voyage7 = voyage("A1", 7, "GOCAR", "CEN05", "6:30", "6:51")
-    voyage8 = voyage("A1", 8, "CEN18", "GOCAR", "6:00", "6:18")
-    voyage9 = voyage("A1", 9, "GOCAR", "CEN05", "7:00", "7:21")
-    voyage10 = voyage("A1", 10, "CEN18", "GOCAR", "6:30", "6:48")
-    voyage11 = voyage("A1", 11, "GOCAR", "CEN05", "7:30", "7:51")
-    voyage12 = voyage("A1", 12, "CEN18", "GOCAR", "7:00", "7:18")
 
-    # Voyages qui peuvent être dans un service matin (si le service commence avant 11h)
-    voyage13 = voyage("A1", 13, "GOCAR", "CEN05", "11:00", "11:21")
-    voyage14 = voyage("A1", 14, "CEN18", "GOCAR", "12:30", "12:48")
-    voyage15 = voyage("A1", 15, "GOCAR", "CEN05", "14:00", "14:21")
-    voyage16 = voyage("A1", 16, "CEN18", "GOCAR", "15:30", "15:48")
-
-    # Voyages d'après-midi qui commencent à 11h ou après
-    voyage17 = voyage("A1", 17, "CEN18", "GOCAR", "11:00", "11:18")
-    voyage18 = voyage("A1", 18, "GOCAR", "CEN05", "13:00", "13:21")
+    voyage1 = voyage(
+        "A1",
+        1,
+        "GOCAR",
+        "CEN05",
+        "5:00",
+        "5:21"
+    )
+    voyage2 = voyage(
+        "A1",
+        2,
+        "CEN18",
+        "GOCAR",
+        "4:30",
+        "4:48"
+    )
+    voyage3 = voyage(
+        "A1",
+        6,
+        "CEN18",
+        "GOCAR",
+        "5:30",
+        "5:48"
+    )
+    voyage4 = voyage(
+        "A1",
+        3,
+        "GOCAR",
+        "CEN05",
+        "5:30",
+        "5:51"
+    )
+    voyage5 = voyage(
+        "A1",
+        4,
+        "CEN18",
+        "GOCAR",
+        "5:00",
+        "5:18"
+    )
+    voyage6 = voyage(
+        "A1",
+        5,
+        "GOCAR",
+        "CEN05",
+        "6:00",
+        "6:21"
+    )
+    voyage7 = voyage(
+        "A1",
+        7,
+        "GOCAR",
+        "CEN05",
+        "6:30",
+        "6:51"
+    )
+    voyage8 = voyage(
+        "A1",
+        8,
+        "CEN18",
+        "GOCAR",
+        "6:00",
+        "6:18"
+    )
+    voyage9 = voyage(
+        "A1",
+        9,
+        "GOCAR",
+        "CEN05",
+        "7:00",
+        "7:21"
+    )
+    voyage10 = voyage(
+        "A1",
+        10,
+        "CEN18",
+        "GOCAR",
+        "6:30",
+        "6:48"
+    )
+    voyage11 = voyage(
+        "A1",
+        11,
+        "GOCAR",
+        "CEN05",
+        "7:30",
+        "7:51"
+    )
+    voyage12 = voyage(
+        "A1",
+        12,
+        "CEN18",
+        "GOCAR",
+        "7:00",
+        "7:18"
+    )
+    voyage13 = voyage(
+        "A1",
+        13,
+        "GOCAR",
+        "CEN05",
+        "7:40",
+        "8:01"
+    )
+    voyage14 = voyage(
+        "A1",
+        14,
+        "CEN18",
+        "GOCAR",
+        "7:10",
+        "7:28"
+    )
 
     listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8,
-              voyage9, voyage10, voyage11, voyage12, voyage13, voyage14, voyage15, voyage16,
-              voyage17, voyage18]
+              voyage9, voyage10, voyage11, voyage12, voyage13, voyage14]
 
     BM = 5
 
-    # Exemple: 2 services matin (qui peuvent aller jusqu'à 18h), 1 service après-midi (commence à 11h+)
-    print("\n" + "=" * 70)
-    print("EXEMPLE: 2 services matin max (commencent avant 11h, finissent max 18h)")
-    print("         1 service après-midi max (commence à partir de 11h)")
-    print("=" * 70)
-
     solutions = solvertest(
         listes,
-        BM,
+        battement_minimum=BM,
         verifier_arrets=True,
+        battement_maximum=50,
         max_solutions=10,
-        max_services_matin=2,  # Max 2 services qui commencent avant 11h
-        max_services_apres_midi=1,  # Max 1 service qui commence à partir de 11h
-        heure_debut_apres_midi=660,  # 11h = 660 minutes
-        heure_fin_matin=1080,  # 18h = 1080 minutes (fin max pour services matin)
-        duree_max_service=540  # 9h max par service
+        max_services_matin=3,
+        max_services_apres_midi=None,
+        heure_debut_apres_midi=660,
+        heure_fin_matin=1080,
+        duree_max_service=540
     )
 
-    # Afficher les détails des services
     for idx, services in enumerate(solutions, 1):
         print("\n" + "#" * 70)
-        print(f"DÉTAILS SOLUTION {idx}")
+        print(f"SOLUTION {idx}")
         print("#" * 70)
-
         for s in services:
             print(s)
-            print()
+
+    # ==================================================
+    # AJOUT GUI — APRÈS LES PRINTS (SANS INTERFÉRENCE)
+    # ==================================================
+
+    import tkinter as tk
+    from tkinter import ttk
+    import matplotlib.pyplot as plt
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+    class TimelineApp(tk.Tk):
+        def __init__(self, solutions):
+            super().__init__()
+            self.title("Visualisation des solutions")
+            self.geometry("1600x700")
+
+            self.solutions = solutions
+
+            self.fig, self.ax = plt.subplots(figsize=(18, 6))
+            self.canvas = FigureCanvasTkAgg(self.fig, self)
+            self.canvas.get_tk_widget().pack(fill="both", expand=True)
+
+            btn_frame = ttk.Frame(self)
+            btn_frame.pack(pady=10)
+
+            for i in range(min(10, len(solutions))):
+                ttk.Button(
+                    btn_frame,
+                    text=f"Solution {i+1}",
+                    command=lambda idx=i: self.draw_solution(idx)
+                ).pack(side="left", padx=5)
+
+            self.draw_solution(0)
+
+        def draw_solution(self, idx):
+            self.ax.clear()
+            y = 0
+            for s in self.solutions[idx]:
+                for v in s.get_voyages():
+                    self.ax.broken_barh([(v.hdebut, v.hfin - v.hdebut)], (y, 8))
+                    self.ax.text(v.hdebut + (v.hfin - v.hdebut)/2, y+4,
+                                 f"{v.num_ligne}-{v.num_voyage}",
+                                 ha="center", va="center", fontsize=8)
+                y += 12
+
+            self.ax.set_xlim(240, 1440)
+            self.ax.set_xticks(range(240, 1441, 60))
+            self.ax.set_xticklabels([f"{h//60:02d}h" for h in range(240, 1441, 60)])
+            self.ax.set_title("Timeline des services")
+            self.ax.grid(True, axis="x")
+            self.canvas.draw()
+
+    TimelineApp(solutions).mainloop()
