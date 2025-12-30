@@ -1,3 +1,5 @@
+from ortools.sat.python import cp_model
+
 class service_agent:
 
     def __init__(self, num_service=None, type_service="matin"):

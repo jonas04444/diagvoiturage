@@ -2,12 +2,12 @@ import csv
 import tkinter as tk
 from tkinter import messagebox as msgbox, ttk
 import customtkinter as ctk
-import self
 from customtkinter import CTkTabview, filedialog
-#from gestion_contrainte import minutes_to_time, AdvancedODMSolver, time_to_minutes
+from objet import voyage, service_agent
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 from tabelauCSV import window_tableau_csv
-from testiacontrainte import *
+from entrainementsolveria import solvertest
+from objet import voyage, service_agent
 
 class TimelineCanvas:
 
@@ -205,12 +205,15 @@ def main():
             donnees_chargees["voyages"] = objets_voyages
             donnees_chargees["matrice"] = matrice_donnees
 
-            remplir_tableau_matrice(self.tableau, matrice_donnees)
+            remplir_tableau_matrice(tableau_voyages, matrice_donnees)
 
-            print(f"\n📦 {len(objets_voyages)} voyages chargés :")
-            for v in objets_voyages:
-                print(f"  • {v}")
-
+            msgbox.showinfo(
+                "Succès",
+                f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
+                "\,".join([f"- Voyage {v.num_voyage}: {v.arret_debut} -> {v.arret_fin}"
+                           for v in objets_voyages[:5]]) +
+                (f"\n... et {len(objets_voyages)-5} autes" if len(objets_voyages) > 5 else "") +
+            )
 
         # Ouvrir la fenêtre de sélection CSV avec le callback
         window_tableau_csv(callback=traiter_voyages)
@@ -382,6 +385,12 @@ def main():
     entry_aprem.insert(0, " ")
     entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
 
+    label_battement = ctk.CTkLabel(master=config_frame, text="Battement minumim:")
+    label_battement.grid(row=2, column=0, pady=10, sticky="e", padx=10)
+    entry_batterment = ctk.CTkEntry(master=config_frame, width=100)
+    entry_batterment.insert(0, "5")
+    entry_batterment.grid(row=2, column=1, pady=10, sticky="w", padx=10)
+
     donnees_chargees = {'voyages': None, 'matrice': None}
 
     def afficher_matrice(matrice_donnees):
@@ -448,34 +457,48 @@ def main():
             
             nb_matin = int(entry_matin.get())
             nb_aprem = int(entry_aprem.get())
+            battement_minimum = int(entry_batterment.get())
 
-            trips = []
-            for voyage in donnees_chargees['voyages']:
-                trip = {
-                    "ligne": voyage.get('Ligne', ''),
-                    "voy": voyage.get('Voy.', ''),
-                    "start": time_to_minutes(voyage.get('Début', '00:00')),
-                    "end": time_to_minutes(voyage.get('Fin', '00:00')),
-                    "from": voyage.get('De', ''),
-                    "to": voyage.get('À', ''),
-                    "js_srv": voyage.get('Js srv', '')
-                }
-                trips.append(trip)
+            voyages_objets = donnees_chargees['voyages']
 
-            solver = AdvancedODMSolver(trips)
-            result = solver.solve_morning_afternoon(nb_matin, nb_aprem)
-
-            error_label.configure(
-                text=f"{len(result['solutions'])} solution(s) trouvées",
-                text_color="green"
+            solutions = solvertest(
+                voyages_objets,
+                battement_minimum=battement_minimum,
+                verifier_arrets=True,
+                battement_maximum=50,
+                max_services_matin=nb_matin,
+                max_services_apres_midi=nb_aprem,
+                heure_debut_apres_midi=660,
+                heure_fin_matin=1080,
+                duree_max_service=540
             )
 
-        except ValueError:
-            error_label.configure(text="Erreur: entrez des nombres valides")  # ✅ Corrigé
+            if solutions:
+                error_label.configure(
+                    text=f"{len(solutions)} solution(s) trouvée(s)}",
+                    text_color="green"
+                )
+                afficher_resultats(solutions)
 
+            else:
+                error_label.configure(
+                    text="Aucune solution trouvée",
+                    text_color="orange"
+                )
+                msgbox.showwarning("Résultat", "Aucune solution trouvée")
+
+        except ValueError as ve:
+            error_label.configure(
+                text="Erreur: entrez des nombres valides",
+                text_color="red"
+            )
+            msgbox.showerror("Erreur", f"Erreur de saisie: {ve}")
         except Exception as e:
-            error_label.configure(text=f"Erreur: {str(e)}")  # ✅ Espace supprimé
-
+            error_label.configure(
+                text=f"Erreur: {str(e)}",
+                text_color="red"",
+            )
+            msgbox.showerror("Erreur", f"Erreur lors de la résolution: {e}")
 
     button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
     button_solve.grid(row=2, column=0, columnspan=2, pady=20)

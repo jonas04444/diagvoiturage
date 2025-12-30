@@ -2,7 +2,6 @@ import customtkinter as ctk
 import csv
 from tkinter import ttk, messagebox as msgbox, filedialog, Toplevel
 import numpy as np
-from ortools.math_opt.python import callback
 from objet import voyage
 
 
@@ -212,20 +211,22 @@ class TableauCSV(ctk.CTkFrame):
                 idx = int(item)
                 voyage_dict = self.donnees[idx]
 
-                v_obj = voyage(
-                    num_ligne = voyage_dict.get('Ligne', '').strip(),
-                    num_voyage = voyage_dict.get('Voy.', '').strip(),
-                    arret_debut = voyage_dict.get('De', '').strip(),
-                    arret_fin = voyage_dict.get('Fin', '').strip(),
-                    heure_debut = voyage_dict.get('Début', '00:00').strip(),
-                    heure_fin = voyage_dict.get('Fin', '00:00').strip(),
-                    js_srv = voyage_dict.get('Js srv', '').strip()
-                )
-
-                objet_voyages.append(v_obj)
-                self.donnees_selectionnees.append(voyage_dict)
-
-
+                try:
+                    v_obj = voyage(
+                        num_ligne = voyage_dict.get('Ligne', '').strip(),
+                        num_voyage = voyage_dict.get('Voy.', '').strip(),
+                        arret_debut = voyage_dict.get('De', '').strip(),
+                        arret_fin = voyage_dict.get('Fin', '').strip(),
+                        heure_debut = voyage_dict.get('Début', '00:00').strip(),
+                        heure_fin = voyage_dict.get('Fin', '00:00').strip(),
+                        js_srv = voyage_dict.get('Js srv', '').strip()
+                    )
+                    objet_voyages.append(v_obj)
+                    self.donnees_selectionnees.append(voyage_dict)
+                except Exception as e:
+                    msgbox.showerror("Erreur",f"Erreur lors de la créaction du voyage :{e}")
+                    continue
+                    
         if not self.donnees_selectionnees:
             msgbox.showwarning("Attention", "Aucun voyage sélectionné")
             return
