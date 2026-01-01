@@ -7,7 +7,6 @@ from objet import voyage, service_agent
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 from tabelauCSV import window_tableau_csv
 from entrainementsolveria import solvertest
-from objet import voyage, service_agent
 
 class TimelineCanvas:
 
@@ -197,27 +196,6 @@ def main():
     tab4 = tabview.add("voiturage")
 
     """TAB 1"""
-
-    def charger_et_afficher():
-
-        def traiter_voyages(objets_voyages, matrice_donnees):
-
-            donnees_chargees["voyages"] = objets_voyages
-            donnees_chargees["matrice"] = matrice_donnees
-
-            remplir_tableau_matrice(tableau_voyages, matrice_donnees)
-
-            msgbox.showinfo(
-                "Succès",
-                f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
-                "\,".join([f"- Voyage {v.num_voyage}: {v.arret_debut} -> {v.arret_fin}"
-                           for v in objets_voyages[:5]]) +
-                (f"\n... et {len(objets_voyages)-5} autes" if len(objets_voyages) > 5 else "") +
-            )
-
-        # Ouvrir la fenêtre de sélection CSV avec le callback
-        window_tableau_csv(callback=traiter_voyages)
-
     tab1.grid_columnconfigure(0, weight=1)
     tab1.grid_columnconfigure(1, weight=1)
     tab1.grid_columnconfigure(2, weight=1)
@@ -391,62 +369,42 @@ def main():
     entry_batterment.insert(0, "5")
     entry_batterment.grid(row=2, column=1, pady=10, sticky="w", padx=10)
 
+    label_max_sol = ctk.CTkLabel(master=config_frame, text="Nombre max solutions:")
+    label_max_sol.grid(row=3, column=0, pady=10, sticky="e", padx=10)
+    entry_max_sol = ctk.CTkEntry(master=config_frame, width=100)
+    entry_max_sol.insert(0, "10")
+    entry_max_sol.grid(row=3, column=1, pady=10, sticky="w", padx=10)
+
     donnees_chargees = {'voyages': None, 'matrice': None}
 
-    def afficher_matrice(matrice_donnees):
-        """Affiche la matrice dans un tableau"""
+    def remplir_tableau_matrice(tableau, matrice_donnees):
+        for item in tableau.get_children():
+            tableau.delete(item)
 
-        # Créer une nouvelle fenêtre
-        fenetre_matrice = ctk.CTkToplevel()
-        fenetre_matrice.title("Matrice des voyages")
-        fenetre_matrice.geometry("800x500")
+        if matrice_donnees is not None:
+            for idx, ligne in enumerate(matrice_donnees):
+                tableau.insert('', 'end', values=tuple(ligne))
 
-        # Créer un frame pour le tableau
-        frame_tableau = ctk.CTkFrame(fenetre_matrice)
-        frame_tableau.pack(fill="both", expand=True, padx=10, pady=10)
+    def charger_et_afficher():
 
-        # Créer le Treeview
-        colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
-        tableau = ctk.Treeview(
-            frame_tableau,
-            columns=colonnes,
-            show='headings',
-            height=15
-        )
+        def traiter_voyages(objets_voyages, matrice_donnees):
 
-        # Configurer les en-têtes et largeurs
-        en_tetes = {
-            'Ligne': 80,
-            'Voy.': 80,
-            'Début': 80,
-            'Fin': 80,
-            'De': 120,
-            'À': 120,
-            'Js srv': 100
-        }
 
-        for col, largeur in en_tetes.items():
-            tableau.column(col, width=largeur, anchor='center')
-            tableau.heading(col, text=col)
+            donnees_chargees["voyages"] = objets_voyages
+            donnees_chargees["matrice"] = matrice_donnees
 
-        # Remplir le tableau avec les données de la matrice
-        for idx, ligne in enumerate(matrice_donnees):
-            tableau.insert('', 'end', values=tuple(ligne))
+            remplir_tableau_matrice(tableau_voyages, matrice_donnees)
 
-        # Ajouter une scrollbar
-        scrollbar_y =  ctk.Scrollbar(
-            frame_tableau,
-            orient='vertical',
-            command=tableau.yview
-        )
+            msgbox.showinfo(
+                "Succès",
+                f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
+                "\n".join([f"• Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}"  # ✅ CORRIGÉ : \n au lieu de \,
+                           for v in objets_voyages[:5]]) +
+                (f"\n... et {len(objets_voyages) - 5} autres" if len(objets_voyages) > 5 else "")
+                # ✅ CORRIGÉ : faute + parenthèse
+            )
 
-        tableau.configure(yscrollcommand=scrollbar_y.set)
-
-        tableau.grid(row=0, column=0, sticky='nsew')
-        scrollbar_y.grid(row=0, column=1, sticky='ns')
-
-        frame_tableau.grid_rowconfigure(0, weight=1)
-        frame_tableau.grid_columnconfigure(0, weight=1)
+        window_tableau_csv(callback=traiter_voyages)
 
     def solve():
         try:
@@ -457,7 +415,8 @@ def main():
             
             nb_matin = int(entry_matin.get())
             nb_aprem = int(entry_aprem.get())
-            battement_minimum = int(entry_batterment.get())
+            battement_minimum = int(entry_battement.get())
+            max_solutions = int(entry_max_sol.get())
 
             voyages_objets = donnees_chargees['voyages']
 
@@ -466,6 +425,7 @@ def main():
                 battement_minimum=battement_minimum,
                 verifier_arrets=True,
                 battement_maximum=50,
+                max_solutions=max_solutions,
                 max_services_matin=nb_matin,
                 max_services_apres_midi=nb_aprem,
                 heure_debut_apres_midi=660,
@@ -475,7 +435,7 @@ def main():
 
             if solutions:
                 error_label.configure(
-                    text=f"{len(solutions)} solution(s) trouvée(s)}",
+                    text=f"{len(solutions)} solution(s) trouvée(s)",
                     text_color="green"
                 )
                 afficher_resultats(solutions)
@@ -496,24 +456,72 @@ def main():
         except Exception as e:
             error_label.configure(
                 text=f"Erreur: {str(e)}",
-                text_color="red"",
+                text_color="red""
             )
             msgbox.showerror("Erreur", f"Erreur lors de la résolution: {e}")
 
-    button_solve = ctk.CTkButton(master=config_frame, text="Résoudre", command=solve, width=200, height=40)
-    button_solve.grid(row=2, column=0, columnspan=2, pady=20)
+    def afficher_resultats(solutions):
 
-    button_charge_csv = ctk.CTkButton(
+        fenetre_resultats = ctk.CTkToplevel()
+        fenetre_resultats.title('Resultats du solveur')
+        fenetre_resultats.geometry('900x700')
+
+        main_frame = ctk.CTkFrame(fenetre_resultats)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        titre = ctk.CTkLabel(
+            main_frame,
+            text=f"{len(solutions)} solution(s) trouvée(s)",
+            font=("Arial", 16, "bold")
+        )
+        titre.pack()
+
+        scrollbar = ctk.CTkScrollableFrame(main_frame, width=850, height=600)
+        scrollbar.pack(fill='both', expand=True, pady=10)
+
+        for idx, services in enumerate(solutions, 1):
+            sol_frame = ctk.CTkFrame(scrollable_frame)  # ✅ CORRIGÉ
+            sol_frame.pack(fill="x", padx=10, pady=10)
+
+            sol_titre = ctk.CTkLabel(
+                sol_frame,
+                text=f"SOLUTION {idx}",
+                font=("Arial", 14, "bold")
+            )
+            sol_titre.pack(pady=5)
+
+            for service in services:
+                service_text = ctk.CTkTextbox(sol_frame, height=150, width=800)
+                service_text.pack(padx=10, pady=5)
+                service_text.insert("1.0", str(service))
+                service_text.configure(state="disabled")
+
+    button_solve = ctk.CTkButton(
         master=config_frame,
-        text="Charger voyage CSV",
-        command=charger_et_afficher,  # ✅ Nouveau callback
+        text="résoudre",
+        command=solve,
         width=200,
         height=40
     )
-    button_charge_csv.grid(row=3, column=0, columnspan=2, pady=20)
+    button_solve.grid(row=4, column=0, columnspan=2, pady=10)
 
-    error_label = ctk.CTkLabel(master=config_frame, text="", text_color="red")
-    error_label.grid(row=3, column=0, columnspan=2)
+    error_label = ctk.CTkLabel(master=config_frame, text="", text_color="grey")
+    error_label.grid(row=6, column=0, columnspan=2, pady=10)
+
+    solutions_frame = ctk.CTkFrame(tab4)
+    solutions_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+
+    button_charge_csv = ctk.CTkButton(
+        master=config_frame,
+        text="📂 Charger voyages CSV",
+        command=charger_et_afficher,
+        width=200,
+        height=40
+    )
+    button_charge_csv.grid(row=5, column=0, columnspan=2, pady=10)
+
+    error_label = ctk.CTkLabel(master=config_frame, text="", text_color="gray")  # ✅ CORRIGÉ
+    error_label.grid(row=6, column=0, columnspan=2, pady=10)
 
     solutions_frame = ctk.CTkFrame(tab4)
     solutions_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
@@ -523,14 +531,14 @@ def main():
 
     colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
 
-    self.tableau = ttk.Treeview(
+    tableau_voyages = ttk.Treeview(
         solutions_frame,
         columns=colonnes,
         show='headings',
         height=15
     )
 
-    en_tetes= {
+    en_tetes = {
         'Ligne': 50,
         'Voy.': 50,
         'Début': 80,
@@ -541,52 +549,22 @@ def main():
     }
 
     for col, largeur in en_tetes.items():
-        self.tableau.column(col, width=largeur, anchor='center')
-        self.tableau.heading(col, text=col)
+        tableau_voyages.column(col, width=largeur, anchor='center')
+        tableau_voyages.heading(col, text=col)
 
     scrollbar_y = ttk.Scrollbar(
         solutions_frame,
         orient="vertical",
-        command=self.tableau.yview
+        command=tableau_voyages.yview
     )
 
-    self.tableau.configure(
-        yscrollcommand=scrollbar_y.set
-    )
+    tableau_voyages.configure(yscrollcommand=scrollbar_y.set)
 
-    self.tableau.grid(row=0, column=0, sticky='nsew')
+    tableau_voyages.grid(row=0, column=0, sticky='nsew')
     scrollbar_y.grid(row=0, column=1, sticky='ns')
 
     solutions_frame.grid_rowconfigure(0, weight=1)
     solutions_frame.grid_columnconfigure(0, weight=1)
-
-    def remplir_tableau_matrice(tableau, matrice_donnees):
-        """Remplit le tableau avec les données de la matrice"""
-        # Supprimer les anciennes données
-        for item in tableau.get_children():
-            tableau.delete(item)
-
-        # Remplir avec les nouvelles données
-        if matrice_donnees is not None:
-            for idx, ligne in enumerate(matrice_donnees):
-                tableau.insert('', 'end', values=tuple(ligne))
-
-    def display_solution(solutions, trips):
-        for widget in solutions_frame.winfo_children():
-            widget.destroy()
-
-        if not solutions:
-            error_label.configure(text="Aucune solution trouvée")
-            return
-
-        error_label.configure(text="")
-
-        label_solutions = ctk.CTkLabel(
-            master=solutions_frame,
-            text=f"Solutions trouvées ({len(solutions)}",
-            font=("Arial", 12, "bold")
-        )
-        label_solutions.pack(pady=10)
 
     win.mainloop()
 

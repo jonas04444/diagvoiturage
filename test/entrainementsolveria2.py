@@ -1,406 +1,559 @@
-from ortools.sat.python import cp_model
-
-# ======================================================
-# TON CODE D’ORIGINE — STRICTEMENT INCHANGÉ
-# ======================================================
-
-class service_agent:
-
-    def __init__(self, num_service=None, type_service="matin"):
-        self.voyages = []
-        self.num_service = num_service
-        self.type_service = type_service
-
-    def ajout_voyages(self, voyage):
-        self.voyages.append(voyage)
-
-    def get_voyages(self):
-        return self.voyages
-
-    def duree_services(self):
-        if not self.voyages:
-            return 0
-        debut = min(v.hdebut for v in self.voyages)
-        fin = max(v.hfin for v in self.voyages)
-        return fin - debut
-
-    def __str__(self):
-        if not self.voyages:
-            return f"Service {self.num_service}: vide"
-
-        voyages_chronologiques = sorted(self.voyages, key=lambda v: v.hdebut)
-        debut_service = min(v.hdebut for v in self.voyages)
-        fin_service = max(v.hfin for v in self.voyages)
-
-        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(voyages_chronologiques)} voyages\n"
-        result += f"  Début: {voyage.minutes_to_time(debut_service)}, Fin: {voyage.minutes_to_time(fin_service)}\n"
-
-        for v in voyages_chronologiques:
-            result += f"  • Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin} "
-            result += f"({voyage.minutes_to_time(v.hdebut)} - {voyage.minutes_to_time(v.hfin)})\n"
-
-        return result.rstrip()
+import csv
+import tkinter as tk
+from tkinter import messagebox as msgbox, ttk
+import customtkinter as ctk
+from customtkinter import CTkTabview, filedialog
+from objet import voyage, service_agent
+from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
+from tabelauCSV import window_tableau_csv
+from entrainementsolveria import solvertest
 
 
-class voyage:
+class TimelineCanvas:
 
-    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin):
-        self.num_ligne = num_ligne
-        self.num_voyage = num_voyage
-        self.arret_debut = arret_debut
-        self.arret_fin = arret_fin
-        self.hdebut = self.time_to_minutes(heure_debut)
-        self.hfin = self.time_to_minutes(heure_fin)
+    def __init__(self, canvas, trips_data, line):
+        self.canvas = canvas
+        self.trips = trips_data
+        self.timeline_start = 4 * 60
+        self.timeline_end = 24 * 60
+        self.timeline_height = 600
+        self.timeline_width = 1200
+        self.service_height = 50
+        self.padding_top = 50
+        self.padding_left = 80
+        self.padding_bottom = 50
+        self.colors = self._generate_colors()
 
-    def arret_debut_id(self):
-        return self.arret_debut[:3]
+    def _generate_colors(self, i):
+        colors = {
+            "A1": "#FF6B6B",
+            "25": "#4ECDC4",
+            "35": "#45B7D1",
+            "43": "#FFA07A",
+            "83": "#98D8C8",
+            "86": "#F7DC6F",
+            "85": "#BB8FCE",
+            "63": "#85C1E2",
+            "41": "#F8B88B",
+            "M4": "#AED6F1"
+        }
+        return colors
 
-    def arret_fin_id(self):
-        return self.arret_fin[:3]
+    def draw_solution(self, solution):
+        """dessine un solution par timeline"""
+        self.canvas.delete("all")
 
-    @staticmethod
-    def time_to_minutes(time_str):
-        h, m = map(int, time_str.split(':'))
-        return h * 60 + m
+        self.canvas.update()
+        canvas_width = self.canvas.winfo_width()
+        canvas_height = self.canvas.winfo_height()
 
-    @staticmethod
-    def minutes_to_time(minutes):
-        return f"{minutes // 60:02d}h{minutes % 60:02d}"
+        if canvas_width <= 1 or canvas_height <= 1:
+            msgbox.showerror("Erreur", f"Canvas dimensions invalides: {canvas_width}x{canvas_height}")
+            return
 
+        self._draw_timeline_background()
+        self._draw_time_labels()
 
-def valider_service(voyages, battement_minimum, battement_maximum, verifier_arrets=True,
-                    duree_cible=450, tolerance_duree=400):
-    if len(voyages) <= 1:
-        return True, list(voyages)
+        current_y = self.padding_top
 
-    voyages_ordonnes = sorted(voyages, key=lambda v: v.hdebut)
+        """affichage matin"""
+        if solution['matin']:
+            self.canvas.create_text(
+                10, current_y, text="MATIN", font=("Arial", 10, "bold"),
+                anchor="w", fill="white"
+            )
+            current_y += 20
 
-    for i in range(len(voyages_ordonnes) - 1):
-        if not voyages_compatibles(
-            voyages_ordonnes[i],
-            voyages_ordonnes[i + 1],
-            voyages_ordonnes,
-            battement_minimum,
-            battement_maximum,
-            verifier_arrets
-        ):
-            return False, []
+            for service_id, trips in solution['matin'].items():
+                self._draw_service_line(current_y, trips, f"AM-{service_id}")
+                current_y += self.service_height + 5
 
-    debut = min(v.hdebut for v in voyages_ordonnes)
-    fin = max(v.hfin for v in voyages_ordonnes)
-    duree = fin - debut
+        """affichage après-midi"""
+        if solution['apres_midi']:
+            self.canvas.create_text(
+                10, current_y, text="APRES-MIDI", font=("Arial", 10, "bold"),
+                anchor="w", fill="white"
+            )
+            current_y += 20
 
-    if abs(duree - duree_cible) > tolerance_duree:
-        return False, []
+            for service_id, trips in solution['matin'].items():
+                self._draw_service_line(current_y, trips, f"PM-{service_id}")
+                current_y += self.service_height + 5
 
-    return True, voyages_ordonnes
+        """affiche les voyages orphelins"""
+        if solution['orphelins']:
+            current_y += 15
+            self.canvas.create_text(
+                10, current_y, text="⚠️ ORPHELINS", font=("Arial", 10, "bold"),
+                anchor="w", fill="#FF6B6B"
+            )
+            current_y += 20
 
+            for trip_idx in solution['orphelins']:
+                trip = self.trips[trip_idx]
+                self._draw_trip_rect(
+                    current_y, trip_idx, trip,
+                    "#FF6B6B", f"Orphelin-{trip_idx}"
+                )
+                current_y += 25
 
-def calculer_duree_service(voyages_list):
-    if not voyages_list:
-        return 0
-    debut = min(v.hdebut for v in voyages_list)
-    fin = max(v.hfin for v in voyages_list)
-    return fin - debut
+    def _draw_timeline_background(self):
+        """Dessine le fond de la timeline"""
+        self.canvas.create_rectangle(
+            self.padding_left, self.padding_top,
+            self.padding_left + self.timeline_width,
+            self.padding_top + self.timeline_height,
+            fill="#2b2b2b", outline="#555555"
+        )
 
+    def _draw_time_labels(self):
+        """affiche les labels horaires"""
+        for hour in range(4, 25, 2):
+            x = self._time_to_x(hour * 60)
+            self.canvas.create_line(
+                x, self.padding_top,
+                x, self.padding_top + self.timeline_height,
+                fill="#444444", dash=(2, 2)
+            )
+            self.canvas.create_text(
+                x, self.padding_top - 20,
+                text=f"{hour:02d}h",
+                font=("Arial", 9),
+                fill="white"
+            )
 
-class SolutionCollector(cp_model.CpSolverSolutionCallback):
-    def __init__(self, service, max_solutions=None):
-        super().__init__()
-        self.service = service
-        self.solutions = []
-        self.max_solutions = max_solutions
+    def _draw_trip_rect(self, y, trip_idx, trip, color, label):
+        """dessine les rectangles pour les voyages"""
+        x1 = self._time_to_x(trip["start"])
+        x2 = self._time_to_x(trip["end"])
+        y1 = y
+        y2 = y + self.service_height
 
-    def OnSolutionCallback(self):
-        sol = [self.Value(s) for s in self.service]
-        self.solutions.append(sol)
-        if self.max_solutions is not None and len(self.solutions) >= self.max_solutions:
-            self.StopSearch()
+        """rectangle du voyage"""
+        self.canvas.create_rectangle(
+            x1, y1, x2, y2,
+            fill=color, outline="white", width=2
+        )
 
+        """texte avec heure et code"""
+        mid_x = (x1 + x2) / 2
+        mid_y = (y1 + y2) / 2
 
-def voyages_compatibles(v1, v2, voyages, battement_minimum, battement_maximum, verifier_arrets=True):
-    if v2.hdebut < v1.hfin:
-        return False
+        start_time = voyage.minutes_to_time(trip["start"])
+        end_time = voyage.minutes_to_time(trip["end"])
 
-    temps_entre = v2.hdebut - v1.hfin
-    if temps_entre < battement_minimum:
-        return False
+        self.canvas.create_text(
+            mid_x, mid_y - 8,
+            text=label,
+            font=("Arial", 8, "bold"),
+            fill="black"
+        )
+        self.canvas.create_text(
+            mid_x, mid_y + 8,
+            text=f"{start_time}-{end_time}",
+            font=("Arial", 7),
+            fill="black"
+        )
 
-    if battement_maximum is not None and temps_entre > battement_maximum:
-        return False
+    def _time_to_x(self, minutes):
+        """Convertit une heure en coordonnée X"""
+        ratio = (minutes - self.timeline_start) / (self.timeline_end - self.timeline_start)
+        return self.padding_left + ratio * self.timeline_width
 
-    if not verifier_arrets:
-        return True
+    def _draw_service_line(self, y, trips, service_label):
+        """dessine une ligne de service avec les voyages"""
+        self.canvas.create_text(
+            10, y + self.service_height // 2,
+            text=service_label, font=("Arial", 9, "bold"),
+            anchor="w", fill="white"
+        )
 
-    if v1.arret_fin_id() == v2.arret_debut_id():
-        return True
+        sorted_trips = sorted(trips, key=lambda x: x[1]["start"])
 
-    for vp in voyages:
-        if vp is v1 or vp is v2:
-            continue
-
-        if (v1.hfin <= vp.hdebut and vp.hfin <= v2.hdebut and
-                v1.arret_fin_id() == vp.arret_debut_id() and
-                vp.arret_fin_id() == v2.arret_debut_id()):
-            return True
-
-    return False
-
-
-def solvertest(listes, battement_minimum, battement_maximum=50, verifier_arrets=True,
-               max_solutions=10, max_services_matin=None, max_services_apres_midi=None,
-               heure_debut_apres_midi=660, heure_fin_matin=1080, duree_max_service=540):
-
-    model = cp_model.CpModel()
-    n = len(listes)
-
-    if max_services_matin is None:
-        max_services_matin = n
-    if max_services_apres_midi is None:
-        max_services_apres_midi = n
-
-    max_services_total = max_services_matin + max_services_apres_midi
-    service = [model.NewIntVar(0, max_services_total - 1, f"service{i}") for i in range(n)]
-
-    for i in range(n):
-        for j in range(i + 1, n):
-            vi = listes[i]
-            vj = listes[j]
-
-            if vi.hdebut < vj.hfin and vj.hdebut < vi.hfin:
-                model.Add(service[i] != service[j])
-                continue
-
-            if vi.hfin <= vj.hdebut:
-                if not voyages_compatibles(vi, vj, listes, battement_minimum, None, verifier_arrets):
-                    model.Add(service[i] != service[j])
-
-            if vj.hfin <= vi.hdebut:
-                if not voyages_compatibles(vj, vi, listes, battement_minimum, None, verifier_arrets):
-                    model.Add(service[i] != service[j])
-
-    solver = cp_model.CpSolver()
-    solver.parameters.enumerate_all_solutions = True
-    solver.parameters.max_time_in_seconds = 30
-
-    collector = SolutionCollector(service, max_solutions)
-    solver.SearchForAllSolutions(model, collector)
-
-    toutes_les_solutions = []
-
-    for sol in collector.solutions:
-        services = {}
-        for i, s in enumerate(sol):
-            services.setdefault(s, []).append(listes[i])
-
-        resultat = []
-        for s, vs in services.items():
-            voyage_ordonnes = sorted(vs, key=lambda v: v.hdebut)
-            debut = min(v.hdebut for v in voyage_ordonnes)
-            type_service = "matin" if debut < heure_debut_apres_midi else "apres"
-            sa = service_agent(s, type_service)
-            for v in voyage_ordonnes:
-                sa.ajout_voyages(v)
-            resultat.append(sa)
-
-        toutes_les_solutions.append(resultat)
-
-    return toutes_les_solutions
+        for i, (trip_idx, trip) in enumerate(sorted_trips):
+            line_name = trip.get("line", "default")
+            color = self.colors.get(line_name, "#CCCCCC")
+            self._draw_trip_rect(
+                y, trip_idx, trip, color, f"{trip['from'][:3]}-{trip['to'][:3]}"
+            )
 
 
-# ======================================================
-# TON MAIN ORIGINAL — PRINTS CONSERVÉS
-# ======================================================
+def main():
+    win = ctk.CTk()
+    win.title("menu")
+    win.geometry("1400x900")
 
-if __name__ == "__main__":
+    win.grid_rowconfigure(0, weight=1)
+    win.grid_columnconfigure(0, weight=1)
 
-    voyage1 = voyage(
-        "A1",
-        1,
-        "GOCAR",
-        "CEN05",
-        "5:00",
-        "5:21"
+    tabview = CTkTabview(master=win, width=1350, height=850, corner_radius=15)
+    tabview.grid(row=0, column=0, columnspan=3, padx=20, pady=20, sticky="nsew")
+
+    tab1 = tabview.add("Création voyage")
+    tab2 = tabview.add("création ligne et lieux")
+    tab3 = tabview.add("liste voyage")
+    tab4 = tabview.add("voiturage")
+
+    """TAB 1"""
+    tab1.grid_columnconfigure(0, weight=1)
+    tab1.grid_columnconfigure(1, weight=1)
+    tab1.grid_columnconfigure(2, weight=1)
+
+    label = ctk.CTkLabel(master=tab1, text="création voyage")
+    label.grid(row=0, column=1, pady=10, sticky="ew")
+
+    saisie1 = ctk.CTkLabel(master=tab1, text="sélectionner ligne:")
+    saisie1.grid(row=1, column=0, pady=10)
+    ligne_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lignes_from_db(),
+        width=200
     )
-    voyage2 = voyage(
-        "A1",
-        2,
-        "CEN18",
-        "GOCAR",
-        "4:30",
-        "4:48"
+    ligne_dropdown.grid(row=1, column=1, pady=10)
+
+    saisienumvoyage = ctk.CTkLabel(master=tab1, text="entrez numéro de voyage")
+    saisienumvoyage.grid(row=2, column=0, pady=10)
+    numvoyage = ctk.CTkEntry(master=tab1)
+    numvoyage.grid(row=2, column=1, pady=10)
+
+    saisie2 = ctk.CTkLabel(master=tab1, text="entrer début:")
+    saisie2.grid(row=3, column=0, pady=10)
+    debutarret = ctk.CTkEntry(master=tab1)
+    debutarret.grid(row=3, column=1, pady=10)
+
+    saisie3 = ctk.CTkLabel(master=tab1, text="entrer fin:")
+    saisie3.grid(row=4, column=0, pady=10)
+    finarret = ctk.CTkEntry(master=tab1)
+    finarret.grid(row=4, column=1, pady=10)
+
+    saisie4 = ctk.CTkLabel(master=tab1, text="entrer lieux de début:")
+    saisie4.grid(row=5, column=0, pady=10)
+    lieux1_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lieux_from_db(),
+        width=200
     )
-    voyage3 = voyage(
-        "A1",
-        6,
-        "CEN18",
-        "GOCAR",
-        "5:30",
-        "5:48"
+    lieux1_dropdown.grid(row=5, column=1, pady=10)
+
+    saisie5 = ctk.CTkLabel(master=tab1, text="entrer lieux de fin:")
+    saisie5.grid(row=6, column=0, pady=10)
+    lieux2_dropdown = ctk.CTkComboBox(
+        master=tab1,
+        values=get_lieux_from_db(),
+        width=200
     )
-    voyage4 = voyage(
-        "A1",
-        3,
-        "GOCAR",
-        "CEN05",
-        "5:30",
-        "5:51"
+    lieux2_dropdown.grid(row=6, column=1, pady=10)
+
+    button = ctk.CTkButton(master=tab1,
+                           text="ajouter un trajet",
+                           command=lambda: add_trajet([{
+                               "Num_ligne": int(ligne_dropdown.get().split()[1]),
+                               "variant": int(ligne_dropdown.get().split()[-1]),
+                               "Num_trajet": int(numvoyage.get()),
+                               "DP_arret": lieux1_dropdown.get().strip(),
+                               "DR_arret": lieux2_dropdown.get().strip(),
+                               "Heure_Start": debutarret.get().strip(),
+                               "Heure_End": finarret.get().strip()
+                           }]))
+    button.grid(row=7, column=1, pady=10)
+
+    button_csv = ctk.CTkButton(
+        master=tab1,
+        text="Charger CSV",
+        command=lambda: charger_csv(),
+        width=200
     )
-    voyage5 = voyage(
-        "A1",
-        4,
-        "CEN18",
-        "GOCAR",
-        "5:00",
-        "5:18"
+    button_csv.grid(row=8, column=1, pady=10)
+
+    """TAB 2: création des lignes et lieu"""
+    tab2.grid_columnconfigure(0, weight=1)
+    tab2.grid_columnconfigure(1, weight=1)
+
+    label2 = ctk.CTkLabel(master=tab2, text="Création de ligne et lieu")
+    label2.grid(row=0, column=1, pady=10)
+
+    saisieaddline = ctk.CTkLabel(master=tab2, text="entrer ligne:")
+    saisieaddline.grid(row=1, column=0, pady=10)
+    num_ligne = ctk.CTkEntry(master=tab2)
+    num_ligne.grid(row=1, column=1, pady=10)
+
+    saisieaddlinevar = ctk.CTkLabel(master=tab2, text="entrer variant:")
+    saisieaddlinevar.grid(row=2, column=0, pady=10)
+    num_lignevar = ctk.CTkEntry(master=tab2)
+    num_lignevar.grid(row=2, column=1, pady=10)
+
+    button = ctk.CTkButton(master=tab2,
+                           text="valider",
+                           command=lambda: add_line(
+                               [{"num_ligne": int(num_ligne.get()), "Variante": int(num_lignevar.get())}]))
+    button.grid(row=5, column=1, pady=20)
+
+    saisielieu = ctk.CTkLabel(master=tab2, text="entrer lieu:")
+    saisielieu.grid(row=6, column=0, pady=10)
+    addidlieu = ctk.CTkEntry(master=tab2)
+    addidlieu.grid(row=6, column=1, pady=10)
+
+    saisiecommune = ctk.CTkLabel(master=tab2, text="entrer commune:")
+    saisiecommune.grid(row=7, column=0, pady=10)
+    addcommune = ctk.CTkEntry(master=tab2)
+    addcommune.grid(row=7, column=1, pady=10)
+
+    saisiedescription = ctk.CTkLabel(master=tab2, text="entrer description:")
+    saisiedescription.grid(row=8, column=0, pady=10)
+    adddescription = ctk.CTkEntry(master=tab2)
+    adddescription.grid(row=8, column=1, pady=10)
+
+    saisiezone = ctk.CTkLabel(master=tab2, text="entrer zone:")
+    saisiezone.grid(row=9, column=0, pady=10)
+    addzone = ctk.CTkEntry(master=tab2)
+    addzone.grid(row=9, column=1, pady=10)
+
+    buttonlieu = ctk.CTkButton(master=tab2,
+                               text="ajouter lieu",
+                               command=lambda: add_lieux([{"id_lieux": addidlieu.get().strip(),
+                                                           "commune": addcommune.get().strip(),
+                                                           "description": adddescription.get().strip(),
+                                                           "zone": int(addzone.get())}])
+                               )
+    buttonlieu.grid(row=10, column=1, pady=10)
+
+    """TAB 3: liste de sélection des voyages"""
+    tab3.grid_columnconfigure(0, weight=0)
+    tab3.grid_columnconfigure(1, weight=1)
+    tab3.grid_rowconfigure(0, weight=0)
+    tab3.grid_rowconfigure(1, weight=1)
+    tab3.grid_rowconfigure(2, weight=0)
+
+    choixligne = ctk.CTkLabel(master=tab3, text="sélection ligne:")
+    choixligne.grid(row=0, column=0, pady=10)
+    ligneselect = ctk.CTkComboBox(
+        master=tab3,
+        values=get_lignes_from_db(),
+        width=200
     )
-    voyage6 = voyage(
-        "A1",
-        5,
-        "GOCAR",
-        "CEN05",
-        "6:00",
-        "6:21"
+    ligneselect.grid(row=0, column=1, pady=10)
+
+    """TAB 4: solveur ODM"""
+    tab4.grid_columnconfigure(0, weight=0)
+    tab4.grid_columnconfigure(1, weight=1)
+    tab4.grid_rowconfigure(0, weight=0)
+    tab4.grid_rowconfigure(1, weight=1)
+    tab4.grid_rowconfigure(2, weight=0)
+
+    label_solver = ctk.CTkLabel(
+        master=tab4,
+        text="Configuration du solveur ODM",
+        font=("Arial", 14, "bold")
     )
-    voyage7 = voyage(
-        "A1",
-        7,
-        "GOCAR",
-        "CEN05",
-        "6:30",
-        "6:51"
+    label_solver.grid(row=0, column=0, pady=10)
+
+    config_frame = ctk.CTkFrame(tab4)
+    config_frame.grid(row=1, column=0, sticky="nw", padx=10, pady=10, rowspan=2)
+
+    label_matin = ctk.CTkLabel(master=config_frame, text="Services MATIN:")
+    label_matin.grid(row=0, column=0, pady=10, sticky="e", padx=10)
+    entry_matin = ctk.CTkEntry(master=config_frame, width=100)
+    entry_matin.insert(0, "3")  # ✅ CORRIGÉ
+    entry_matin.grid(row=0, column=1, pady=10, sticky="w", padx=10)
+
+    label_aprem = ctk.CTkLabel(master=config_frame, text="Services APRÈS-MIDI:")
+    label_aprem.grid(row=1, column=0, pady=10, sticky="e", padx=10)
+    entry_aprem = ctk.CTkEntry(master=config_frame, width=100)
+    entry_aprem.insert(0, "2")  # ✅ CORRIGÉ
+    entry_aprem.grid(row=1, column=1, pady=10, sticky="w", padx=10)
+
+    label_battement = ctk.CTkLabel(master=config_frame, text="Battement minimum:")  # ✅ CORRIGÉ
+    label_battement.grid(row=2, column=0, pady=10, sticky="e", padx=10)
+    entry_battement = ctk.CTkEntry(master=config_frame, width=100)  # ✅ CORRIGÉ
+    entry_battement.insert(0, "5")
+    entry_battement.grid(row=2, column=1, pady=10, sticky="w", padx=10)
+
+    label_max_sol = ctk.CTkLabel(master=config_frame, text="Nombre max solutions:")
+    label_max_sol.grid(row=3, column=0, pady=10, sticky="e", padx=10)
+    entry_max_sol = ctk.CTkEntry(master=config_frame, width=100)
+    entry_max_sol.insert(0, "10")
+    entry_max_sol.grid(row=3, column=1, pady=10, sticky="w", padx=10)
+
+    donnees_chargees = {'voyages': None, 'matrice': None}
+
+    def remplir_tableau_matrice(tableau, matrice_donnees):
+        for item in tableau.get_children():
+            tableau.delete(item)
+
+        if matrice_donnees is not None:
+            for idx, ligne in enumerate(matrice_donnees):
+                tableau.insert('', 'end', values=tuple(ligne))
+
+    def charger_et_afficher():
+        def traiter_voyages(objets_voyages, matrice_donnees):
+            donnees_chargees["voyages"] = objets_voyages
+            donnees_chargees["matrice"] = matrice_donnees
+
+            remplir_tableau_matrice(tableau_voyages, matrice_donnees)
+
+            msgbox.showinfo(
+                "Succès",
+                f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
+                "\n".join([f"• Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}"
+                           for v in objets_voyages[:5]]) +
+                (f"\n... et {len(objets_voyages) - 5} autres" if len(objets_voyages) > 5 else "")
+            )
+
+        window_tableau_csv(callback=traiter_voyages)
+
+    def solve():
+        try:
+            if donnees_chargees['voyages'] is None:
+                msgbox.showerror("Erreur", "Il n'y a aucun voyage sélectionné")
+                return
+
+            nb_matin = int(entry_matin.get())
+            nb_aprem = int(entry_aprem.get())
+            battement_minimum = int(entry_battement.get())  # ✅ CORRIGÉ
+            max_solutions = int(entry_max_sol.get())
+
+            voyages_objets = donnees_chargees['voyages']
+
+            solutions = solvertest(
+                voyages_objets,
+                battement_minimum=battement_minimum,
+                verifier_arrets=True,
+                battement_maximum=50,
+                max_solutions=max_solutions,
+                max_services_matin=nb_matin,
+                max_services_apres_midi=nb_aprem,
+                heure_debut_apres_midi=660,
+                heure_fin_matin=1080,
+                duree_max_service=540
+            )
+
+            if solutions:
+                error_label.configure(
+                    text=f"✅ {len(solutions)} solution(s) trouvée(s)",
+                    text_color="green"
+                )
+                afficher_resultats(solutions)
+            else:
+                error_label.configure(
+                    text="Aucune solution trouvée",
+                    text_color="orange"
+                )
+                msgbox.showwarning("Résultat", "Aucune solution trouvée")
+
+        except ValueError as ve:
+            error_label.configure(
+                text="Erreur: entrez des nombres valides",
+                text_color="red"
+            )
+            msgbox.showerror("Erreur", f"Erreur de saisie: {ve}")
+        except Exception as e:
+            error_label.configure(
+                text=f"Erreur: {str(e)}",
+                text_color="red"  # ✅ CORRIGÉ
+            )
+            msgbox.showerror("Erreur", f"Erreur lors de la résolution: {e}")
+
+    def afficher_resultats(solutions):
+        fenetre_resultats = ctk.CTkToplevel()
+        fenetre_resultats.title('Résultats du solveur')
+        fenetre_resultats.geometry('900x700')
+
+        main_frame = ctk.CTkFrame(fenetre_resultats)
+        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
+
+        titre = ctk.CTkLabel(
+            main_frame,
+            text=f"🎯 {len(solutions)} solution(s) trouvée(s)",
+            font=("Arial", 16, "bold")
+        )
+        titre.pack(pady=10)
+
+        scrollable_frame = ctk.CTkScrollableFrame(main_frame, width=850, height=600)  # ✅ CORRIGÉ
+        scrollable_frame.pack(fill='both', expand=True, pady=10)
+
+        for idx, services in enumerate(solutions, 1):
+            sol_frame = ctk.CTkFrame(scrollable_frame)  # ✅ CORRIGÉ
+            sol_frame.pack(fill="x", padx=10, pady=10)
+
+            sol_titre = ctk.CTkLabel(
+                sol_frame,
+                text=f"SOLUTION {idx}",
+                font=("Arial", 14, "bold")
+            )
+            sol_titre.pack(pady=5)
+
+            for service in services:
+                service_text = ctk.CTkTextbox(sol_frame, height=150, width=800)
+                service_text.pack(padx=10, pady=5)
+                service_text.insert("1.0", str(service))
+                service_text.configure(state="disabled")
+
+    button_solve = ctk.CTkButton(
+        master=config_frame,
+        text="🚀 Résoudre",
+        command=solve,
+        width=200,
+        height=40
     )
-    voyage8 = voyage(
-        "A1",
-        8,
-        "CEN18",
-        "GOCAR",
-        "6:00",
-        "6:18"
+    button_solve.grid(row=4, column=0, columnspan=2, pady=10)
+
+    button_charge_csv = ctk.CTkButton(
+        master=config_frame,
+        text="📂 Charger voyages CSV",
+        command=charger_et_afficher,
+        width=200,
+        height=40
     )
-    voyage9 = voyage(
-        "A1",
-        9,
-        "GOCAR",
-        "CEN05",
-        "7:00",
-        "7:21"
-    )
-    voyage10 = voyage(
-        "A1",
-        10,
-        "CEN18",
-        "GOCAR",
-        "6:30",
-        "6:48"
-    )
-    voyage11 = voyage(
-        "A1",
-        11,
-        "GOCAR",
-        "CEN05",
-        "7:30",
-        "7:51"
-    )
-    voyage12 = voyage(
-        "A1",
-        12,
-        "CEN18",
-        "GOCAR",
-        "7:00",
-        "7:18"
-    )
-    voyage13 = voyage(
-        "A1",
-        13,
-        "GOCAR",
-        "CEN05",
-        "7:40",
-        "8:01"
-    )
-    voyage14 = voyage(
-        "A1",
-        14,
-        "CEN18",
-        "GOCAR",
-        "7:10",
-        "7:28"
+    button_charge_csv.grid(row=5, column=0, columnspan=2, pady=10)
+
+    error_label = ctk.CTkLabel(master=config_frame, text="", text_color="gray")
+    error_label.grid(row=6, column=0, columnspan=2, pady=10)
+
+    # ✅ Frame pour afficher les voyages chargés
+    solutions_frame = ctk.CTkFrame(tab4)
+    solutions_frame.grid(row=1, column=1, sticky="nsew", padx=10, pady=10)
+
+    style = ttk.Style()
+    style.theme_use('clam')
+
+    colonnes = ('Ligne', 'Voy.', 'Début', 'Fin', 'De', 'À', 'Js srv')
+
+    tableau_voyages = ttk.Treeview(
+        solutions_frame,
+        columns=colonnes,
+        show='headings',
+        height=15
     )
 
-    listes = [voyage1, voyage2, voyage3, voyage4, voyage5, voyage6, voyage7, voyage8,
-              voyage9, voyage10, voyage11, voyage12, voyage13, voyage14]
+    en_tetes = {
+        'Ligne': 50,
+        'Voy.': 50,
+        'Début': 80,
+        'Fin': 80,
+        'De': 120,
+        'À': 120,
+        'Js srv': 100
+    }
 
-    BM = 5
+    for col, largeur in en_tetes.items():
+        tableau_voyages.column(col, width=largeur, anchor='center')
+        tableau_voyages.heading(col, text=col)
 
-    solutions = solvertest(
-        listes,
-        battement_minimum=BM,
-        verifier_arrets=True,
-        battement_maximum=50,
-        max_solutions=10,
-        max_services_matin=3,
-        max_services_apres_midi=None,
-        heure_debut_apres_midi=660,
-        heure_fin_matin=1080,
-        duree_max_service=540
+    scrollbar_y = ttk.Scrollbar(
+        solutions_frame,
+        orient="vertical",
+        command=tableau_voyages.yview
     )
 
-    for idx, services in enumerate(solutions, 1):
-        print("\n" + "#" * 70)
-        print(f"SOLUTION {idx}")
-        print("#" * 70)
-        for s in services:
-            print(s)
+    tableau_voyages.configure(yscrollcommand=scrollbar_y.set)
 
-    # ==================================================
-    # AJOUT GUI — APRÈS LES PRINTS (SANS INTERFÉRENCE)
-    # ==================================================
+    tableau_voyages.grid(row=0, column=0, sticky='nsew')
+    scrollbar_y.grid(row=0, column=1, sticky='ns')
 
-    import tkinter as tk
-    from tkinter import ttk
-    import matplotlib.pyplot as plt
-    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    solutions_frame.grid_rowconfigure(0, weight=1)
+    solutions_frame.grid_columnconfigure(0, weight=1)
 
-    class TimelineApp(tk.Tk):
-        def __init__(self, solutions):
-            super().__init__()
-            self.title("Visualisation des solutions")
-            self.geometry("1600x700")
+    win.mainloop()
 
-            self.solutions = solutions
 
-            self.fig, self.ax = plt.subplots(figsize=(18, 6))
-            self.canvas = FigureCanvasTkAgg(self.fig, self)
-            self.canvas.get_tk_widget().pack(fill="both", expand=True)
-
-            btn_frame = ttk.Frame(self)
-            btn_frame.pack(pady=10)
-
-            for i in range(min(10, len(solutions))):
-                ttk.Button(
-                    btn_frame,
-                    text=f"Solution {i+1}",
-                    command=lambda idx=i: self.draw_solution(idx)
-                ).pack(side="left", padx=5)
-
-            self.draw_solution(0)
-
-        def draw_solution(self, idx):
-            self.ax.clear()
-            y = 0
-            for s in self.solutions[idx]:
-                for v in s.get_voyages():
-                    self.ax.broken_barh([(v.hdebut, v.hfin - v.hdebut)], (y, 8))
-                    self.ax.text(v.hdebut + (v.hfin - v.hdebut)/2, y+4,
-                                 f"{v.num_ligne}-{v.num_voyage}",
-                                 ha="center", va="center", fontsize=8)
-                y += 12
-
-            self.ax.set_xlim(240, 1440)
-            self.ax.set_xticks(range(240, 1441, 60))
-            self.ax.set_xticklabels([f"{h//60:02d}h" for h in range(240, 1441, 60)])
-            self.ax.set_title("Timeline des services")
-            self.ax.grid(True, axis="x")
-            self.canvas.draw()
-
-    TimelineApp(solutions).mainloop()
+main()
