@@ -216,7 +216,7 @@ class TableauCSV(ctk.CTkFrame):
                         num_ligne = voyage_dict.get('Ligne', '').strip(),
                         num_voyage = voyage_dict.get('Voy.', '').strip(),
                         arret_debut = voyage_dict.get('De', '').strip(),
-                        arret_fin = voyage_dict.get('Fin', '').strip(),
+                        arret_fin = voyage_dict.get('À', '').strip(),
                         heure_debut = voyage_dict.get('Début', '00:00').strip(),
                         heure_fin = voyage_dict.get('Fin', '00:00').strip(),
                         js_srv = voyage_dict.get('Js srv', '').strip()
