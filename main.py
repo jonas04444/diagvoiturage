@@ -1,8 +1,7 @@
-import csv
-import tkinter as tk
+
 from tkinter import messagebox as msgbox, ttk
 import customtkinter as ctk
-from customtkinter import CTkTabview, filedialog
+from customtkinter import CTkTabview
 from objet import voyage, service_agent
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 from tabelauCSV import window_tableau_csv
@@ -140,8 +139,8 @@ class TimelineCanvas:
         mid_x = (x1 + x2) / 2
         mid_y = (y1 + y2) / 2
 
-        start_time = minutes_to_time(trip["start"])
-        end_time = minutes_to_time(trip["end"])
+        start_time = voyage.minutes_to_time(trip["start"])
+        end_time = voyage.minutes_to_time(trip["end"])
 
         self.canvas.create_text(
             mid_x , mid_y - 8,
@@ -317,7 +316,7 @@ def main():
                                )
     buttonlieu.grid(row=10, column=1, pady=10)
 
-    """TAB 3: liste de selction des voyages"""
+    """TAB 3: liste de selection des voyages"""
     tab3.grid_columnconfigure(0, weight=0)
     tab3.grid_columnconfigure(1, weight=1)
     tab3.grid_rowconfigure(0, weight=0)
@@ -365,9 +364,9 @@ def main():
 
     label_battement = ctk.CTkLabel(master=config_frame, text="Battement minumim:")
     label_battement.grid(row=2, column=0, pady=10, sticky="e", padx=10)
-    entry_batterment = ctk.CTkEntry(master=config_frame, width=100)
-    entry_batterment.insert(0, "5")
-    entry_batterment.grid(row=2, column=1, pady=10, sticky="w", padx=10)
+    entry_battement = ctk.CTkEntry(master=config_frame, width=100)
+    entry_battement.insert(0, "5")
+    entry_battement.grid(row=2, column=1, pady=10, sticky="w", padx=10)
 
     label_max_sol = ctk.CTkLabel(master=config_frame, text="Nombre max solutions:")
     label_max_sol.grid(row=3, column=0, pady=10, sticky="e", padx=10)
@@ -389,7 +388,6 @@ def main():
 
         def traiter_voyages(objets_voyages, matrice_donnees):
 
-
             donnees_chargees["voyages"] = objets_voyages
             donnees_chargees["matrice"] = matrice_donnees
 
@@ -398,17 +396,15 @@ def main():
             msgbox.showinfo(
                 "Succès",
                 f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
-                "\n".join([f"• Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}"  # ✅ CORRIGÉ : \n au lieu de \,
+                "\n".join([f"• Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}"
                            for v in objets_voyages[:5]]) +
                 (f"\n... et {len(objets_voyages) - 5} autres" if len(objets_voyages) > 5 else "")
-                # ✅ CORRIGÉ : faute + parenthèse
             )
 
         window_tableau_csv(callback=traiter_voyages)
 
     def solve():
         try:
-
             if donnees_chargees['voyages'] is None:
                 msgbox.showerror("Erreur","Il n'y a aucun voyage selectionné")
                 return
@@ -456,7 +452,7 @@ def main():
         except Exception as e:
             error_label.configure(
                 text=f"Erreur: {str(e)}",
-                text_color="red""
+                text_color="red"
             )
             msgbox.showerror("Erreur", f"Erreur lors de la résolution: {e}")
 
@@ -476,8 +472,8 @@ def main():
         )
         titre.pack()
 
-        scrollbar = ctk.CTkScrollableFrame(main_frame, width=850, height=600)
-        scrollbar.pack(fill='both', expand=True, pady=10)
+        scrollable_frame = ctk.CTkScrollableFrame(main_frame, width=850, height=600)
+        scrollable_frame.pack(fill='both', expand=True, pady=10)
 
         for idx, services in enumerate(solutions, 1):
             sol_frame = ctk.CTkFrame(scrollable_frame)  # ✅ CORRIGÉ
