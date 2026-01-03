@@ -393,14 +393,6 @@ def main():
 
             remplir_tableau_matrice(tableau_voyages, matrice_donnees)
 
-            msgbox.showinfo(
-                "Succès",
-                f"{len(objets_voyages)} voyage(s) chargé(s)\n\n" +
-                "\n".join([f"• Voyage {v.num_voyage}: {v.arret_debut} → {v.arret_fin}"
-                           for v in objets_voyages[:5]]) +
-                (f"\n... et {len(objets_voyages) - 5} autres" if len(objets_voyages) > 5 else "")
-            )
-
         window_tableau_csv(callback=traiter_voyages)
 
     def solve():
