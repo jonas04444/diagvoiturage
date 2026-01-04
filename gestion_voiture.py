@@ -19,6 +19,7 @@ class TimelineVisuelle(ctk.CTkFrame):
         super().__init__(parent, **kwargs)
         self.service = service
         self.canvas = None
+        self.largeur_minimale = 700  # ✅ AJOUT : Largeur minimale garantie
         self.creer_timeline()
 
     def creer_timeline(self):
@@ -26,13 +27,28 @@ class TimelineVisuelle(ctk.CTkFrame):
         self.canvas = Canvas(
             self,
             bg="#2b2b2b",
-            height=100,
+            height=150,  # ✅ AUGMENTÉ : 100 → 150 pour permettre plusieurs lignes
+            width=self.largeur_minimale,  # ✅ AJOUT : Largeur initiale
             highlightthickness=1,
             highlightbackground="#555555"
         )
         self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
-        self.canvas.bind('<Configure>', lambda e: self.rafraichir())
 
+        # ✅ CORRECTION : Redessiner après resize ET après un petit délai
+        def redessiner_apres_configure(event):
+            # Annuler le timer précédent s'il existe
+            if hasattr(self, '_timer_redraw'):
+                self.after_cancel(self._timer_redraw)
+            # Redessiner après 100ms (pour éviter trop de redraws)
+            self._timer_redraw = self.after(100, self.rafraichir)
+
+        self.canvas.bind('<Configure>', redessiner_apres_configure)
+
+        # Dessiner après que tout soit créé
+        self.after(200, self._dessiner_initial)
+
+    def _dessiner_initial(self):
+        """Dessine la timeline après l'initialisation"""
         if self.service:
             self.dessiner_service()
         else:
@@ -42,8 +58,15 @@ class TimelineVisuelle(ctk.CTkFrame):
         """Dessine une timeline vide"""
         self.canvas.delete("all")
 
-        width = self.canvas.winfo_width() or 800
-        height = self.canvas.winfo_height() or 100
+        self.canvas.update_idletasks()
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        # ✅ Protection : utiliser la largeur minimale si nécessaire
+        if width < self.largeur_minimale:
+            width = self.largeur_minimale
+        if height < 50:
+            height = 100
 
         for h in range(4, 25, 2):
             x = self._heure_vers_x(h * 60, width)
@@ -60,8 +83,19 @@ class TimelineVisuelle(ctk.CTkFrame):
         """Dessine les voyages du service sur la timeline"""
         self.canvas.delete("all")
 
-        width = self.canvas.winfo_width() or 800
-        height = self.canvas.winfo_height() or 100
+        # ✅ CORRECTION : Attendre que le canvas ait sa vraie taille
+        self.canvas.update_idletasks()
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        # ✅ Protection : utiliser la largeur minimale si nécessaire
+        if width < self.largeur_minimale:
+            width = self.largeur_minimale
+        if height < 50:
+            height = 100
+
+        # Debug
+        print(f"\n🎨 Dessin timeline - Canvas: {width}x{height} px")
 
         for h in range(4, 25, 2):
             x = self._heure_vers_x(h * 60, width)
@@ -72,33 +106,72 @@ class TimelineVisuelle(ctk.CTkFrame):
             self.dessiner_vide()
             return
 
-        y_rect = 30
-        h_rect = 50
+        print(f"📊 Service avec {len(self.service.voyages)} voyage(s)")
 
-        for v in sorted(self.service.voyages, key=lambda x: x.hdebut):
-            x1 = self._heure_vers_x(v.hdebut, width)
-            x2 = self._heure_vers_x(v.hfin, width)
+        # ✅ NOUVEAU : Organiser les voyages en lignes pour éviter les chevauchements
+        voyages_tries = sorted(self.service.voyages, key=lambda x: x.hdebut)
+        lignes_y = []  # Liste de listes de voyages par ligne Y
 
-            color = self._get_color(v.num_ligne)
-            self.canvas.create_rectangle(
-                x1, y_rect, x2, y_rect + h_rect,
-                fill=color, outline="white", width=2
-            )
+        for v in voyages_tries:
+            # Trouver une ligne Y disponible (pas de chevauchement)
+            ligne_trouvee = False
+            for ligne in lignes_y:
+                # Vérifier si ce voyage peut aller sur cette ligne
+                chevauche = False
+                for v_existant in ligne:
+                    if not (v.hfin <= v_existant.hdebut or v.hdebut >= v_existant.hfin):
+                        # Il y a chevauchement
+                        chevauche = True
+                        break
 
-            mid_x = (x1 + x2) / 2
-            mid_y = y_rect + h_rect / 2
+                if not chevauche:
+                    ligne.append(v)
+                    ligne_trouvee = True
+                    break
 
-            self.canvas.create_text(
-                mid_x, mid_y - 8,
-                text=f"V{v.num_voyage}",
-                fill="black", font=("Arial", 9, "bold")
-            )
+            if not ligne_trouvee:
+                # Créer une nouvelle ligne
+                lignes_y.append([v])
 
-            self.canvas.create_text(
-                mid_x, mid_y + 8,
-                text=f"{v.arret_debut[:3]}→{v.arret_fin[:3]}",
-                fill="black", font=("Arial", 7)
-            )
+        print(f"📐 Répartition sur {len(lignes_y)} ligne(s) verticale(s)")
+
+        # Dessiner les voyages
+        h_rect = 40  # Hauteur d'un rectangle
+        espace_entre = 5  # Espace entre les lignes
+        y_start = 25
+
+        for idx_ligne, ligne in enumerate(lignes_y):
+            y_rect = y_start + idx_ligne * (h_rect + espace_entre)
+
+            for v in ligne:
+                x1 = self._heure_vers_x(v.hdebut, width)
+                x2 = self._heure_vers_x(v.hfin, width)
+
+                # ✅ DEBUG : Afficher les coordonnées
+                h_d = f"{v.hdebut//60:02d}h{v.hdebut%60:02d}"
+                h_f = f"{v.hfin//60:02d}h{v.hfin%60:02d}"
+                print(f"  L{idx_ligne+1} V{v.num_voyage}: {h_d}-{h_f} ({v.hdebut}-{v.hfin}min) → x1={x1:.1f}, x2={x2:.1f} y={y_rect}")
+
+                color = self._get_color(v.num_ligne)
+                self.canvas.create_rectangle(
+                    x1, y_rect, x2, y_rect + h_rect,
+                    fill=color, outline="white", width=2
+                )
+
+                mid_x = (x1 + x2) / 2
+                mid_y = y_rect + h_rect / 2
+
+                self.canvas.create_text(
+                    mid_x, mid_y - 8,
+                    text=f"V{v.num_voyage}",
+                    fill="black", font=("Arial", 9, "bold")
+                )
+
+                self.canvas.create_text(
+                    mid_x, mid_y + 8,
+                    text=f"{v.arret_debut[:3]}→{v.arret_fin[:3]}",
+                    fill="black", font=("Arial", 7)
+                )
 
     def _heure_vers_x(self, minutes, width):
         debut = 4 * 60
@@ -173,7 +246,7 @@ class ServiceCard(ctk.CTkFrame):
         label_info = ctk.CTkLabel(main_frame, text=info_text, font=("Arial", 10))
         label_info.pack(anchor="w")
 
-        self.timeline = TimelineVisuelle(main_frame, service, height=80)
+        self.timeline = TimelineVisuelle(main_frame, service, height=120)  # ✅ 80 → 120
         self.timeline.pack(fill="x", pady=(5, 0))
 
     def _on_delete_click(self):
@@ -195,6 +268,7 @@ class Tab5CreationManuelle(ctk.CTkFrame):
         super().__init__(parent)
 
         self.voyages_disponibles = []
+        self.voyages_disponibles_tries = []  # ✅ NOUVEAU : Liste triée pour correspondre aux index du tableau
         self.services = []
         self.service_selectionne = None
         self.compteur_services = 0
@@ -371,7 +445,7 @@ class Tab5CreationManuelle(ctk.CTkFrame):
         for item in self.tree_voyages.get_children():
             self.tree_voyages.delete(item)
 
-        for v in sorted(self.voyages_disponibles, key=lambda x: x.hdebut):
+        for idx, v in enumerate(sorted(self.voyages_disponibles, key=lambda x: x.hdebut)):
             h_debut = voyage.minutes_to_time(v.hdebut)
             h_fin = voyage.minutes_to_time(v.hfin)
             trajet = f"{v.arret_debut[:3]}→{v.arret_fin[:3]}"
@@ -385,11 +459,15 @@ class Tab5CreationManuelle(ctk.CTkFrame):
                 checkbox = '☐'
                 tags = ()
 
+            # ✅ CORRECTION : Stocker l'index du voyage dans les tags pour le retrouver
             self.tree_voyages.insert(
                 '', 'end',
                 values=(checkbox, v.num_voyage, v.num_ligne, h_debut, h_fin, trajet),
-                tags=tags
+                tags=tags + (f'idx_{idx}',)  # ← Ajouter l'index dans les tags
             )
+
+        # ✅ NOUVEAU : Stocker la liste triée pour correspondre aux index
+        self.voyages_disponibles_tries = sorted(self.voyages_disponibles, key=lambda x: x.hdebut)
 
     def toggle_voyage_selection(self, event):
         """Gère le clic sur la case à cocher des voyages"""
@@ -447,25 +525,54 @@ class Tab5CreationManuelle(ctk.CTkFrame):
 
         voyages_a_ajouter = []
         items_a_desactiver = []
+        voyages_deja_dans_service = []
 
         for item in self.tree_voyages.get_children():
             values = self.tree_voyages.item(item, 'values')
             if values[0] == '☑':
-                num_voyage = values[1]
-                for v in self.voyages_disponibles:
-                    if v.num_voyage == num_voyage:
-                        voyages_a_ajouter.append(v)
-                        items_a_desactiver.append(item)
+                # ✅ CORRECTION : Récupérer l'index depuis les tags
+                tags = self.tree_voyages.item(item, 'tags')
+                idx = None
+                for tag in tags:
+                    if tag.startswith('idx_'):
+                        idx = int(tag.split('_')[1])
                         break
 
+                if idx is None:
+                    print(f"⚠️ Impossible de trouver l'index pour le voyage {values[1]}")
+                    continue
+
+                # ✅ CORRECTION : Utiliser l'index pour récupérer le bon voyage
+                v = self.voyages_disponibles_tries[idx]
+
+                print(f"🔍 Sélectionné : idx={idx}, V{v.num_voyage} {v.num_ligne} {voyage.minutes_to_time(v.hdebut)}-{voyage.minutes_to_time(v.hfin)} {v.arret_debut}→{v.arret_fin}")
+
+                # Vérifier si déjà dans le service
+                if v in self.service_selectionne.voyages:
+                    voyages_deja_dans_service.append(v)
+                else:
+                    voyages_a_ajouter.append(v)
+                    items_a_desactiver.append(item)
+
+        # ✅ NOUVEAU : Avertir si des voyages sont déjà dans le service
+        if voyages_deja_dans_service:
+            noms = ", ".join([f"V{v.num_voyage}" for v in voyages_deja_dans_service])
+            msgbox.showwarning(
+                "Doublons détectés",
+                f"Les voyages suivants sont déjà dans ce service :\n{noms}\n\nIls ne seront pas ajoutés à nouveau."
+            )
+
         if not voyages_a_ajouter:
-            msgbox.showwarning("Attention", "Aucun voyage sélectionné")
+            if voyages_deja_dans_service:
+                msgbox.showinfo("Info", "Aucun nouveau voyage à ajouter")
+            else:
+                msgbox.showwarning("Attention", "Aucun voyage sélectionné")
             return
 
         # Ajouter les voyages au service
         for v in voyages_a_ajouter:
             self.service_selectionne.ajout_voyages(v)
-            # ✅ NOUVEAU : Marquer comme assigné
+            # ✅ Marquer comme assigné
             self.voyages_assignes[id(v)] = self.service_selectionne
 
         # ✅ NOUVEAU : Désactiver les lignes dans le tableau
