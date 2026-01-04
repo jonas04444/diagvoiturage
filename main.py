@@ -190,9 +190,10 @@ def main():
 
 
     tab1 = tabview.add("Création voyage")
-    tab2 = tabview.add("création ligne et lieux")
-    tab3 = tabview.add("liste voyage")
-    tab4 = tabview.add("voiturage")
+    tab2 = tabview.add("Création ligne et lieux")
+    tab3 = tabview.add("Liste voyage")
+    tab4 = tabview.add("Voiturage")
+    tab5 = tabview.add("Gestion des voitures")
 
     """TAB 1"""
     tab1.grid_columnconfigure(0, weight=1)
