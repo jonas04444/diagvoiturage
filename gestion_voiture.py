@@ -200,11 +200,12 @@ class TimelineVisuelle(ctk.CTkFrame):
 class ServiceCard(ctk.CTkFrame):
     """Widget représentant un service"""
 
-    def __init__(self, parent, service, on_delete=None, on_select=None, **kwargs):
+    def __init__(self, parent, service, on_delete=None, on_select=None, on_edit_constraints=None, **kwargs):
         super().__init__(parent, **kwargs)
         self.service = service
         self.on_delete = on_delete
         self.on_select = on_select
+        self.on_edit_constraints = on_edit_constraints  # ✅ NOUVEAU
 
         self.configure(fg_color="#2b2b2b", corner_radius=10)
 
@@ -217,6 +218,14 @@ class ServiceCard(ctk.CTkFrame):
         nom = f"Service {service.num_service} - {service.type_service.upper()}"
         label_nom = ctk.CTkLabel(header_frame, text=nom, font=("Arial", 14, "bold"))
         label_nom.pack(side="left")
+
+        # ✅ NOUVEAU : Bouton éditer contraintes
+        btn_constraints = ctk.CTkButton(
+            header_frame, text="⏰", width=30, height=30,
+            command=self._on_edit_constraints_click,
+            fg_color="#FF9800", hover_color="#F57C00"
+        )
+        btn_constraints.pack(side="right", padx=5)
 
         btn_delete = ctk.CTkButton(
             header_frame, text="🗑️", width=30, height=30,
@@ -243,10 +252,15 @@ class ServiceCard(ctk.CTkFrame):
         else:
             info_text = "📊 Aucun voyage"
 
+        # ✅ NOUVEAU : Afficher les contraintes horaires
+        if hasattr(service, 'heure_debut_max') and hasattr(service, 'heure_fin_max'):
+            if service.heure_debut_max and service.heure_fin_max:
+                info_text += f"\n⏰ Contraintes : {voyage.minutes_to_time(service.heure_debut_max)} - {voyage.minutes_to_time(service.heure_fin_max)}"
+
         label_info = ctk.CTkLabel(main_frame, text=info_text, font=("Arial", 10))
         label_info.pack(anchor="w")
 
-        self.timeline = TimelineVisuelle(main_frame, service, height=120)  # ✅ 80 → 120
+        self.timeline = TimelineVisuelle(main_frame, service, height=120)
         self.timeline.pack(fill="x", pady=(5, 0))
 
     def _on_delete_click(self):
@@ -256,6 +270,11 @@ class ServiceCard(ctk.CTkFrame):
     def _on_select_click(self):
         if self.on_select:
             self.on_select(self.service)
+
+    def _on_edit_constraints_click(self):
+        """✅ NOUVEAU : Callback pour éditer les contraintes"""
+        if self.on_edit_constraints:
+            self.on_edit_constraints(self.service)
 
     def rafraichir(self):
         self.timeline.rafraichir()
@@ -369,16 +388,25 @@ class Tab5CreationManuelle(ctk.CTkFrame):
         self.combo_type_service.pack(side="left", padx=5)
 
         btn_ajouter_voyages = ctk.CTkButton(
-            toolbar, text="➡️ Ajouter au service actif",
-            command=self.ajouter_voyages_au_service, height=50,  # ✅ 40 → 50
+            toolbar, text="➡️ Ajouter au service",
+            command=self.ajouter_voyages_au_service, height=50,
             fg_color="#2196F3", hover_color="#1976D2",
             font=("Arial", 12)
         )
         btn_ajouter_voyages.pack(side="left", padx=5)
 
+        # ✅ NOUVEAU : Bouton compléter avec le solveur
+        btn_completer = ctk.CTkButton(
+            toolbar, text="🤖 Compléter avec solveur",
+            command=self.completer_avec_solveur, height=50,
+            fg_color="#9C27B0", hover_color="#7B1FA2",
+            font=("Arial", 12, "bold")
+        )
+        btn_completer.pack(side="left", padx=5)
+
         self.label_service_actif = ctk.CTkLabel(
             toolbar, text="Aucun service sélectionné",
-            font=("Arial", 12, "italic")  # ✅ 11 → 12
+            font=("Arial", 12, "italic")
         )
         self.label_service_actif.pack(side="left", padx=20)
 
@@ -497,25 +525,93 @@ class Tab5CreationManuelle(ctk.CTkFrame):
             self.label_selection.configure(text=f"{nb_selectionnes} voyage(s) sélectionné(s)")
 
     def creer_nouveau_service(self):
-        self.compteur_services += 1
-        type_service = self.combo_type_service.get()
+        """✅ HYBRIDE : Crée un service avec contraintes horaires"""
+        # Dialogue pour les contraintes
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Nouveau Service")
+        dialog.geometry("450x500")  # ✅ Plus grand
+        dialog.transient(self)
+        dialog.grab_set()
 
-        nouveau_service = service_agent(
-            num_service=self.compteur_services,
-            type_service=type_service
+        ctk.CTkLabel(dialog, text="⚙️ Configuration du service", font=("Arial", 16, "bold")).pack(pady=15)
+
+        frame_config = ctk.CTkFrame(dialog)
+        frame_config.pack(padx=20, pady=10)  # ✅ CORRECTION : enlever fill et expand
+
+        # Type de service
+        ctk.CTkLabel(frame_config, text="Type de service :", font=("Arial", 12)).pack(pady=5)
+        combo_type = ctk.CTkComboBox(frame_config, values=["matin", "apres_midi"], width=250, height=35)
+        combo_type.set(self.combo_type_service.get())
+        combo_type.pack(pady=5)
+
+        # Heure de début max
+        ctk.CTkLabel(frame_config, text="⏰ Heure de début max (HH:MM) :", font=("Arial", 12)).pack(pady=5)
+        entry_debut = ctk.CTkEntry(frame_config, width=250, height=35, placeholder_text="Ex: 04:00")
+        entry_debut.pack(pady=5)
+
+        # Heure de fin max
+        ctk.CTkLabel(frame_config, text="⏰ Heure de fin max (HH:MM) :", font=("Arial", 12)).pack(pady=5)
+        entry_fin = ctk.CTkEntry(frame_config, width=250, height=35, placeholder_text="Ex: 14:00")
+        entry_fin.pack(pady=5)
+
+        ctk.CTkLabel(
+            frame_config,
+            text="💡 Laissez vide pour aucune contrainte",
+            font=("Arial", 10, "italic"),
+            text_color="gray"
+        ).pack(pady=10)
+
+        def valider():
+            self.compteur_services += 1
+            type_service = combo_type.get()
+
+            nouveau_service = service_agent(
+                num_service=self.compteur_services,
+                type_service=type_service
+            )
+
+            # ✅ NOUVEAU : Ajouter les contraintes horaires
+            try:
+                if entry_debut.get():
+                    parts = entry_debut.get().replace('h', ':').split(':')
+                    h, m = int(parts[0]), int(parts[1])
+                    nouveau_service.heure_debut_max = h * 60 + m
+                else:
+                    nouveau_service.heure_debut_max = None
+
+                if entry_fin.get():
+                    parts = entry_fin.get().replace('h', ':').split(':')
+                    h, m = int(parts[0]), int(parts[1])
+                    nouveau_service.heure_fin_max = h * 60 + m
+                else:
+                    nouveau_service.heure_fin_max = None
+            except:
+                msgbox.showerror("Erreur", "Format d'heure invalide\nUtilisez HH:MM (ex: 14:30)")
+                return
+
+            self.services.append(nouveau_service)
+
+            card = ServiceCard(
+                self.scrollable_zone_travail, nouveau_service,
+                on_delete=self.supprimer_service,
+                on_select=self.selectionner_service,
+                on_edit_constraints=self.editer_contraintes
+            )
+            card.pack(fill="x", pady=5)
+
+            self.selectionner_service(nouveau_service)
+            dialog.destroy()
+            msgbox.showinfo("Succès", f"Service {nouveau_service.num_service} créé")
+
+        # ✅ CORRECTION : Bouton dans le dialog principal, pas dans frame_config
+        btn_valider = ctk.CTkButton(
+            dialog, text="✅ Créer le service",
+            command=valider, height=50,
+            width=300,
+            fg_color="#4CAF50", hover_color="#388E3C",
+            font=("Arial", 14, "bold")
         )
-
-        self.services.append(nouveau_service)
-
-        card = ServiceCard(
-            self.scrollable_zone_travail, nouveau_service,
-            on_delete=self.supprimer_service,
-            on_select=self.selectionner_service
-        )
-        card.pack(fill="x", pady=5)
-
-        self.selectionner_service(nouveau_service)
-        msgbox.showinfo("Succès", f"Service {nouveau_service.num_service} créé")
+        btn_valider.pack(pady=30)
 
     def ajouter_voyages_au_service(self):
         """Ajoute les voyages sélectionnés au service actif"""
@@ -652,7 +748,8 @@ class Tab5CreationManuelle(ctk.CTkFrame):
             card = ServiceCard(
                 self.scrollable_zone_travail, service,
                 on_delete=self.supprimer_service,
-                on_select=self.selectionner_service
+                on_select=self.selectionner_service,
+                on_edit_constraints=self.editer_contraintes  # ✅ NOUVEAU
             )
             card.pack(fill="x", pady=5)
 
@@ -672,12 +769,84 @@ class Tab5CreationManuelle(ctk.CTkFrame):
             fin = max(v.hfin for v in service.voyages)
 
             details += f"⏱️ Durée : {duree} minutes\n"
-            details += f"🕐 Période : {voyage.minutes_to_time(debut)} - {voyage.minutes_to_time(fin)}\n\n"
-            details += "📝 LISTE DES VOYAGES :\n" + "─" * 40 + "\n"
+            details += f"🕐 Période : {voyage.minutes_to_time(debut)} - {voyage.minutes_to_time(fin)}\n"
 
-            self.label_details.configure(text=details)
+        self.label_details.configure(text=details)
 
-            # ✅ NOUVEAU : Créer une ligne pour chaque voyage avec bouton supprimer
+        # ✅ NOUVEAU : Section contraintes horaires modifiables
+        frame_contraintes = ctk.CTkFrame(self.frame_voyages_liste, fg_color="#1a1a1a", corner_radius=10)
+        frame_contraintes.pack(fill="x", pady=10, padx=5)
+
+        ctk.CTkLabel(
+            frame_contraintes,
+            text="⏰ CONTRAINTES HORAIRES",
+            font=("Arial", 12, "bold")
+        ).pack(pady=10)
+
+        # Heure de début
+        frame_debut = ctk.CTkFrame(frame_contraintes, fg_color="transparent")
+        frame_debut.pack(fill="x", padx=10, pady=5)
+
+        ctk.CTkLabel(frame_debut, text="Début max:", font=("Arial", 10), width=80).pack(side="left", padx=5)
+        entry_debut = ctk.CTkEntry(frame_debut, width=100, height=30, placeholder_text="HH:MM")
+        if hasattr(service, 'heure_debut_max') and service.heure_debut_max:
+            h = service.heure_debut_max // 60
+            m = service.heure_debut_max % 60
+            entry_debut.insert(0, f"{h:02d}:{m:02d}")
+        entry_debut.pack(side="left", padx=5)
+
+        # Heure de fin
+        frame_fin = ctk.CTkFrame(frame_contraintes, fg_color="transparent")
+        frame_fin.pack(fill="x", padx=10, pady=5)
+
+        ctk.CTkLabel(frame_fin, text="Fin max:", font=("Arial", 10), width=80).pack(side="left", padx=5)
+        entry_fin = ctk.CTkEntry(frame_fin, width=100, height=30, placeholder_text="HH:MM")
+        if hasattr(service, 'heure_fin_max') and service.heure_fin_max:
+            h = service.heure_fin_max // 60
+            m = service.heure_fin_max % 60
+            entry_fin.insert(0, f"{h:02d}:{m:02d}")
+        entry_fin.pack(side="left", padx=5)
+
+        # Bouton sauvegarder
+        def sauvegarder_contraintes():
+            try:
+                if entry_debut.get():
+                    parts = entry_debut.get().replace('h', ':').split(':')
+                    service.heure_debut_max = int(parts[0]) * 60 + int(parts[1])
+                else:
+                    service.heure_debut_max = None
+
+                if entry_fin.get():
+                    parts = entry_fin.get().replace('h', ':').split(':')
+                    service.heure_fin_max = int(parts[0]) * 60 + int(parts[1])
+                else:
+                    service.heure_fin_max = None
+
+                self.rafraichir_services()
+                msgbox.showinfo("✅", "Contraintes mises à jour")
+            except:
+                msgbox.showerror("Erreur", "Format invalide (utilisez HH:MM)")
+
+        btn_sauvegarder = ctk.CTkButton(
+            frame_contraintes,
+            text="💾 Sauvegarder",
+            command=sauvegarder_contraintes,
+            width=150,
+            height=35,
+            fg_color="#4CAF50",
+            hover_color="#388E3C"
+        )
+        btn_sauvegarder.pack(pady=10)
+
+        # Séparateur
+        ctk.CTkLabel(
+            self.frame_voyages_liste,
+            text="─" * 40 + "\n📝 LISTE DES VOYAGES",
+            font=("Arial", 11, "bold")
+        ).pack(pady=10)
+
+        # Liste des voyages
+        if service.voyages:
             for v in sorted(service.voyages, key=lambda x: x.hdebut):
                 frame_voyage = ctk.CTkFrame(self.frame_voyages_liste, fg_color="#2b2b2b", corner_radius=5)
                 frame_voyage.pack(fill="x", pady=3, padx=5)
@@ -707,8 +876,225 @@ class Tab5CreationManuelle(ctk.CTkFrame):
                 )
                 btn_supprimer.pack(side="right", padx=5, pady=5)
         else:
-            details += "\n⚠️ Service vide\n"
-            self.label_details.configure(text=details)
+            ctk.CTkLabel(
+                self.frame_voyages_liste,
+                text="⚠️ Service vide",
+                font=("Arial", 10, "italic"),
+                text_color="gray"
+            ).pack(pady=20)
+
+    def editer_contraintes(self, service):
+        """✅ HYBRIDE : Éditer les contraintes horaires d'un service"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(f"Contraintes - Service {service.num_service}")
+        dialog.geometry("450x350")
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"⏰ Service {service.num_service}",
+            font=("Arial", 16, "bold")
+        ).pack(pady=15)
+
+        frame_config = ctk.CTkFrame(dialog)
+        frame_config.pack(fill="both", expand=True, padx=20, pady=10)
+
+        ctk.CTkLabel(frame_config, text="Heure de début max (HH:MM) :", font=("Arial", 12)).pack(pady=5)
+        entry_debut = ctk.CTkEntry(frame_config, width=250, height=35)
+        if hasattr(service, 'heure_debut_max') and service.heure_debut_max:
+            h = service.heure_debut_max // 60
+            m = service.heure_debut_max % 60
+            entry_debut.insert(0, f"{h:02d}:{m:02d}")
+        entry_debut.pack(pady=5)
+
+        ctk.CTkLabel(frame_config, text="Heure de fin max (HH:MM) :", font=("Arial", 12)).pack(pady=5)
+        entry_fin = ctk.CTkEntry(frame_config, width=250, height=35)
+        if hasattr(service, 'heure_fin_max') and service.heure_fin_max:
+            h = service.heure_fin_max // 60
+            m = service.heure_fin_max % 60
+            entry_fin.insert(0, f"{h:02d}:{m:02d}")
+        entry_fin.pack(pady=5)
+
+        ctk.CTkLabel(
+            frame_config,
+            text="💡 Laissez vide pour aucune contrainte",
+            font=("Arial", 10, "italic"),
+            text_color="gray"
+        ).pack(pady=10)
+
+        def valider():
+            try:
+                if entry_debut.get():
+                    parts = entry_debut.get().replace('h', ':').split(':')
+                    service.heure_debut_max = int(parts[0]) * 60 + int(parts[1])
+                else:
+                    service.heure_debut_max = None
+
+                if entry_fin.get():
+                    parts = entry_fin.get().replace('h', ':').split(':')
+                    service.heure_fin_max = int(parts[0]) * 60 + int(parts[1])
+                else:
+                    service.heure_fin_max = None
+
+                self.rafraichir_services()
+                dialog.destroy()
+                msgbox.showinfo("Succès", "Contraintes mises à jour")
+            except:
+                msgbox.showerror("Erreur", "Format invalide (utilisez HH:MM)")
+
+        ctk.CTkButton(
+            dialog, text="✅ Valider",
+            command=valider, height=40,
+            fg_color="#4CAF50", hover_color="#388E3C"
+        ).pack(pady=20)
+
+    def completer_avec_solveur(self):
+        """✅ HYBRIDE : Complète les services existants avec les voyages non assignés"""
+
+        if not self.services:
+            msgbox.showwarning("Attention", "Créez d'abord au moins un service")
+            return
+
+        # Récupérer les voyages non assignés
+        voyages_non_assignes = [
+            v for v in self.voyages_disponibles
+            if id(v) not in self.voyages_assignes
+        ]
+
+        if not voyages_non_assignes:
+            msgbox.showinfo("Info", "Tous les voyages sont déjà assignés !")
+            return
+
+        # Dialogue de configuration
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Complétion automatique")
+        dialog.geometry("500x450")
+        dialog.transient(self)
+        dialog.grab_set()
+
+        ctk.CTkLabel(
+            dialog, text="🤖 Complétion automatique",
+            font=("Arial", 18, "bold")
+        ).pack(pady=15)
+
+        info_text = f"📊 Services existants : {len(self.services)}\n"
+        info_text += f"📋 Voyages non assignés : {len(voyages_non_assignes)}\n\n"
+        info_text += "Le solveur va essayer d'ajouter les voyages\n"
+        info_text += "dans vos services en respectant :\n"
+        info_text += "  ✓ Les contraintes horaires\n"
+        info_text += "  ✓ Le battement minimum\n"
+        info_text += "  ✓ La compatibilité des arrêts"
+
+        ctk.CTkLabel(dialog, text=info_text, font=("Arial", 12), justify="left").pack(pady=10)
+
+        frame_config = ctk.CTkFrame(dialog)
+        frame_config.pack(fill="both", expand=True, padx=20, pady=10)
+
+        ctk.CTkLabel(frame_config, text="⏱️ Battement minimum (min) :").pack(pady=5)
+        entry_battement = ctk.CTkEntry(frame_config, width=200)
+        entry_battement.insert(0, "5")
+        entry_battement.pack(pady=5)
+
+        ctk.CTkLabel(frame_config, text="🚏 Vérifier les arrêts :").pack(pady=5)
+        check_arrets = ctk.CTkCheckBox(frame_config, text="Activer (recommandé)")
+        check_arrets.select()
+        check_arrets.pack(pady=5)
+
+        def lancer():
+            try:
+                battement = int(entry_battement.get())
+                verifier = check_arrets.get() == 1
+                dialog.destroy()
+                self._executer_completion(voyages_non_assignes, battement, verifier)
+            except:
+                msgbox.showerror("Erreur", "Valeur invalide")
+
+        ctk.CTkButton(
+            dialog, text="🚀 Lancer la complétion",
+            command=lancer, height=50,
+            fg_color="#4CAF50", hover_color="#388E3C",
+            font=("Arial", 14, "bold")
+        ).pack(pady=20)
+
+    def _executer_completion(self, voyages_non_assignes, battement_min, verifier_arrets):
+        """Exécute la complétion avec le solveur"""
+
+        print("\n" + "="*70)
+        print("🤖 COMPLÉTION AUTOMATIQUE")
+        print("="*70)
+
+        try:
+            from entrainementsolveria import voyages_compatibles
+        except ImportError:
+            msgbox.showerror("Erreur", "Module entrainementsolveria non trouvé")
+            return
+
+        nb_voyages_ajoutes = 0
+        voyages_restants = list(voyages_non_assignes)
+
+        # Pour chaque service
+        for service in self.services:
+            print(f"\n📋 Service {service.num_service} ({service.type_service})...")
+
+            h_debut = getattr(service, 'heure_debut_max', None)
+            h_fin = getattr(service, 'heure_fin_max', None)
+
+            if h_debut and h_fin:
+                print(f"   ⏰ Contraintes : {voyage.minutes_to_time(h_debut)} - {voyage.minutes_to_time(h_fin)}")
+
+            voyages_service = list(service.voyages)
+
+            for v in sorted(voyages_restants, key=lambda x: x.hdebut):
+                # Vérifier contraintes horaires
+                if h_debut and h_fin:
+                    if v.hdebut < h_debut or v.hfin > h_fin:
+                        continue
+
+                # Vérifier compatibilité
+                compatible = True
+
+                for v_exist in voyages_service:
+                    if not (v.hfin <= v_exist.hdebut or v.hdebut >= v_exist.hfin):
+                        compatible = False
+                        break
+
+                    if v.hfin <= v_exist.hdebut:
+                        if not voyages_compatibles(v, v_exist, voyages_service, battement_min, 50, verifier_arrets):
+                            compatible = False
+                            break
+                    elif v_exist.hfin <= v.hdebut:
+                        if not voyages_compatibles(v_exist, v, voyages_service, battement_min, 50, verifier_arrets):
+                            compatible = False
+                            break
+
+                if compatible:
+                    service.ajout_voyages(v)
+                    self.voyages_assignes[id(v)] = service
+                    voyages_service.append(v)
+                    voyages_restants.remove(v)
+                    nb_voyages_ajoutes += 1
+
+                    print(f"   ✅ V{v.num_voyage} ajouté ({voyage.minutes_to_time(v.hdebut)}-{voyage.minutes_to_time(v.hfin)})")
+
+        # Rafraîchir
+        self.remplir_liste_voyages()
+        self.rafraichir_services()
+        if self.service_selectionne:
+            self.afficher_details_service(self.service_selectionne)
+
+        print(f"\n✅ Total : {nb_voyages_ajoutes} voyage(s) ajouté(s)")
+        print(f"⚠️ Restants : {len(voyages_restants)} voyage(s)")
+        print("="*70 + "\n")
+
+        if voyages_restants:
+            msg = f"✅ {nb_voyages_ajoutes} voyage(s) ajouté(s)\n\n"
+            msg += f"⚠️ {len(voyages_restants)} voyage(s) n'ont pas pu être assignés\n"
+            msg += "(hors contraintes ou incompatibles)"
+        else:
+            msg = f"✅ Complétion réussie !\n\n{nb_voyages_ajoutes} voyage(s) ajouté(s)"
+
+        msgbox.showinfo("Résultat", msg)
 
     def valider_planning(self):
         if not self.services:
