@@ -194,6 +194,7 @@ class InterfaceDemo(ctk.CTkFrame):
         messagebox.showinfo("Info", "Fonction: Valider planning")
 
 
+
 # Lancement de l'application
 if __name__ == "__main__":
     app = ctk.CTk()

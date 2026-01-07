@@ -76,4 +76,5 @@ if __name__ == "__main__":
     interface = Interface(app)
     interface.pack(fill="both", expand=True)
 
+
     app.mainloop()
