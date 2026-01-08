@@ -101,6 +101,7 @@ class Interface(ctk.CTkFrame):
         )
         btn_ajouter_voyage.pack(side="left", padx=5)
 
+
     def charger_voyages_csv(self):
         msgbox.showinfo("Info", "Fonction: Charger voyages CSV")
 
