@@ -74,8 +74,53 @@ class Interface(ctk.CTkFrame):
         )
         label_titre_central.pack(pady=10)
 
+        toolbar = ctk.CTkFrame(panel_central, height=70, fg_color="transparent")
+        toolbar.pack(fill="x", padx=10, pady=10)
+
+        btn_nouveau_service = ctk.CTkButton(
+            toolbar, text="Nouveau service",
+            command=self.creer_nouveau_service, height=50,
+            fg_color="#4CAF50", hover_color="388E3C",
+            font=("Arial", 12)
+        )
+        btn_nouveau_service.pack(side="left", padx=10)
+
+        self.combo_type_service = ctk.CTkComboBox(
+            toolbar, values=["matin", "après-midi", "coupé"],
+            width=180, height=50,
+            font=("Arial", 12)
+        )
+        self.combo_type_service.set("matin")
+        self.combo_type_service.pack(side="left", padx=5, pady=5)
+
+        btn_ajouter_voyage = ctk.CTkButton(
+            toolbar, text="Ajouter au service",
+            command=self.ajouter_voyages_au_service, height=50,
+            fg_color="#2196F3", hover_color="1976D2",
+            font=("Arial", 12)
+        )
+        btn_ajouter_voyage.pack(side="left", padx=5)
+
+    def charger_voyages_csv(self):
+        msgbox.showinfo("Info", "Fonction: Charger voyages CSV")
+
     def toggle_voyage_selection(self, event):
         pass
+
+    def creer_nouveau_service(self):
+        msgbox.showinfo("Info", "Fonction: Créer nouveau service")
+
+    def ajouter_voyages_au_service(self):
+        msgbox.showinfo("Info", "Fonction: Ajouter voyages au service")
+
+    def completer_avec_ortools(self):
+        msgbox.showinfo("Info", "Fonction: Optimiser avec OR-Tools")
+
+    def exporter_planning(self):
+        msgbox.showinfo("Info", "Fonction: Exporter planning")
+
+    def valider_planning(self):
+        msgbox.showinfo("Info", "Fonction: Valider planning")
 
 if __name__ == "__main__":
     app = ctk.CTk()
