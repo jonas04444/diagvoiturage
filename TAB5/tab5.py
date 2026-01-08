@@ -65,6 +65,15 @@ class Interface(ctk.CTkFrame):
 
         self.label_selection.pack(pady=5)
 
+        panel_central =  ctk.CTkFrame(self)
+        panel_central.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+
+        label_titre_central = ctk.CTkLabel(
+            panel_central, text="Zone de création",
+            font=("Arial", 18, "bold")
+        )
+        label_titre_central.pack(pady=10)
+
     def toggle_voyage_selection(self, event):
         pass
 
