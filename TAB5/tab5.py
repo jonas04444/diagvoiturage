@@ -101,6 +101,25 @@ class Interface(ctk.CTkFrame):
         )
         btn_ajouter_voyage.pack(side="left", padx=5)
 
+        btn_completer = ctk.CTkButton(
+            toolbar, text="Optimiser avec OR-Tools",
+            command=self.completer_avec_ortools, height=50,
+            fg_color="#9C27B0", hover_color="#7B1FA2",
+            font=("Arial", 12, "bold")
+        )
+        btn_completer.pack(side="left", padx=5)
+
+        self.label_selection_actif = ctk.CTkLabel(
+            toolbar, text="Aucun service sélectionné",
+            font=("Arial", 12, "italic")
+        )
+        self.label_selection_actif.pack(side="left", padx=20)
+
+        self.scrollable_zone_travail = ctk.CTkScrollableFrame(
+            panel_central, label_text="Service créés",
+            label_font=("Arial", 14)
+        )
+        self.scrollable_zone_travail.pack(fill="both", expand=True, padx=10, pady=10)
 
     def charger_voyages_csv(self):
         msgbox.showinfo("Info", "Fonction: Charger voyages CSV")
