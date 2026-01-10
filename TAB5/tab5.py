@@ -121,6 +121,47 @@ class Interface(ctk.CTkFrame):
         )
         self.scrollable_zone_travail.pack(fill="both", expand=True, padx=10, pady=10)
 
+        panel_droit = ctk.CTkFrame(self, width=440)
+        panel_droit.grid(row=0, column=2, sticky="nsew", padx=5, pady=5)
+        panel_droit.grid_propagate(False)
+
+        label_titre_droit = ctk.CTkLabel(
+            panel_droit, text="Détail du service",
+            font=("Arial", 18, "bold")
+        )
+        label_titre_droit.pack(pady=10)
+
+        self.frame_details = ctk.CTkScrollableFrame(panel_droit)
+        self.frame_details.pack(fill="both", expand=True, padx=10, pady=10)
+
+        self.label_details = ctk.CTkLabel(
+            self.frame_details,
+            text="Sélectionnez un service\npour voir les détails",
+            font=("Arial", 11), justify="left"
+        )
+        self.label_details.pack(pady=20)
+
+        self.frame_voyages_liste = ctk.CTkFrame(self.frame_details, fg_color="transparent")
+        self.frame_voyages_liste.pack(fill="both", expand=True, pady=10)
+
+        frame_actions = ctk.CTkFrame(panel_droit, fg_color="transparent")
+        frame_actions.pack(fill="x", padx=10, pady=10)
+
+        btn_exporter = ctk.CTkButton(
+            frame_actions, text="Exporter",
+            command=self.exporter_planning, height=50,
+            font=("Arial", 12)
+        )
+        btn_exporter.pack(fill="x", pady=10)
+
+        btn_valider = ctk.CTkButton(
+            frame_actions, text="✅ Valider Planning",
+            command=self.valider_planning, height=50,
+            fg_color="#4CAF50", hover_color="#388E3C",
+            font=("Arial", 12)
+        )
+        btn_valider.pack(fill="x", pady=5)
+
     def charger_voyages_csv(self):
         msgbox.showinfo("Info", "Fonction: Charger voyages CSV")
 
