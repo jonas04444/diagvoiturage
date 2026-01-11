@@ -63,6 +63,79 @@ class TimeLineWisuelle(ctk.CTkFrame):
             text="Service vide - Ajoutez des voyages",
             fill="#888888", font=("Arial", 10, "italic")
         )
+    def dessiner_service(self):
+        self.canvas.delete("all")
+        self.canvas.update_idletasks()
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        if width < self.largeur_minimale:
+            width = self.largeur_minimale
+        if height < 50:
+            height = 100
+
+        for h in range(4,25,2):
+            x = self._heure_vers_x(h * 60, width)
+            self.canvas.create_line(x,20,x,height - 10, fill="#444444", dash=(2,2))
+            self.canvas.create_text(x, 10, text=f"{h:02d}h", fill="white", font=("Arial", 8))
+
+        if not self.service or not self.service.voyages:
+            self.dessiner_vide()
+            return
+
+        voyage_tries = sorted(self.service.voyages, key=lambda x: x.hdebut)
+        lignes_y = []
+
+        for v in voyage_tries:
+            ligne_trouvee = False
+            for ligne in lignes_y:
+                chevauche = False
+                for v_existant in ligne:
+                    if not (v.hfin <= v_existant.hdebut or v.hdebut >= v_existant.hfin):
+                        chevauche = True
+                        break
+                if not chevauche:
+                    ligne.append(v)
+                    ligne_trouvee = True
+                    break
+            if not ligne_trouvee:
+                lignes_y.append([v])
+
+        h_rect = 40
+        espace_entre = 5
+        y_start = 5
+
+        for idx_ligne, ligne in enumerate(lignes_y):
+            y_rect = y_start + idx_ligne * (h_rect + espace_entre)
+
+            for v in ligne:
+                x1 = self._heure_vers_x(v.hdebut, width)
+                x2 = self._heure_vers_x(v.hfin, width)
+
+                h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
+                h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
+
+                color = self._get_color(v.num_ligne)
+                self.canvas.create_rectangle(
+                    x1, y_rect, x2, y_rect + h_rect,
+                    fill=color, outline="white", width=2
+                )
+
+                mid_x = (x1 + x2) / 2
+                mid_y = y_rect + h_rect / 2
+
+                self.canvas.create_text(
+                    mid_x, mid_y - 8,
+                    text=f"V{v.num_voyage}",
+                    fill="black", font=("Arial", 9, "bold")
+                )
+
+                self.canvas.create_text(
+                    mid_x, mid_y + 8,
+                    text=f"{v.arret_debut[:3]}→{v.arret_fin[:3]}",
+                    fill="black", font=("Arial", 7)
+                )
+
 
 class Interface(ctk.CTkFrame):
     def __init__(self, parent):
