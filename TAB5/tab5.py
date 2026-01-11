@@ -1,6 +1,9 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
-from objet import voyage, service_agent
+
+from ortools import service
+
+from objet import voyage, service_agent, proposition
 from tabelauCSV import window_tableau_csv
 
 class Interface(ctk.CTkFrame):
@@ -169,7 +172,82 @@ class Interface(ctk.CTkFrame):
         pass
 
     def creer_nouveau_service(self):
-        msgbox.showinfo("Info", "Fonction: Créer nouveau service")
+        type_service = self.combo_type_service.get()
+        nouveau_service = service_agent(
+            num_service=self.compteur_service,
+            type_service=type_service
+            )
+
+        self.services.append(nouveau_service)
+        self.creer_widget_service(nouveau_service)
+        self.compteur_service += 1
+
+        msgbox.showinfo(
+            "Service créé",
+            f"service {nouveau_service.num_service} ({type_service}) créé"
+        )
+
+    def creer_widget_service(self, service):
+        frame_service = ctk.CTkFrame(
+            self.scrollable_zone_travail,
+            fg_color="#2b2b2b",
+            border_width=2,
+            border_color="#4CAF50"
+        )
+        frame_service.pack(fill="x", padx=5, pady=5)
+
+        header = ctk.CTkFrame(frame_service, fg_color="#1f1f1f")
+        header.pack(fill="x", padx=2, pady=2)
+
+        label_service = ctk.CTkLabel(
+            header,
+            text=f"service {service.num_service} ({service.type_service})",
+        )
+        label_service.pack(side= "left", padx=10, pady=5)
+
+        label_voyages = ctk.CTkLabel(
+            header,
+            text=f"{len(service.voyages)} voyages",
+            font=("Arial", 11)
+        )
+        label_voyages.pack(side="left", padx=10)
+
+        btn_select = ctk.CTkButton(
+            header,
+            text="Sélectionner",
+            width=100,
+            command=lambda: self.selectionner_service(service)
+        )
+        btn_select.pack(side="right", padx=5)
+
+        btn_delete = ctk.CTkButton(
+            header,
+            text="✖",
+            width=30,
+            fg_color="#f44336",
+            hover_color="#d32f2f",
+            command=lambda: self.supprimer_service(service, frame_service)
+        )
+        btn_delete.pack(side="right", padx=5)
+
+        self.widgets_services[service] = {
+            'frame': frame_service,
+            'label_voyages': label_voyages,
+            'header': header
+        }
+
+    def selectionner_service(self, service):
+        self.service_actif = service
+        self.label_selection_actif.configure(
+            text=f"service {service.num_service} ({service.type_service})"
+        )
+        self.afficher_detail_service(service)
+
+        for srv, widgets in self.widgets_service.items():
+            if srv == service:
+                widgets['frame'].configure(border_color = "#2196F3", border_width = 3)
+            else:
+                widgets['frame'].configure(border_color = "#4CAF50", border_width = 2)
 
     def ajouter_voyages_au_service(self):
         msgbox.showinfo("Info", "Fonction: Ajouter voyages au service")

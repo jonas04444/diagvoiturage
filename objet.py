@@ -6,6 +6,10 @@ class service_agent:
         self.voyages = []
         self.num_service = num_service
         self.type_service = type_service
+        self.heure_debut = None
+        self.heure_fin = None
+        self.heure_debut_coupure = None
+        self.heure_fin_coupure = None
 
     def ajout_voyages(self, voyage):
         self.voyages.append(voyage)
@@ -19,6 +23,7 @@ class service_agent:
         debut = min(v.hdebut for v in self.voyages)
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
+
 
     def __str__(self):
         if not self.voyages:
@@ -49,6 +54,7 @@ class voyage:
         self.hdebut = self.time_to_minutes(heure_debut)
         self.hfin = self.time_to_minutes(heure_fin)
         self.js_srv = js_srv
+        self.distance = None
 
     def arret_debut_id(self):
         return self.arret_debut[:3]
@@ -64,3 +70,9 @@ class voyage:
     @staticmethod
     def minutes_to_time(minutes):
         return f"{minutes // 60:02d}h{minutes % 60:02d}"
+
+class proposition:
+    def __init__(self):
+        self.service = []
+    def ajout_voyages(self, service):
+        self.service.append(service)
