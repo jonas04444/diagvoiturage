@@ -1,10 +1,68 @@
+from logging import setLogRecordFactory
+
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
 
+import self
 from ortools import service
 
 from objet import voyage, service_agent, proposition
 from tabelauCSV import window_tableau_csv
+
+class TimeLineWisuelle(ctk.CTkFrame):
+    def __init__(self, parent, service=None, **kwargs):
+        super().__init__(parent, **kwargs)
+        self.service = service
+        self.canvas = None
+        self.largeur_minimale = 700
+        self.creer_timeline()
+
+    def creer_timeline(self):
+        self.canvas = Canvas(
+            self,
+            bg= "#2b2b2b",
+            height=150,
+            width=self.largeur_minimale,
+            highlightthickness=1,
+            highlightbackground="#555555"
+        )
+        self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
+
+        def redessiner_apres_configure(event):
+            if hasattr(self, '_timer_redraw'):
+                self.after_cancel(self._timer_redraw)
+            self._timer_redraw = self.after(100, self.rafraichir)
+
+        self.canvas.bind('<Configure>', redessiner_apres_configure)
+        self.after(200, self._dessiner_initial)
+
+    def _dessiner_initial(self):
+        if self.service:
+            self.dessiner_service()
+        else:
+            self.dessiner_vide()
+    def dessiner_vide(self):
+        self.canvas.delete("all")
+
+        self.canvas.update_idletasks()
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        if width < self.largeur_minimale:
+            width = self.largeur_minimale
+        if height < 50:
+            height = 100
+
+        for h in range(4,25,2):
+            x = self._heure_vers_x(h * 60, width)
+            self.canvas.create_line(x,20,height - 10, fill="#444444", dash=(2,2))
+            self.canvas.create_text(x, 10, text= f"{h:02d}h", fill="white", font=("Arial", 8))
+
+        self.canvas.create_text(
+            width // 2, height // 2,
+            text="Service vide - Ajoutez des voyages",
+            fill="#888888", font=("Arial", 10, "italic")
+        )
 
 class Interface(ctk.CTkFrame):
     def __init__(self, parent):
@@ -187,54 +245,7 @@ class Interface(ctk.CTkFrame):
             f"service {nouveau_service.num_service} ({type_service}) créé"
         )
 
-    def creer_widget_service(self, service):
-        frame_service = ctk.CTkFrame(
-            self.scrollable_zone_travail,
-            fg_color="#2b2b2b",
-            border_width=2,
-            border_color="#4CAF50"
-        )
-        frame_service.pack(fill="x", padx=5, pady=5)
 
-        header = ctk.CTkFrame(frame_service, fg_color="#1f1f1f")
-        header.pack(fill="x", padx=2, pady=2)
-
-        label_service = ctk.CTkLabel(
-            header,
-            text=f"service {service.num_service} ({service.type_service})",
-        )
-        label_service.pack(side= "left", padx=10, pady=5)
-
-        label_voyages = ctk.CTkLabel(
-            header,
-            text=f"{len(service.voyages)} voyages",
-            font=("Arial", 11)
-        )
-        label_voyages.pack(side="left", padx=10)
-
-        btn_select = ctk.CTkButton(
-            header,
-            text="Sélectionner",
-            width=100,
-            command=lambda: self.selectionner_service(service)
-        )
-        btn_select.pack(side="right", padx=5)
-
-        btn_delete = ctk.CTkButton(
-            header,
-            text="✖",
-            width=30,
-            fg_color="#f44336",
-            hover_color="#d32f2f",
-            command=lambda: self.supprimer_service(service, frame_service)
-        )
-        btn_delete.pack(side="right", padx=5)
-
-        self.widgets_services[service] = {
-            'frame': frame_service,
-            'label_voyages': label_voyages,
-            'header': header
-        }
 
     def selectionner_service(self, service):
         self.service_actif = service
