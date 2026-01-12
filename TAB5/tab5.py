@@ -161,6 +161,14 @@ class TimeLineWisuelle(ctk.CTkFrame):
 class Interface(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(parent)
+
+        self.voyages_disponibles = []
+        self.voyages_selectionnes = {}
+        self.services = []
+        self.service_actif = None
+        self.compteur_service = 1
+        self.widgets_service = {}
+
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
@@ -182,7 +190,7 @@ class Interface(ctk.CTkFrame):
 
         btn_charger = ctk.CTkButton(
             panel_gauche, text="Charger voyages CSV",
-            command=window_tableau_csv, height=50
+            command=self.ouvrir_fenetre_csv, height=50
         )
         btn_charger.pack(pady=10, padx=10, fill="x")
 
@@ -317,11 +325,65 @@ class Interface(ctk.CTkFrame):
         )
         btn_valider.pack(fill="x", pady=5)
 
-    def charger_voyages_csv(self):
-        msgbox.showinfo("Info", "Fonction: Charger voyages CSV")
+    def ouvrir_fenetre_csv(self):
+        window_tableau_csv(callback=self.ouvrir_fenetre_csv)
+
+    def recevoir_voyages_csv(self, voyages, martrice):
+        self.voyages_disponibles=voyages
+        self.afficher_voyages_dans_tree(martrice)
+        msgbox.showinfo(
+            "Voyages chargés",
+            f"{len(voyages)} voyage(s) chargé(s) dans la liste"
+        )
+
+    def afficher_voyages_dans_tree(self):
+        for item in self.tree_voyages.get_children():
+            self.tree_voyages.delete(item)
+
+        self.voyages_selectionnes.clear()
+
+        for idx, v in enumerate(self.voyages_disponibles):
+            h_debut = f"{v.hdebut // 60:02d}:{v.hdebut % 60:02d}"
+            h_fin = f"{v.hfin // 60:02d}:{v.hfin % 60:02d}"
+            de_a = f"{v.arret_debut[:10]}→{v.arret_fin[:10]}"
+
+            item_id = self.tree_voyages.insert(
+                '',
+                'end',
+                iid=f"v_{idx}",
+                values=('☐', v.num_voyage, v.num_ligne, h_debut, h_fin, de_a)
+            )
+        self.mettre_a_jour_label_selection()
 
     def toggle_voyage_selection(self, event):
-        pass
+        item = self.tree_voyages.identify('item', event.x, event.y)
+        column = self.tree_voyages.identify_column(event.x)
+
+        if not item or column != '#1':
+            return
+
+        # Récupérer l'index du voyage
+        idx = int(item.split('_')[1])
+
+        # Toggle la sélection
+        values = list(self.tree_voyages.item(item, 'values'))
+        if values[0] == '☐':
+            values[0] = '☑'
+            self.voyages_selectionnes[item] = self.voyages_disponibles[idx]
+            self.tree_voyages.item(item, values=values, tags=('selected',))
+        else:
+            values[0] = '☐'
+            if item in self.voyages_selectionnes:
+                del self.voyages_selectionnes[item]
+            self.tree_voyages.item(item, values=values, tags=())
+
+        self.mettre_a_jour_label_selection()
+
+    def mettre_a_jour_label_selection(self):
+        nb_selectionnes = len(self.voyages_selectionnes)
+        self.label_selection.configure(
+            text=f"{nb_selectionnes} voyage(s) sélectionné(s)"
+        )
 
     def creer_nouveau_service(self):
         type_service = self.combo_type_service.get()
