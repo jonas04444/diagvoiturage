@@ -65,6 +65,26 @@ class TableauCSV(ctk.CTkFrame):
         )
         download_csv.pack(side="left", padx=5)
 
+        select_all_csv = ctk.CTkButton(
+            frame_boutons,
+            text="Sélectionner tous",
+            width=120,
+            fg_color="#4CAF50",
+            hover_color="#388E3C",
+            command=lambda: self.selectionner_tous()
+        )
+        select_all_csv.pack(side="left", padx=5)
+
+        deselect_all_csv = ctk.CTkButton(
+            frame_boutons,
+            text="Désélectionner tous",
+            width=120,
+            fg_color="#FF9800",
+            hover_color="#F57C00",
+            command=lambda: self.deselectionner_tous()
+        )
+        deselect_all_csv.pack(side="left", padx=5)
+
         commit_csv = ctk.CTkButton(
             frame_boutons,
             text="Charger dans la matrice",
@@ -84,6 +104,20 @@ class TableauCSV(ctk.CTkFrame):
     def quitter_avec_confirmation(self):
         if msgbox.askyesno("Confirmation", "Êtes-vous sûr de vouloir quitter ?"):
             self.master.destroy()
+
+    def selectionner_tous(self):
+        """Sélectionne tous les voyages dans le tableau"""
+        for item in self.tableau.get_children():
+            values = list(self.tableau.item(item, 'values'))
+            values[0] = '☑'
+            self.tableau.item(item, values=values)
+
+    def deselectionner_tous(self):
+        """Désélectionne tous les voyages dans le tableau"""
+        for item in self.tableau.get_children():
+            values = list(self.tableau.item(item, 'values'))
+            values[0] = '☐'
+            self.tableau.item(item, values=values)
 
     def creer_tableau(self):
         frame_tableau = ctk.CTkFrame(self)

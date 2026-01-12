@@ -74,5 +74,5 @@ class voyage:
 class proposition:
     def __init__(self):
         self.service = []
-    def ajout_voyages(self, service):
+    def ajout_service(self, service):
         self.service.append(service)
