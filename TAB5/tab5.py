@@ -135,7 +135,28 @@ class TimeLineWisuelle(ctk.CTkFrame):
                     text=f"{v.arret_debut[:3]}→{v.arret_fin[:3]}",
                     fill="black", font=("Arial", 7)
                 )
+    def _heure_vers_x(self, minutes, width):
+        debut = 4*60
+        fin = 24*60
+        ratio = (minutes-debut)/(fin-debut)
+        return 50 + ratio * (width-100)
 
+    def rafraichir(self):
+        if self.service:
+            self.dessiner_service()
+        else:
+            self.dessiner_vide()
+
+    def _get_color(self, ligne):
+        colors = {
+            "A1": "#FF6B6B", "C00A1": "#FF6B6B",
+            "25": "#4ECDC4", "C0025": "#4ECDC4",
+            "35": "#45B7D1", "C0035": "#45B7D1",
+            "43": "#FFA07A", "C0043": "#FFA07A",
+            "83": "#98D8C8", "C0083": "#98D8C8",
+            "86": "#F7DC6F", "C0086": "#F7DC6F",
+        }
+        return colors.get(ligne, "#CCCCCC")
 
 class Interface(ctk.CTkFrame):
     def __init__(self, parent):
