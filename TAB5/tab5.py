@@ -218,6 +218,7 @@ class Interface(ctk.CTkFrame):
         )
         self.tree_voyages.configure(yscrollcommand=scrollbar.set)
         scrollbar.pack(side="right", fill="y")
+        self.tree_voyages.pack(side="left", fill="both", expand=True)
 
         self.tree_voyages.bind('<Button-1>', self.toggle_voyage_selection)
 
@@ -336,7 +337,7 @@ class Interface(ctk.CTkFrame):
             f"{len(voyages)} voyage(s) chargé(s) dans la liste"
         )
 
-    def afficher_voyages_dans_tree(self):
+    def afficher_voyages_dans_tree(self, matrice=None):
         for item in self.tree_voyages.get_children():
             self.tree_voyages.delete(item)
 
