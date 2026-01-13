@@ -3,9 +3,6 @@ from logging import setLogRecordFactory
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
 
-import self
-from ortools import service
-
 from objet import voyage, service_agent, proposition
 from tabelauCSV import window_tableau_csv
 
@@ -55,7 +52,7 @@ class TimeLineWisuelle(ctk.CTkFrame):
 
         for h in range(4,25,2):
             x = self._heure_vers_x(h * 60, width)
-            self.canvas.create_line(x,20,height - 10, fill="#444444", dash=(2,2))
+            self.canvas.create_line(x,20,x,height - 10, fill="#444444", dash=(2,2))
             self.canvas.create_text(x, 10, text= f"{h:02d}h", fill="white", font=("Arial", 8))
 
         self.canvas.create_text(
@@ -217,8 +214,8 @@ class Interface(ctk.CTkFrame):
             command=self.tree_voyages.yview
         )
         self.tree_voyages.configure(yscrollcommand=scrollbar.set)
-        scrollbar.pack(side="right", fill="y")
         self.tree_voyages.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         self.tree_voyages.bind('<Button-1>', self.toggle_voyage_selection)
 
@@ -244,7 +241,7 @@ class Interface(ctk.CTkFrame):
         btn_nouveau_service = ctk.CTkButton(
             toolbar, text="Nouveau service",
             command=self.creer_nouveau_service, height=50,
-            fg_color="#4CAF50", hover_color="388E3C",
+            fg_color="#4CAF50", hover_color="#388E3C",
             font=("Arial", 12)
         )
         btn_nouveau_service.pack(side="left", padx=10)
@@ -260,7 +257,7 @@ class Interface(ctk.CTkFrame):
         btn_ajouter_voyage = ctk.CTkButton(
             toolbar, text="Ajouter au service",
             command=self.ajouter_voyages_au_service, height=50,
-            fg_color="#2196F3", hover_color="1976D2",
+            fg_color="#2196F3", hover_color="#1976D2",
             font=("Arial", 12)
         )
         btn_ajouter_voyage.pack(side="left", padx=5)
@@ -331,7 +328,7 @@ class Interface(ctk.CTkFrame):
 
     def recevoir_voyages_csv(self, voyages, martrice):
         self.voyages_disponibles=voyages
-        self.afficher_voyages_dans_tree(martrice)
+        self.afficher_voyages_dans_tree()
         msgbox.showinfo(
             "Voyages chargés",
             f"{len(voyages)} voyage(s) chargé(s) dans la liste"
@@ -348,7 +345,7 @@ class Interface(ctk.CTkFrame):
             h_fin = f"{v.hfin // 60:02d}:{v.hfin % 60:02d}"
             de_a = f"{v.arret_debut[:10]}→{v.arret_fin[:10]}"
 
-            item_id = self.tree_voyages.insert(
+            self.tree_voyages.insert(
                 '',
                 'end',
                 iid=f"v_{idx}",
@@ -363,10 +360,8 @@ class Interface(ctk.CTkFrame):
         if not item or column != '#1':
             return
 
-        # Récupérer l'index du voyage
         idx = int(item.split('_')[1])
 
-        # Toggle la sélection
         values = list(self.tree_voyages.item(item, 'values'))
         if values[0] == '☐':
             values[0] = '☑'
@@ -402,6 +397,80 @@ class Interface(ctk.CTkFrame):
             f"service {nouveau_service.num_service} ({type_service}) créé"
         )
 
+    def creer_widget_service(self, service):
+
+        frame_service = ctk.CTkFrame(
+            self.scrollable_zone_travail,
+            border_color="#4CAF50",
+            border_width=2,
+            corner_radius=10
+        )
+        frame_service.pack(fill="x", padx=5, pady=5)
+
+        frame_header = ctk.CTkFrame(frame_service, fg_color="transparent")
+        frame_header.pack(fill="x", padx=10, pady=5)
+
+        label_titre = ctk.CTkLabel(
+            frame_header,
+            text=f"Service {service.num_service} ({service.type_service})",
+            font=("Arial", 14, "bold")
+        )
+        label_titre.pack(side="left")
+
+        btn_supprimer = ctk.CTkButton(
+            frame_header,
+            text="✕",
+            width=30,
+            height=30,
+            fg_color="#f44336",
+            hover_color="#d32f2f",
+            command=lambda s=service: self.supprimer_service(s)
+        )
+        btn_supprimer.pack(side="right", padx=5)
+
+        btn_selectionner = ctk.CTkButton(
+            frame_header,
+            text="Sélectionner",
+            width=100,
+            height=30,
+            fg_color="#2196F3",
+            hover_color="#1976D2",
+            command=lambda s=service: self.selectionner_service(s)
+        )
+        btn_selectionner.pack(side="right", padx=5)
+
+        timeline = TimeLineWisuelle(frame_service, service=service, height=120)
+        timeline.pack(fill="x", padx=10, pady=5)
+
+        label_info = ctk.CTkLabel(
+            frame_service,
+            text=f"0 voyage(s) - Durée: 0h00",
+            font=("Arial", 10)
+        )
+        label_info.pack(pady=5)
+
+        self.widgets_service[service] = {
+            'frame': frame_service,
+            'timeline': timeline,
+            'label_info': label_info
+        }
+
+    def supprimer_service(self, service):
+        """Supprime un service et son widget"""
+        if service in self.widgets_service:
+            # Détruire le widget
+            self.widgets_service[service]['frame'].destroy()
+            del self.widgets_service[service]
+
+        # Retirer de la liste des services
+        if service in self.services:
+            self.services.remove(service)
+
+        # Si c'était le service actif, le désélectionner
+        if self.service_actif == service:
+            self.service_actif = None
+            self.label_selection_actif.configure(text="Aucun service sélectionné")
+            self.label_details.configure(text="Sélectionnez un service\npour voir les détails")
 
 
     def selectionner_service(self, service):
@@ -417,8 +486,98 @@ class Interface(ctk.CTkFrame):
             else:
                 widgets['frame'].configure(border_color = "#4CAF50", border_width = 2)
 
+    def afficher_detail_service(self, service):
+        """Affiche les détails du service sélectionné dans le panneau droit"""
+        # Calculer les infos du service
+        nb_voyages = len(service.voyages)
+        duree = service.duree_services()
+        heures = duree // 60
+        minutes = duree % 60
+
+        if nb_voyages > 0:
+            debut = min(v.hdebut for v in service.voyages)
+            fin = max(v.hfin for v in service.voyages)
+            h_debut = f"{debut // 60:02d}h{debut % 60:02d}"
+            h_fin = f"{fin // 60:02d}h{fin % 60:02d}"
+            detail_text = f"Service {service.num_service}\n"
+            detail_text += f"Type: {service.type_service}\n"
+            detail_text += f"Voyages: {nb_voyages}\n"
+            detail_text += f"Début: {h_debut}\n"
+            detail_text += f"Fin: {h_fin}\n"
+            detail_text += f"Durée: {heures}h{minutes:02d}"
+        else:
+            detail_text = f"Service {service.num_service}\n"
+            detail_text += f"Type: {service.type_service}\n"
+            detail_text += "Aucun voyage assigné"
+
+        self.label_details.configure(text=detail_text)
+
+        # Nettoyer et afficher la liste des voyages
+        for widget in self.frame_voyages_liste.winfo_children():
+            widget.destroy()
+
+        for v in sorted(service.voyages, key=lambda x: x.hdebut):
+            h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
+            h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
+
+            frame_voyage = ctk.CTkFrame(self.frame_voyages_liste)
+            frame_voyage.pack(fill="x", pady=2)
+
+            ctk.CTkLabel(
+                frame_voyage,
+                text=f"V{v.num_voyage} | {v.num_ligne} | {h_d}-{h_f}",
+                font=("Arial", 10)
+            ).pack(side="left", padx=5)
+
+    def mettre_a_jour_widget_service(self, service):
+        """Met à jour l'affichage d'un widget service après modification"""
+        if service in self.widgets_service:
+            widgets = self.widgets_service[service]
+
+            # Rafraîchir la timeline
+            widgets['timeline'].service = service
+            widgets['timeline'].rafraichir()
+
+            # Mettre à jour le label info
+            nb_voyages = len(service.voyages)
+            duree = service.duree_services()
+            heures = duree // 60
+            minutes = duree % 60
+            widgets['label_info'].configure(
+                text=f"{nb_voyages} voyage(s) - Durée: {heures}h{minutes:02d}"
+            )
+
     def ajouter_voyages_au_service(self):
-        msgbox.showinfo("Info", "Fonction: Ajouter voyages au service")
+        """Ajoute les voyages sélectionnés au service actif"""
+        if not self.service_actif:
+            msgbox.showwarning("Attention", "Veuillez d'abord sélectionner un service")
+            return
+
+        if not self.voyages_selectionnes:
+            msgbox.showwarning("Attention", "Aucun voyage sélectionné")
+            return
+
+        nb_ajoutes = 0
+        for item, voyage in list(self.voyages_selectionnes.items()):
+            # Vérifier si le voyage n'est pas déjà dans le service
+            if voyage not in self.service_actif.voyages:
+                self.service_actif.ajout_voyages(voyage)
+                nb_ajoutes += 1
+
+                # Marquer comme désactivé dans le treeview
+                values = list(self.tree_voyages.item(item, 'values'))
+                values[0] = '✓'
+                self.tree_voyages.item(item, values=values, tags=('disabled',))
+
+        # Vider la sélection
+        self.voyages_selectionnes.clear()
+        self.mettre_a_jour_label_selection()
+
+        # Mettre à jour l'affichage du service
+        self.mettre_a_jour_widget_service(self.service_actif)
+        self.afficher_detail_service(self.service_actif)
+
+        msgbox.showinfo("Succès", f"{nb_ajoutes} voyage(s) ajouté(s) au service")
 
     def completer_avec_ortools(self):
         msgbox.showinfo("Info", "Fonction: Optimiser avec OR-Tools")
