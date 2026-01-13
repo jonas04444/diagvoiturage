@@ -548,7 +548,7 @@ class Interface(ctk.CTkFrame):
             )
 
     def ajouter_voyages_au_service(self):
-        """Ajoute les voyages sélectionnés au service actif"""
+
         if not self.service_actif:
             msgbox.showwarning("Attention", "Veuillez d'abord sélectionner un service")
             return
@@ -558,26 +558,61 @@ class Interface(ctk.CTkFrame):
             return
 
         nb_ajoutes = 0
-        for item, voyage in list(self.voyages_selectionnes.items()):
-            # Vérifier si le voyage n'est pas déjà dans le service
-            if voyage not in self.service_actif.voyages:
-                self.service_actif.ajout_voyages(voyage)
+        voyages_refuses = []
+
+        for item, voyage_a_ajouter in list(self.voyages_selectionnes.items()):
+
+            if voyage_a_ajouter in self.service_actif.voyages:
+                continue
+
+            conflit = self.verifier_chevauchement(voyage_a_ajouter, self.service_actif)
+
+            if conflit:
+
+                h_debut_new = f"{voyage_a_ajouter.hdebut // 60:02d}h{voyage_a_ajouter.hdebut % 60:02d}"
+                h_fin_new = f"{voyage_a_ajouter.hfin // 60:02d}h{voyage_a_ajouter.hfin % 60:02d}"
+                h_debut_conf = f"{conflit.hdebut // 60:02d}h{conflit.hdebut % 60:02d}"
+                h_fin_conf = f"{conflit.hfin // 60:02d}h{conflit.hfin % 60:02d}"
+
+                voyages_refuses.append(
+                    f"• V{voyage_a_ajouter.num_voyage} ({h_debut_new}-{h_fin_new}) "
+                    f"chevauche V{conflit.num_voyage} ({h_debut_conf}-{h_fin_conf})"
+                )
+
+                values = list(self.tree_voyages.item(item, 'values'))
+                values[0] = '☐'
+                self.tree_voyages.item(item, values=values, tags=())
+            else:
+                # Pas de conflit, on ajoute le voyage
+                self.service_actif.ajout_voyages(voyage_a_ajouter)
                 nb_ajoutes += 1
 
-                # Marquer comme désactivé dans le treeview
                 values = list(self.tree_voyages.item(item, 'values'))
                 values[0] = '✓'
                 self.tree_voyages.item(item, values=values, tags=('disabled',))
 
-        # Vider la sélection
         self.voyages_selectionnes.clear()
         self.mettre_a_jour_label_selection()
 
-        # Mettre à jour l'affichage du service
         self.mettre_a_jour_widget_service(self.service_actif)
         self.afficher_detail_service(self.service_actif)
 
-        msgbox.showinfo("Succès", f"{nb_ajoutes} voyage(s) ajouté(s) au service")
+        if voyages_refuses:
+            message = f"{nb_ajoutes} voyage(s) ajouté(s)\n\n"
+            message += f"⚠️ {len(voyages_refuses)} voyage(s) refusé(s) (chevauchement):\n"
+            message += "\n".join(voyages_refuses)
+            msgbox.showwarning("Ajout partiel", message)
+        elif nb_ajoutes > 0:
+            msgbox.showinfo("Succès", f"{nb_ajoutes} voyage(s) ajouté(s) au service")
+        else:
+            msgbox.showinfo("Info", "Aucun voyage ajouté")
+    def verifier_chevauchement(self, nouveau_voyage, service):
+
+        for v_existant in service.voyages:
+
+            if not (nouveau_voyage.hfin <= v_existant.hdebut or nouveau_voyage.hdebut >= v_existant.hfin):
+                return v_existant
+        return None
 
     def completer_avec_ortools(self):
         msgbox.showinfo("Info", "Fonction: Optimiser avec OR-Tools")
