@@ -326,7 +326,7 @@ class Interface(ctk.CTkFrame):
         btn_valider.pack(fill="x", pady=5)
 
     def ouvrir_fenetre_csv(self):
-        window_tableau_csv(callback=self.ouvrir_fenetre_csv)
+        window_tableau_csv(callback=self.recevoir_voyages_csv)
 
     def recevoir_voyages_csv(self, voyages, martrice):
         self.voyages_disponibles=voyages
