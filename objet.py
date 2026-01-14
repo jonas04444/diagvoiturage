@@ -17,6 +17,31 @@ class service_agent:
     def get_voyages(self):
         return self.voyages
 
+    def set_limites(self, heure_debut, heure_fin):
+        self.heure_debut = heure_debut
+        self.heure_fin = heure_fin
+
+    def set_coupure(self, heure_debut_coupure, heure_fin_coupure):
+        self.heure_debut_coupure = heure_debut_coupure
+        self.heure_fin_coupure = heure_fin_coupure
+
+    def voyage_dans_limites(self, voyage):
+        if self.heure_debut is not None and self.heure_fin is not None:
+            if voyage.hdebut < self.heure_debut:
+                return False, "commence avant la limite de début"
+
+            if voyage.hfin > self.heure_fin:
+                return False, "termine après la limite de fin"
+
+        if self.type_service == "coupé":
+            if self.heure_debut_coupure is not None and self.heure_fin_coupure is not None:
+               if not (voyage.hfin <= self.heure_debut_coupure or voyage.hdebut >= self.heure_fin_coupure):
+                    h_deb_coup = f"{self.heure_debut_coupure // 60:02d}h{self.heure_debut_coupure % 60:02d}"
+                    h_fin_coup = f"{self.heure_fin_coupure // 60:02d}h{self.heure_fin_coupure % 60:02d}"
+                    return False, f"chevauche la coupure ({h_deb_coup}-{h_fin_coup})"
+
+        return True, None
+
     def duree_services(self):
         if not self.voyages:
             return 0
@@ -24,6 +49,10 @@ class service_agent:
         fin = max(v.hfin for v in self.voyages)
         return fin - debut
 
+    def duree_coupure(self):
+        if self.heure_debut_coupure is not None and self.heure_fin_coupure is not None:
+            return self.heure_fin_coupure - self.heure_debut_coupure
+        return 0
 
     def __str__(self):
         if not self.voyages:
