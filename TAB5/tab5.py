@@ -576,18 +576,38 @@ class Interface(ctk.CTkFrame):
         }
 
     def supprimer_service(self, service):
+        """Supprime un service et remet ses voyages comme disponibles"""
+
+        # Remettre les voyages du service comme disponibles
+        for voyage in service.voyages:
+            for idx, v in enumerate(self.voyages_disponibles):
+                if v == voyage:
+                    item_id = f"v_{idx}"
+                    if self.tree_voyages.exists(item_id):
+                        values = list(self.tree_voyages.item(item_id, 'values'))
+                        values[0] = '☐'
+                        self.tree_voyages.item(item_id, values=values, tags=())
+                    break
+
+        # Supprimer le widget
         if service in self.widgets_service:
             self.widgets_service[service]['frame'].destroy()
             del self.widgets_service[service]
 
+        # Retirer de la liste des services
         if service in self.services:
             self.services.remove(service)
 
+        # Réinitialiser si c'était le service actif
         if self.service_actif == service:
             self.service_actif = None
             self.label_selection_actif.configure(text="Aucun service sélectionné")
             self.label_details.configure(text="Sélectionnez un service\npour voir les détails")
             self.frame_coupure.pack_forget()
+
+            # Vider la liste des voyages dans le panneau droit
+            for widget in self.frame_voyages_liste.winfo_children():
+                widget.destroy()
 
     def selectionner_service(self, service):
         self.service_actif = service
