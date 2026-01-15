@@ -2,7 +2,7 @@ from logging import setLogRecordFactory
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
-
+from solverortool import optimiser_services, SolverOrTools
 from objet import voyage, service_agent, proposition
 from tabelauCSV import window_tableau_csv
 
@@ -703,18 +703,35 @@ class Interface(ctk.CTkFrame):
             frame_voyage = ctk.CTkFrame(self.frame_voyages_liste)
             frame_voyage.pack(fill="x", pady=2)
 
+            # Label avec infos du voyage
             ctk.CTkLabel(
                 frame_voyage,
                 text=f"V{v.num_voyage} | {v.num_ligne} | {h_d}-{h_f}",
                 font=("Arial", 10)
             ).pack(side="left", padx=5)
 
+            # Bouton supprimer
+            btn_suppr = ctk.CTkButton(
+                frame_voyage,
+                text="✕",
+                width=25,
+                height=25,
+                fg_color="#f44336",
+                hover_color="#d32f2f",
+                command=lambda voyage=v, srv=service: self.retirer_voyage_du_service(voyage, srv)
+            )
+            btn_suppr.pack(side="right", padx=5)
+
     def mettre_a_jour_widget_service(self, service):
+        """Met à jour l'affichage d'un widget service après modification"""
         if service in self.widgets_service:
             widgets = self.widgets_service[service]
+
+            # Rafraîchir la timeline
             widgets['timeline'].service = service
             widgets['timeline'].rafraichir()
 
+            # Mettre à jour le label info
             nb_voyages = len(service.voyages)
             duree = service.duree_services()
             heures = duree // 60
@@ -722,6 +739,33 @@ class Interface(ctk.CTkFrame):
             widgets['label_info'].configure(
                 text=f"{nb_voyages} voyage(s) - Durée: {heures}h{minutes:02d}"
             )
+
+    def retirer_voyage_du_service(self, voyage, service):
+        """Retire un voyage d'un service et le remet dans la liste disponible"""
+
+        # Retirer le voyage du service
+        if voyage in service.voyages:
+            service.voyages.remove(voyage)
+
+        # Remettre le voyage comme disponible dans le treeview
+        for idx, v in enumerate(self.voyages_disponibles):
+            if v == voyage:
+                item_id = f"v_{idx}"
+                if self.tree_voyages.exists(item_id):
+                    values = list(self.tree_voyages.item(item_id, 'values'))
+                    values[0] = '☐'
+                    self.tree_voyages.item(item_id, values=values, tags=())
+                break
+
+        # Mettre à jour l'affichage
+        self.mettre_a_jour_widget_service(service)
+        self.afficher_detail_service(service)
+
+        # Message de confirmation
+        h_d = f"{voyage.hdebut // 60:02d}h{voyage.hdebut % 60:02d}"
+        h_f = f"{voyage.hfin // 60:02d}h{voyage.hfin % 60:02d}"
+        msgbox.showinfo("Voyage retiré",
+                        f"Voyage V{voyage.num_voyage} ({h_d}-{h_f}) retiré du service {service.num_service}")
 
     # ═══════════════════════════════════════════════════════════════════════
     # MÉTHODES LIMITES
@@ -917,7 +961,202 @@ class Interface(ctk.CTkFrame):
     # MÉTHODES PLACEHOLDER
     # ═══════════════════════════════════════════════════════════════════════
     def completer_avec_ortools(self):
-        msgbox.showinfo("Info", "Fonction: Optimiser avec OR-Tools")
+        """Lance l'optimisation OR-Tools pour affecter les voyages aux services"""
+
+        # Vérifications préalables
+        if not self.services:
+            msgbox.showwarning("Attention",
+                               "Aucun service créé.\nCréez d'abord des services avant de lancer l'optimisation.")
+            return
+
+        # Récupérer les voyages non encore affectés
+        voyages_a_affecter = []
+        for idx, v in enumerate(self.voyages_disponibles):
+            item_id = f"v_{idx}"
+            if self.tree_voyages.exists(item_id):
+                values = self.tree_voyages.item(item_id, 'values')
+                # Voyage non encore affecté (pas de ✓)
+                if values[0] != '✓':
+                    voyages_a_affecter.append(v)
+
+        if not voyages_a_affecter:
+            msgbox.showwarning("Attention",
+                               "Aucun voyage disponible à affecter.\nTous les voyages sont déjà affectés ou aucun voyage n'a été chargé.")
+            return
+
+        # Vérifier que les services ont des limites définies
+        services_sans_limites = [s for s in self.services if s.heure_debut is None or s.heure_fin is None]
+        if services_sans_limites:
+            nums = ", ".join([str(s.num_service) for s in services_sans_limites])
+            msgbox.showwarning(
+                "Attention",
+                f"Les services suivants n'ont pas de limites horaires définies:\n{nums}\n\n"
+                "Veuillez définir les heures de début et fin pour tous les services."
+            )
+            return
+
+        # Vérifier les services coupés
+        for service in self.services:
+            if service.type_service == "coupé":
+                if service.heure_debut_coupure is None or service.heure_fin_coupure is None:
+                    msgbox.showwarning(
+                        "Attention",
+                        f"Le service {service.num_service} est un service coupé mais les heures de coupure ne sont pas définies."
+                    )
+                    return
+
+        # Confirmation avant lancement
+        msg = f"Lancer l'optimisation ?\n\n"
+        msg += f"• {len(voyages_a_affecter)} voyages à affecter\n"
+        msg += f"• {len(self.services)} services disponibles\n\n"
+        msg += "Contraintes appliquées:\n"
+        msg += "• Pas de chevauchement\n"
+        msg += "• Minimum 5 min entre voyages\n"
+        msg += "• Maximum 60 min de pause"
+
+        if not msgbox.askyesno("Optimisation OR-Tools", msg):
+            return
+
+        # Lancer l'optimisation
+        try:
+            # Afficher un message de progression
+            self.label_selection_actif.configure(text="⏳ Optimisation en cours...")
+            self.update()
+
+            # Appeler le solver
+            solver = optimiser_services(
+                voyages_disponibles=voyages_a_affecter,
+                services=self.services,
+                min_pause=5,
+                max_pause=60,
+                timeout=30
+            )
+
+            if not solver.solution_trouvee:
+                msgbox.showerror(
+                    "Échec de l'optimisation",
+                    "Aucune solution trouvée.\n\n"
+                    "Causes possibles:\n"
+                    "• Contraintes trop restrictives\n"
+                    "• Voyages incompatibles avec les horaires des services\n"
+                    "• Pas assez de services"
+                )
+                self.label_selection_actif.configure(text="Aucun service sélectionné")
+                return
+
+            # Appliquer les résultats
+            self._appliquer_resultats_solver(solver)
+
+            # Afficher le rapport
+            self._afficher_rapport_optimisation(solver)
+
+        except Exception as e:
+            msgbox.showerror("Erreur", f"Erreur lors de l'optimisation:\n{str(e)}")
+            self.label_selection_actif.configure(text="Aucun service sélectionné")
+
+    def _appliquer_resultats_solver(self, solver):
+        """Applique les résultats du solver aux services"""
+
+        for service, voyages in solver.voyages_affectes.items():
+            for voyage in voyages:
+                # Vérifier que le voyage n'est pas déjà dans le service
+                if voyage not in service.voyages:
+                    service.ajout_voyages(voyage)
+
+                    # Marquer le voyage comme affecté dans le treeview
+                    for idx, v in enumerate(self.voyages_disponibles):
+                        if v == voyage:
+                            item_id = f"v_{idx}"
+                            if self.tree_voyages.exists(item_id):
+                                values = list(self.tree_voyages.item(item_id, 'values'))
+                                values[0] = '✓'
+                                self.tree_voyages.item(item_id, values=values, tags=('disabled',))
+                            break
+
+            # Mettre à jour l'affichage du service
+            self.mettre_a_jour_widget_service(service)
+
+        # Rafraîchir la sélection si un service est actif
+        if self.service_actif:
+            self.afficher_detail_service(self.service_actif)
+
+        self.label_selection_actif.configure(text="✅ Optimisation terminée")
+
+    def _afficher_rapport_optimisation(self, solver):
+        """Affiche une fenêtre avec le rapport d'optimisation"""
+
+        stats = solver.statistiques
+
+        # Construire le message
+        rapport = "═" * 40 + "\n"
+        rapport += "RÉSULTATS DE L'OPTIMISATION\n"
+        rapport += "═" * 40 + "\n\n"
+
+        rapport += f"📊 Statistiques globales:\n"
+        rapport += f"   • Voyages traités: {stats['total_voyages']}\n"
+        rapport += f"   • Voyages affectés: {stats['voyages_affectes']}\n"
+        rapport += f"   • Voyages non affectés: {stats['voyages_non_affectes']}\n"
+        rapport += f"   • Taux d'affectation: {stats['taux_affectation']:.1f}%\n\n"
+
+        rapport += f"📋 Détail par service:\n"
+        for service in self.services:
+            voyages = solver.voyages_affectes.get(service, [])
+            rapport += f"\n   🚌 Service {service.num_service} ({service.type_service}):\n"
+
+            if voyages:
+                if service.num_service in stats.get('par_service', {}):
+                    s_stats = stats['par_service'][service.num_service]
+                    h_debut = f"{s_stats['debut'] // 60:02d}h{s_stats['debut'] % 60:02d}"
+                    h_fin = f"{s_stats['fin'] // 60:02d}h{s_stats['fin'] % 60:02d}"
+                    rapport += f"      • {s_stats['nb_voyages']} voyages\n"
+                    rapport += f"      • Plage: {h_debut} - {h_fin}\n"
+                    rapport += f"      • Temps de pause: {s_stats['temps_pause']} min\n"
+            else:
+                rapport += f"      • Aucun voyage affecté\n"
+
+        if solver.voyages_non_affectes:
+            rapport += f"\n⚠️ Voyages non affectés ({len(solver.voyages_non_affectes)}):\n"
+            for v in solver.voyages_non_affectes[:10]:  # Limiter à 10
+                h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
+                h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
+                rapport += f"   • V{v.num_voyage} ({v.num_ligne}): {h_d}-{h_f}\n"
+            if len(solver.voyages_non_affectes) > 10:
+                rapport += f"   ... et {len(solver.voyages_non_affectes) - 10} autres\n"
+
+        # Afficher dans une fenêtre
+        fenetre_rapport = ctk.CTkToplevel(self)
+        fenetre_rapport.title("Rapport d'optimisation")
+        fenetre_rapport.geometry("500x600")
+        fenetre_rapport.transient(self)
+        fenetre_rapport.grab_set()
+
+        # Titre
+        ctk.CTkLabel(
+            fenetre_rapport,
+            text="🎯 Optimisation OR-Tools",
+            font=("Arial", 18, "bold")
+        ).pack(pady=10)
+
+        # Zone de texte scrollable
+        text_frame = ctk.CTkScrollableFrame(fenetre_rapport)
+        text_frame.pack(fill="both", expand=True, padx=20, pady=10)
+
+        ctk.CTkLabel(
+            text_frame,
+            text=rapport,
+            font=("Courier", 11),
+            justify="left",
+            anchor="nw"
+        ).pack(fill="both", expand=True)
+
+        # Bouton fermer
+        ctk.CTkButton(
+            fenetre_rapport,
+            text="Fermer",
+            command=fenetre_rapport.destroy,
+            width=150,
+            height=40
+        ).pack(pady=15)
 
     def exporter_planning(self):
         msgbox.showinfo("Info", "Fonction: Exporter planning")
