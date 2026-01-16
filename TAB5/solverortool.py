@@ -1,5 +1,6 @@
 """
 Solver OR-Tools pour l'optimisation des services de transport
+Compatible avec tab5.py
 """
 
 from ortools.sat.python import cp_model
@@ -7,31 +8,47 @@ from ortools.sat.python import cp_model
 
 class SolverOrTools:
     """
-    Solver pour affecter les voyages aux services en respectant les contraintes :
-    - Pas de chevauchement entre voyages d'un même service
-    - Minimum 5 minutes entre deux voyages consécutifs
-    - Maximum 60 minutes de pause entre deux voyages consécutifs (STRICTE)
-    - Respect des tranches horaires des services
-    - Respect des coupures pour les services coupés
-    - Respect des voyages déjà affectés aux services
-    - CONTINUITÉ GÉOGRAPHIQUE : un voyage doit partir de là où le précédent s'est terminé
+    Solver pour affecter les voyages aux services.
+
+    Contraintes :
+    - Pas de chevauchement entre voyages
+    - Pause minimum 5 min (géo OK) ou 10 min (géo KO)
+    - Pause maximum 60 min entre voyages consécutifs
+    - Respect des limites horaires (heure_debut_max, heure_fin_max)
+    - Conservation des voyages déjà assignés
+    - Répartition équitable entre services
+
+    Objectif :
+    - Maximiser le nombre de voyages affectés
+    - Favoriser la continuité géographique
+    - Utiliser toute l'amplitude des services
     """
 
-    def __init__(self, voyages, services, min_pause=5, max_pause=60):
-        self.voyages = voyages
-        self.services = services
-        self.min_pause = min_pause
+    def __init__(self, voyages, services, min_pause_geo_ok=5, min_pause_geo_ko=10, max_pause=60):
+        """
+        Args:
+            voyages: Liste des voyages NON assignés à affecter
+            services: Liste des services (peuvent contenir des voyages existants)
+            min_pause_geo_ok: Pause min si arrêts compatibles (défaut: 5)
+            min_pause_geo_ko: Pause min si arrêts incompatibles (défaut: 10)
+            max_pause: Pause max entre voyages consécutifs (défaut: 60)
+        """
+        self.voyages = list(voyages)
+        self.services = list(services)
+        self.min_pause_geo_ok = min_pause_geo_ok
+        self.min_pause_geo_ko = min_pause_geo_ko
         self.max_pause = max_pause
+
         self.model = cp_model.CpModel()
         self.solver = cp_model.CpSolver()
 
-        # Récupérer les voyages déjà affectés à chaque service
+        # Voyages déjà dans les services (à conserver absolument)
         self.voyages_existants = {}
         for service in services:
             self.voyages_existants[service] = list(service.voyages)
 
         # Variables de décision
-        self.affectations = {}
+        self.x = {}  # x[v_idx, s_idx] = 1 si voyage v affecté au service s
 
         # Résultats
         self.solution_trouvee = False
@@ -39,323 +56,293 @@ class SolverOrTools:
         self.voyages_non_affectes = []
         self.statistiques = {}
 
-    def _voyage_compatible_service(self, voyage, service):
-        """Vérifie si un voyage peut être affecté à un service (contraintes horaires)"""
+    def _arrets_compatibles(self, v1, v2):
+        """Compare les 3 premiers caractères des arrêts"""
+        fin = v1.arret_fin[:3].upper() if v1.arret_fin else ""
+        debut = v2.arret_debut[:3].upper() if v2.arret_debut else ""
+        return fin == debut
 
-        if service.heure_debut is not None and service.heure_fin is not None:
-            if voyage.hdebut < service.heure_debut:
-                return False
-            if voyage.hfin > service.heure_fin:
-                return False
+    def _pause_requise(self, v_avant, v_apres):
+        """Retourne la pause minimum requise entre deux voyages"""
+        if self._arrets_compatibles(v_avant, v_apres):
+            return self.min_pause_geo_ok
+        return self.min_pause_geo_ko
 
-        if service.type_service == "coupé":
-            if service.heure_debut_coupure is not None and service.heure_fin_coupure is not None:
-                if not (voyage.hfin <= service.heure_debut_coupure or
-                        voyage.hdebut >= service.heure_fin_coupure):
-                    return False
+    def _voyage_dans_limites(self, voyage, service):
+        """Vérifie si le voyage respecte les limites horaires du service"""
+        h_debut = getattr(service, 'heure_debut_max', None)
+        h_fin = getattr(service, 'heure_fin_max', None)
 
+        if h_debut is not None and voyage.hdebut < h_debut:
+            return False
+        if h_fin is not None and voyage.hfin > h_fin:
+            return False
         return True
-
-    def _arrets_compatibles(self, v_precedent, v_suivant):
-        """
-        Vérifie si deux voyages sont compatibles géographiquement.
-        Le voyage suivant doit partir de là où le précédent s'est terminé.
-        Compare les 3 premiers caractères des arrêts.
-        """
-        arret_fin = v_precedent.arret_fin[:3].upper()
-        arret_debut = v_suivant.arret_debut[:3].upper()
-        return arret_fin == arret_debut
 
     def _voyages_compatibles_temporellement(self, v1, v2):
         """
-        Vérifie si deux voyages sont compatibles temporellement.
-        Retourne True si pas de chevauchement ET pause >= min_pause
+        Vérifie si v1 et v2 peuvent coexister dans le même service.
+        Retourne True si pas de conflit.
         """
-        if v1.hfin <= v2.hdebut:
-            pause = v2.hdebut - v1.hfin
-            return pause >= self.min_pause
-        elif v2.hfin <= v1.hdebut:
-            pause = v1.hdebut - v2.hfin
-            return pause >= self.min_pause
+        # Déterminer l'ordre
+        if v1.hdebut <= v2.hdebut:
+            v_avant, v_apres = v1, v2
         else:
-            return False
+            v_avant, v_apres = v2, v1
 
-    def _voyages_peuvent_etre_consecutifs(self, v_avant, v_apres):
-        """
-        Vérifie si v_avant peut être immédiatement suivi par v_apres.
-        Doit respecter : temps ET géographie
-        """
-        # Vérifier l'ordre temporel
+        # Chevauchement ?
         if v_avant.hfin > v_apres.hdebut:
             return False
 
-        # Vérifier la pause minimum
+        # Pause suffisante ?
         pause = v_apres.hdebut - v_avant.hfin
-        if pause < self.min_pause:
-            return False
+        pause_min = self._pause_requise(v_avant, v_apres)
 
-        # Vérifier la compatibilité géographique
-        if not self._arrets_compatibles(v_avant, v_apres):
-            return False
-
-        return True
-
-    def _voyage_compatible_avec_existants(self, voyage, service):
-        """Vérifie si un nouveau voyage est compatible avec les voyages existants."""
-        for v_existant in self.voyages_existants[service]:
-            if not self._voyages_compatibles_temporellement(voyage, v_existant):
-                return False
-        return True
-
-    def _peut_inserer_entre(self, v_inter, v_avant, v_apres, service):
-        """
-        Vérifie si v_inter peut s'insérer entre v_avant et v_apres.
-        Doit respecter temps ET géographie.
-        """
-        # Vérifier l'ordre
-        if v_avant.hfin > v_apres.hdebut:
-            v_avant, v_apres = v_apres, v_avant
-
-        # Vérifier que v_inter peut suivre v_avant (temps + géo)
-        if v_avant.hfin + self.min_pause > v_inter.hdebut:
-            return False
-        if not self._arrets_compatibles(v_avant, v_inter):
-            return False
-
-        # Vérifier que v_apres peut suivre v_inter (temps + géo)
-        if v_inter.hfin + self.min_pause > v_apres.hdebut:
-            return False
-        if not self._arrets_compatibles(v_inter, v_apres):
-            return False
-
-        # Vérifier la compatibilité avec le service
-        if not self._voyage_compatible_service(v_inter, service):
-            return False
-
-        return True
-
-    def _calculer_score_amplitude(self, voyage, service):
-        """Calcule un score bonus pour l'utilisation de l'amplitude."""
-        if service.heure_debut is None or service.heure_fin is None:
-            return 0
-
-        distance_debut = voyage.hdebut - service.heure_debut
-        distance_fin = service.heure_fin - voyage.hfin
-
-        score = 0
-        if distance_debut <= 120:
-            score += (120 - distance_debut) // 10
-        if distance_fin <= 120:
-            score += (120 - distance_fin) // 10
-
-        return score
+        return pause >= pause_min
 
     def construire_modele(self):
-        """Construit le modèle OR-Tools avec toutes les contraintes"""
+        """Construit le modèle OR-Tools"""
 
-        print("🔧 Construction du modèle OR-Tools...")
-        print(f"   • {len(self.voyages)} voyages à affecter")
-        print(f"   • {len(self.services)} services disponibles")
-        print(f"   • Pause minimum: {self.min_pause} min")
-        print(f"   • Pause maximum: {self.max_pause} min")
-        print(f"   • Continuité géographique: ACTIVÉE (3 premiers caractères)")
+        print("\n" + "=" * 60)
+        print("🔧 CONSTRUCTION DU MODÈLE OR-TOOLS")
+        print("=" * 60)
+        print(f"   Voyages à affecter : {len(self.voyages)}")
+        print(f"   Services : {len(self.services)}")
+        print(f"   Pause min (géo OK) : {self.min_pause_geo_ok} min")
+        print(f"   Pause min (géo KO) : {self.min_pause_geo_ko} min")
+        print(f"   Pause max : {self.max_pause} min")
 
-        for service in self.services:
-            nb_existants = len(self.voyages_existants[service])
-            if nb_existants > 0:
-                print(f"   • Service {service.num_service}: {nb_existants} voyage(s) déjà affecté(s)")
-
-        # ═══════════════════════════════════════════════════════════════
-        # 1. Créer les variables de décision
-        # ═══════════════════════════════════════════════════════════════
-        for v_idx, voyage in enumerate(self.voyages):
-            for s_idx, service in enumerate(self.services):
-                var_name = f"v{v_idx}_s{s_idx}"
-                self.affectations[(v_idx, s_idx)] = self.model.NewBoolVar(var_name)
-
-        print(f"   ✓ {len(self.affectations)} variables créées")
+        # Afficher les voyages existants
+        for s in self.services:
+            nb = len(self.voyages_existants[s])
+            if nb > 0:
+                print(f"   Service {s.num_service} : {nb} voyage(s) existant(s)")
 
         # ═══════════════════════════════════════════════════════════════
-        # 2. Un voyage ne peut être affecté qu'à un seul service
+        # 1. VARIABLES : x[v_idx, s_idx] = 1 si voyage affecté au service
         # ═══════════════════════════════════════════════════════════════
         for v_idx in range(len(self.voyages)):
-            vars_voyage = [self.affectations[(v_idx, s_idx)]
-                          for s_idx in range(len(self.services))]
-            self.model.Add(sum(vars_voyage) <= 1)
+            for s_idx in range(len(self.services)):
+                self.x[v_idx, s_idx] = self.model.NewBoolVar(f"x_{v_idx}_{s_idx}")
 
-        print(f"   ✓ Contraintes d'unicité ajoutées")
+        print(f"\n   ✓ {len(self.x)} variables créées")
 
         # ═══════════════════════════════════════════════════════════════
-        # 3. Compatibilité voyage/service (horaires)
+        # 2. CONTRAINTE : Un voyage va dans au plus UN service
         # ═══════════════════════════════════════════════════════════════
-        nb_incompatibles = 0
+        for v_idx in range(len(self.voyages)):
+            self.model.Add(
+                sum(self.x[v_idx, s_idx] for s_idx in range(len(self.services))) <= 1
+            )
+
+        # ═══════════════════════════════════════════════════════════════
+        # 3. CONTRAINTE : Respect des limites horaires du service
+        # ═══════════════════════════════════════════════════════════════
+        nb_hors_limites = 0
         for v_idx, voyage in enumerate(self.voyages):
             for s_idx, service in enumerate(self.services):
-                if not self._voyage_compatible_service(voyage, service):
-                    self.model.Add(self.affectations[(v_idx, s_idx)] == 0)
-                    nb_incompatibles += 1
+                if not self._voyage_dans_limites(voyage, service):
+                    self.model.Add(self.x[v_idx, s_idx] == 0)
+                    nb_hors_limites += 1
 
-        print(f"   ✓ {nb_incompatibles} incompatibilités horaires bloquées")
+        print(f"   ✓ {nb_hors_limites} affectations hors limites bloquées")
 
         # ═══════════════════════════════════════════════════════════════
-        # 4. Compatibilité avec les voyages DÉJÀ dans le service
+        # 4. CONTRAINTE : Compatibilité avec les voyages EXISTANTS
         # ═══════════════════════════════════════════════════════════════
         nb_conflits_existants = 0
         for v_idx, voyage in enumerate(self.voyages):
             for s_idx, service in enumerate(self.services):
-                if not self._voyage_compatible_avec_existants(voyage, service):
-                    self.model.Add(self.affectations[(v_idx, s_idx)] == 0)
-                    nb_conflits_existants += 1
+                for v_exist in self.voyages_existants[service]:
+                    if not self._voyages_compatibles_temporellement(voyage, v_exist):
+                        self.model.Add(self.x[v_idx, s_idx] == 0)
+                        nb_conflits_existants += 1
+                        break
 
-        print(f"   ✓ {nb_conflits_existants} conflits temporels avec existants bloqués")
+        print(f"   ✓ {nb_conflits_existants} conflits avec existants bloqués")
 
         # ═══════════════════════════════════════════════════════════════
-        # 5. Pas de chevauchement entre nouveaux voyages
+        # 5. CONTRAINTE : Compatibilité entre NOUVEAUX voyages
         # ═══════════════════════════════════════════════════════════════
-        nb_conflits_temps = 0
-        for s_idx, service in enumerate(self.services):
-            for v1_idx in range(len(self.voyages)):
-                for v2_idx in range(v1_idx + 1, len(self.voyages)):
-                    v1 = self.voyages[v1_idx]
-                    v2 = self.voyages[v2_idx]
-
+        nb_conflits_nouveaux = 0
+        for s_idx in range(len(self.services)):
+            for i in range(len(self.voyages)):
+                for j in range(i + 1, len(self.voyages)):
+                    v1, v2 = self.voyages[i], self.voyages[j]
                     if not self._voyages_compatibles_temporellement(v1, v2):
-                        self.model.Add(
-                            self.affectations[(v1_idx, s_idx)] +
-                            self.affectations[(v2_idx, s_idx)] <= 1
-                        )
-                        nb_conflits_temps += 1
+                        self.model.Add(self.x[i, s_idx] + self.x[j, s_idx] <= 1)
+                        nb_conflits_nouveaux += 1
 
-        print(f"   ✓ {nb_conflits_temps} contraintes de chevauchement temporel")
+        print(f"   ✓ {nb_conflits_nouveaux} conflits entre nouveaux bloqués")
 
         # ═══════════════════════════════════════════════════════════════
-        # 6. CONTINUITÉ GÉOGRAPHIQUE + PAUSE MAXIMUM
+        # 6. CONTRAINTE : Pause maximum (nécessite des intermédiaires)
         # ═══════════════════════════════════════════════════════════════
-        nb_contraintes_geo = 0
+        nb_contraintes_pause_max = 0
 
         for s_idx, service in enumerate(self.services):
-            # Tous les voyages (existants + nouveaux)
-            tous_voyages = list(self.voyages_existants[service]) + list(self.voyages)
+            # Tous les voyages potentiels du service
+            tous = []
+            for v in self.voyages_existants[service]:
+                tous.append((None, v))  # None = existant
+            for v_idx, v in enumerate(self.voyages):
+                tous.append((v_idx, v))
 
-            for i, v1 in enumerate(tous_voyages):
-                for j, v2 in enumerate(tous_voyages):
+            # Pour chaque paire de voyages
+            for i, (idx1, v1) in enumerate(tous):
+                for j, (idx2, v2) in enumerate(tous):
                     if i >= j:
                         continue
 
-                    # Déterminer l'ordre temporel
-                    if v1.hfin <= v2.hdebut:
-                        v_avant, v_apres = v1, v2
-                    elif v2.hfin <= v1.hdebut:
-                        v_avant, v_apres = v2, v1
+                    # Ordonner temporellement
+                    if v1.hdebut <= v2.hdebut:
+                        v_avant, idx_avant = v1, idx1
+                        v_apres, idx_apres = v2, idx2
                     else:
-                        # Chevauchement, déjà géré
-                        continue
+                        v_avant, idx_avant = v2, idx2
+                        v_apres, idx_apres = v1, idx1
+
+                    # Calculer la pause
+                    if v_avant.hfin > v_apres.hdebut:
+                        continue  # Chevauchement, déjà géré
 
                     pause = v_apres.hdebut - v_avant.hfin
 
-                    # Vérifier si les voyages peuvent être consécutifs
-                    peuvent_etre_consecutifs = self._voyages_peuvent_etre_consecutifs(v_avant, v_apres)
+                    if pause <= self.max_pause:
+                        continue  # Pause OK
 
-                    # Si pause > max_pause OU arrêts incompatibles, il faut un intermédiaire
-                    besoin_intermediaire = (pause > self.max_pause) or (not self._arrets_compatibles(v_avant, v_apres))
+                    # Pause > max : chercher des intermédiaires possibles
+                    intermediaires = []
+                    for k, vk in enumerate(self.voyages):
+                        if vk == v_avant or vk == v_apres:
+                            continue
 
-                    if besoin_intermediaire and pause >= self.min_pause:
-                        # Chercher les voyages qui peuvent s'insérer
-                        voyages_intermediaires = []
-                        for k, v_inter in enumerate(self.voyages):
-                            if v_inter == v_avant or v_inter == v_apres:
-                                continue
-                            if self._peut_inserer_entre(v_inter, v_avant, v_apres, service):
-                                voyages_intermediaires.append(k)
+                        # vk peut s'insérer entre v_avant et v_apres ?
+                        pause1 = vk.hdebut - v_avant.hfin
+                        pause2 = v_apres.hdebut - vk.hfin
 
-                        # Déterminer si v_avant et v_apres sont existants ou nouveaux
-                        v_avant_existant = v_avant in self.voyages_existants[service]
-                        v_apres_existant = v_apres in self.voyages_existants[service]
+                        if pause1 < self._pause_requise(v_avant, vk):
+                            continue
+                        if pause2 < self._pause_requise(vk, v_apres):
+                            continue
+                        if pause1 > self.max_pause or pause2 > self.max_pause:
+                            continue
+                        if not self._voyage_dans_limites(vk, service):
+                            continue
 
-                        if v_avant_existant and v_apres_existant:
-                            # Les deux sont existants : il FAUT un intermédiaire
-                            if voyages_intermediaires:
-                                intermediaires_vars = [self.affectations[(k, s_idx)]
-                                                     for k in voyages_intermediaires]
-                                self.model.Add(sum(intermediaires_vars) >= 1)
-                            else:
-                                # Problème avec les données existantes - pas de solution possible
-                                print(f"   ⚠️ Service {service.num_service}: V{v_avant.num_voyage} → V{v_apres.num_voyage} incompatibles sans intermédiaire")
+                        intermediaires.append(k)
 
-                        elif v_avant_existant or v_apres_existant:
-                            # Un seul est existant
-                            if v_avant_existant:
-                                v_apres_idx = self.voyages.index(v_apres)
-                                if voyages_intermediaires:
-                                    intermediaires_vars = [self.affectations[(k, s_idx)]
-                                                         for k in voyages_intermediaires]
-                                    self.model.Add(
-                                        sum(intermediaires_vars) >= self.affectations[(v_apres_idx, s_idx)]
-                                    )
-                                else:
-                                    self.model.Add(self.affectations[(v_apres_idx, s_idx)] == 0)
-                            else:
-                                v_avant_idx = self.voyages.index(v_avant)
-                                if voyages_intermediaires:
-                                    intermediaires_vars = [self.affectations[(k, s_idx)]
-                                                         for k in voyages_intermediaires]
-                                    self.model.Add(
-                                        sum(intermediaires_vars) >= self.affectations[(v_avant_idx, s_idx)]
-                                    )
-                                else:
-                                    self.model.Add(self.affectations[(v_avant_idx, s_idx)] == 0)
+                    # Appliquer la contrainte
+                    avant_existant = idx_avant is None
+                    apres_existant = idx_apres is None
 
+                    if avant_existant and apres_existant:
+                        # Deux existants avec trou > max : DOIT avoir intermédiaire
+                        if intermediaires:
+                            self.model.Add(
+                                sum(self.x[k, s_idx] for k in intermediaires) >= 1
+                            )
+                    elif avant_existant:
+                        if intermediaires:
+                            self.model.Add(
+                                sum(self.x[k, s_idx] for k in intermediaires) >= self.x[idx_apres, s_idx]
+                            )
                         else:
-                            # Les deux sont nouveaux
-                            v_avant_idx = self.voyages.index(v_avant)
-                            v_apres_idx = self.voyages.index(v_apres)
+                            self.model.Add(self.x[idx_apres, s_idx] == 0)
+                    elif apres_existant:
+                        if intermediaires:
+                            self.model.Add(
+                                sum(self.x[k, s_idx] for k in intermediaires) >= self.x[idx_avant, s_idx]
+                            )
+                        else:
+                            self.model.Add(self.x[idx_avant, s_idx] == 0)
+                    else:
+                        if intermediaires:
+                            self.model.Add(
+                                self.x[idx_avant, s_idx] + self.x[idx_apres, s_idx] - 1 <=
+                                sum(self.x[k, s_idx] for k in intermediaires)
+                            )
+                        else:
+                            self.model.Add(
+                                self.x[idx_avant, s_idx] + self.x[idx_apres, s_idx] <= 1
+                            )
 
-                            if voyages_intermediaires:
-                                intermediaires_vars = [self.affectations[(k, s_idx)]
-                                                     for k in voyages_intermediaires]
-                                self.model.Add(
-                                    self.affectations[(v_avant_idx, s_idx)] +
-                                    self.affectations[(v_apres_idx, s_idx)] - 1 <=
-                                    sum(intermediaires_vars)
-                                )
-                            else:
-                                self.model.Add(
-                                    self.affectations[(v_avant_idx, s_idx)] +
-                                    self.affectations[(v_apres_idx, s_idx)] <= 1
-                                )
+                    nb_contraintes_pause_max += 1
 
-                        nb_contraintes_geo += 1
-
-        print(f"   ✓ {nb_contraintes_geo} contraintes géographiques/pause max")
+        print(f"   ✓ {nb_contraintes_pause_max} contraintes pause max")
 
         # ═══════════════════════════════════════════════════════════════
-        # 7. Fonction objectif : Maximiser voyages + amplitude
+        # 7. CONTRAINTE : Répartition équitable
         # ═══════════════════════════════════════════════════════════════
-        score_affectations = []
+        if len(self.services) > 0:
+            total = len(self.voyages) + sum(len(v) for v in self.voyages_existants.values())
+            moyenne = total / len(self.services)
+            min_voy = max(0, int(moyenne) - 2)
+            max_voy = int(moyenne) + 3
+
+            print(f"   📊 Répartition cible : {min_voy} à {max_voy} voyages/service")
+
+            for s_idx, service in enumerate(self.services):
+                nb_existants = len(self.voyages_existants[service])
+                nouveaux = sum(self.x[v_idx, s_idx] for v_idx in range(len(self.voyages)))
+
+                # Max
+                self.model.Add(nouveaux <= max_voy - nb_existants)
+
+        # ═══════════════════════════════════════════════════════════════
+        # 8. OBJECTIF : Maximiser affectations + bonus géo + bonus amplitude
+        # ═══════════════════════════════════════════════════════════════
+        objectif = []
+
         for v_idx, voyage in enumerate(self.voyages):
             for s_idx, service in enumerate(self.services):
-                score_base = 100
-                score_amplitude = self._calculer_score_amplitude(voyage, service)
-                score_total = score_base + score_amplitude
-                score_affectations.append(self.affectations[(v_idx, s_idx)] * score_total)
+                # Base : 1000 points par affectation
+                score = 1000
 
-        self.model.Maximize(sum(score_affectations))
+                # Bonus amplitude : proche du début ou de la fin du service
+                h_debut = getattr(service, 'heure_debut_max', None)
+                h_fin = getattr(service, 'heure_fin_max', None)
 
-        print(f"   ✓ Fonction objectif configurée")
-        print(f"🔧 Modèle construit avec succès !")
+                if h_debut is not None:
+                    dist = voyage.hdebut - h_debut
+                    if dist <= 60:
+                        score += (60 - dist)  # +0 à +60
 
-    def resoudre(self, timeout_secondes=30):
-        """Résout le modèle et retourne les résultats."""
-        print(f"\n🚀 Résolution en cours (timeout: {timeout_secondes}s)...")
+                if h_fin is not None:
+                    dist = h_fin - voyage.hfin
+                    if dist <= 60:
+                        score += (60 - dist)  # +0 à +60
 
-        self.solver.parameters.max_time_in_seconds = timeout_secondes
+                # Bonus géo : compatible avec un voyage existant
+                for v_exist in self.voyages_existants[service]:
+                    if v_exist.hfin <= voyage.hdebut:
+                        if self._arrets_compatibles(v_exist, voyage):
+                            score += 100
+                            break
+                    elif voyage.hfin <= v_exist.hdebut:
+                        if self._arrets_compatibles(voyage, v_exist):
+                            score += 100
+                            break
+
+                objectif.append(self.x[v_idx, s_idx] * score)
+
+        self.model.Maximize(sum(objectif))
+
+        print(f"   ✓ Objectif : max(affectations + amplitude + géo)")
+        print("=" * 60)
+
+    def resoudre(self, timeout=60):
+        """Résout le modèle"""
+        print(f"\n🚀 Résolution (timeout: {timeout}s)...")
+
+        self.solver.parameters.max_time_in_seconds = timeout
         status = self.solver.Solve(self.model)
 
         if status == cp_model.OPTIMAL:
             print("✅ Solution OPTIMALE trouvée !")
             self.solution_trouvee = True
         elif status == cp_model.FEASIBLE:
-            print("✅ Solution RÉALISABLE trouvée (peut-être pas optimale)")
+            print("✅ Solution trouvée (peut-être pas optimale)")
             self.solution_trouvee = True
         else:
             print("❌ Aucune solution trouvée")
@@ -364,206 +351,156 @@ class SolverOrTools:
 
         self._extraire_resultats()
         self._verifier_solution()
-
         return True
 
     def _extraire_resultats(self):
-        """Extrait les résultats de la solution"""
+        """Extrait les résultats"""
 
-        self.voyages_affectes = {}
-        for service in self.services:
-            self.voyages_affectes[service] = list(self.voyages_existants[service])
-
+        # Initialiser avec les existants
+        self.voyages_affectes = {s: list(self.voyages_existants[s]) for s in self.services}
         self.voyages_non_affectes = []
 
+        # Ajouter les nouveaux
         for v_idx, voyage in enumerate(self.voyages):
             affecte = False
             for s_idx, service in enumerate(self.services):
-                if self.solver.Value(self.affectations[(v_idx, s_idx)]) == 1:
+                if self.solver.Value(self.x[v_idx, s_idx]) == 1:
                     self.voyages_affectes[service].append(voyage)
                     affecte = True
                     break
-
             if not affecte:
                 self.voyages_non_affectes.append(voyage)
 
+        # Trier par heure
         for service in self.services:
             self.voyages_affectes[service].sort(key=lambda v: v.hdebut)
 
-        total_voyages = len(self.voyages)
-        total_nouveaux_affectes = sum(len(v) for v in self.voyages_affectes.values()) - sum(len(v) for v in self.voyages_existants.values())
+        # Stats
+        total = len(self.voyages)
+        affectes = total - len(self.voyages_non_affectes)
 
         self.statistiques = {
-            'total_voyages': total_voyages,
-            'voyages_affectes': total_nouveaux_affectes,
+            'total_voyages': total,
+            'voyages_affectes': affectes,
             'voyages_non_affectes': len(self.voyages_non_affectes),
-            'taux_affectation': (total_nouveaux_affectes / total_voyages * 100) if total_voyages > 0 else 0,
-            'services_utilises': sum(1 for s, v in self.voyages_affectes.items() if len(v) > 0)
+            'taux_affectation': (affectes / total * 100) if total > 0 else 0,
+            'par_service': {}
         }
 
-        self.statistiques['par_service'] = {}
         for service in self.services:
             voyages = self.voyages_affectes[service]
             if voyages:
-                debut = min(v.hdebut for v in voyages)
-                fin = max(v.hfin for v in voyages)
-                duree = fin - debut
+                ruptures = 0
+                pause_max = 0
+                vlist = sorted(voyages, key=lambda v: v.hdebut)
 
-                voyages_tries = sorted(voyages, key=lambda v: v.hdebut)
-                temps_pause = 0
-                pause_max_trouvee = 0
-                ruptures_geo = 0
-
-                for i in range(len(voyages_tries) - 1):
-                    v_avant = voyages_tries[i]
-                    v_apres = voyages_tries[i + 1]
-
-                    pause = v_apres.hdebut - v_avant.hfin
-                    if pause > 0:
-                        temps_pause += pause
-                        if pause > pause_max_trouvee:
-                            pause_max_trouvee = pause
-
-                    # Vérifier la continuité géographique
-                    if not self._arrets_compatibles(v_avant, v_apres):
-                        ruptures_geo += 1
-
-                nb_existants = len(self.voyages_existants[service])
-                nb_nouveaux = len(voyages) - nb_existants
-
-                taux_utilisation = 0
-                if service.heure_debut is not None and service.heure_fin is not None:
-                    amplitude_service = service.heure_fin - service.heure_debut
-                    if amplitude_service > 0:
-                        taux_utilisation = (duree / amplitude_service) * 100
+                for i in range(len(vlist) - 1):
+                    v1, v2 = vlist[i], vlist[i + 1]
+                    pause = v2.hdebut - v1.hfin
+                    if pause > pause_max:
+                        pause_max = pause
+                    if not self._arrets_compatibles(v1, v2):
+                        ruptures += 1
 
                 self.statistiques['par_service'][service.num_service] = {
                     'nb_voyages': len(voyages),
-                    'nb_existants': nb_existants,
-                    'nb_nouveaux': nb_nouveaux,
-                    'debut': debut,
-                    'fin': fin,
-                    'duree': duree,
-                    'temps_pause': temps_pause,
-                    'pause_max': pause_max_trouvee,
-                    'taux_utilisation': taux_utilisation,
-                    'ruptures_geo': ruptures_geo
+                    'nb_existants': len(self.voyages_existants[service]),
+                    'nb_nouveaux': len(voyages) - len(self.voyages_existants[service]),
+                    'pause_max': pause_max,
+                    'ruptures_geo': ruptures
                 }
 
     def _verifier_solution(self):
-        """Vérifie que la solution respecte toutes les contraintes"""
-        print("\n🔍 Vérification de la solution...")
+        """Vérifie la solution"""
+        print("\n🔍 Vérification...")
 
         erreurs = []
+        avertissements = []
+
         for service in self.services:
-            voyages = self.voyages_affectes[service]
-            voyages_tries = sorted(voyages, key=lambda v: v.hdebut)
+            voyages = sorted(self.voyages_affectes[service], key=lambda v: v.hdebut)
 
-            for i in range(len(voyages_tries) - 1):
-                v1 = voyages_tries[i]
-                v2 = voyages_tries[i + 1]
-
+            for i in range(len(voyages) - 1):
+                v1, v2 = voyages[i], voyages[i + 1]
                 pause = v2.hdebut - v1.hfin
+                pause_min = self._pause_requise(v1, v2)
 
                 if pause < 0:
-                    erreurs.append(f"   ❌ Service {service.num_service}: V{v1.num_voyage} et V{v2.num_voyage} se chevauchent!")
-                elif pause < self.min_pause:
-                    erreurs.append(f"   ⚠️ Service {service.num_service}: V{v1.num_voyage} → V{v2.num_voyage} pause {pause}min < {self.min_pause}min")
+                    erreurs.append(f"S{service.num_service}: chevauchement V{v1.num_voyage}-V{v2.num_voyage}")
+                elif pause < pause_min:
+                    erreurs.append(f"S{service.num_service}: pause {pause}min < {pause_min}min")
                 elif pause > self.max_pause:
-                    erreurs.append(f"   ⚠️ Service {service.num_service}: V{v1.num_voyage} → V{v2.num_voyage} pause {pause}min > {self.max_pause}min")
+                    erreurs.append(f"S{service.num_service}: pause {pause}min > {self.max_pause}min")
 
-                # Vérifier la continuité géographique
                 if not self._arrets_compatibles(v1, v2):
-                    erreurs.append(f"   ⚠️ Service {service.num_service}: V{v1.num_voyage}({v1.arret_fin[:3]}) → V{v2.num_voyage}({v2.arret_debut[:3]}) rupture géographique!")
+                    avertissements.append(f"S{service.num_service}: {v1.arret_fin[:3]}→{v2.arret_debut[:3]}")
 
         if erreurs:
-            print("   Problèmes détectés:")
-            for e in erreurs:
-                print(e)
+            print("   ❌ ERREURS:")
+            for e in erreurs[:5]:
+                print(f"      {e}")
         else:
-            print("   ✅ Aucun chevauchement détecté")
-            print(f"   ✅ Toutes les pauses >= {self.min_pause} min")
-            print(f"   ✅ Toutes les pauses <= {self.max_pause} min")
-            print("   ✅ Continuité géographique respectée")
+            print("   ✅ Contraintes temporelles OK")
 
-    def afficher_resultats(self):
-        """Affiche les résultats de manière lisible"""
+        if avertissements:
+            print(f"   ⚠️ {len(avertissements)} rupture(s) géographique(s)")
+        else:
+            print("   ✅ Continuité géographique parfaite")
 
-        if not self.solution_trouvee:
-            print("\n❌ Pas de solution à afficher")
-            return
+        # Répartition
+        print("\n📊 Répartition:")
+        for s in self.services:
+            if s.num_service in self.statistiques['par_service']:
+                st = self.statistiques['par_service'][s.num_service]
+                print(f"   Service {s.num_service}: {st['nb_voyages']} voy ({st['nb_existants']} exist + {st['nb_nouveaux']} nouveaux)")
 
-        print("\n" + "═" * 60)
-        print("📊 RÉSULTATS DE L'OPTIMISATION")
-        print("═" * 60)
-
-        print(f"\n📈 Statistiques globales:")
-        print(f"   • Voyages à affecter: {self.statistiques['total_voyages']}")
-        print(f"   • Nouveaux voyages affectés: {self.statistiques['voyages_affectes']}")
-        print(f"   • Voyages non affectés: {self.statistiques['voyages_non_affectes']}")
-        print(f"   • Taux d'affectation: {self.statistiques['taux_affectation']:.1f}%")
-
-        print(f"\n📋 Détail par service:")
-        for service in self.services:
-            voyages = self.voyages_affectes[service]
-            print(f"\n   🚌 Service {service.num_service} ({service.type_service}):")
-
-            if voyages and service.num_service in self.statistiques.get('par_service', {}):
-                stats = self.statistiques['par_service'][service.num_service]
-                h_debut = f"{stats['debut'] // 60:02d}h{stats['debut'] % 60:02d}"
-                h_fin = f"{stats['fin'] // 60:02d}h{stats['fin'] % 60:02d}"
-
-                print(f"      • {stats['nb_voyages']} voyages")
-                print(f"      • Plage: {h_debut} - {h_fin}")
-                print(f"      • Amplitude utilisée: {stats['taux_utilisation']:.0f}%")
-                print(f"      • Pause max: {stats['pause_max']} min")
-                if stats['ruptures_geo'] > 0:
-                    print(f"      • ⚠️ Ruptures géo: {stats['ruptures_geo']}")
-            else:
-                print(f"      • Aucun voyage")
-
-        print("\n" + "═" * 60)
+    def get_nouveaux_voyages_par_service(self):
+        """Retourne UNIQUEMENT les nouveaux voyages (pas les existants)"""
+        return {
+            service: [v for v in self.voyages_affectes[service]
+                     if v not in self.voyages_existants[service]]
+            for service in self.services
+        }
 
     def get_rapport(self):
-        """Retourne un rapport textuel des résultats"""
+        """Retourne un rapport textuel"""
         if not self.solution_trouvee:
             return "Aucune solution trouvée"
 
-        rapport = []
-        rapport.append("═" * 50)
-        rapport.append("RAPPORT D'OPTIMISATION")
-        rapport.append("═" * 50)
-        rapport.append("")
-        rapport.append(f"Nouveaux voyages affectés: {self.statistiques['voyages_affectes']}/{self.statistiques['total_voyages']}")
-        rapport.append(f"Taux d'affectation: {self.statistiques['taux_affectation']:.1f}%")
-        rapport.append("")
+        lignes = [
+            f"Affectés: {self.statistiques['voyages_affectes']}/{self.statistiques['total_voyages']}",
+            f"Taux: {self.statistiques['taux_affectation']:.0f}%",
+            ""
+        ]
+        for s in self.services:
+            if s.num_service in self.statistiques['par_service']:
+                st = self.statistiques['par_service'][s.num_service]
+                lignes.append(f"Service {s.num_service}: {st['nb_voyages']} voyages")
 
-        for service in self.services:
-            if service.num_service in self.statistiques.get('par_service', {}):
-                stats = self.statistiques['par_service'][service.num_service]
-                rapport.append(f"Service {service.num_service}: {stats['nb_voyages']} voyages | Amplitude: {stats['taux_utilisation']:.0f}%")
-
-        if self.voyages_non_affectes:
-            rapport.append("")
-            rapport.append(f"Non affectés: {len(self.voyages_non_affectes)} voyages")
-
-        return "\n".join(rapport)
-
-    def get_nouveaux_voyages_par_service(self):
-        """Retourne uniquement les NOUVEAUX voyages affectés."""
-        nouveaux = {}
-        for service in self.services:
-            nouveaux[service] = []
-            for v in self.voyages_affectes[service]:
-                if v not in self.voyages_existants[service]:
-                    nouveaux[service].append(v)
-        return nouveaux
+        return "\n".join(lignes)
 
 
-def optimiser_services(voyages_disponibles, services, min_pause=5, max_pause=60, timeout=30):
-    """Fonction utilitaire pour lancer l'optimisation."""
-    solver = SolverOrTools(voyages_disponibles, services, min_pause, max_pause)
+def optimiser_services(voyages_disponibles, services, min_pause=5, max_pause=60, timeout=60):
+    """
+    Fonction utilitaire pour lancer l'optimisation.
+
+    Args:
+        voyages_disponibles: Voyages à affecter (non encore assignés)
+        services: Liste des services
+        min_pause: Pause min si géo compatible (défaut: 5)
+        max_pause: Pause max entre voyages (défaut: 60)
+        timeout: Temps max de résolution (défaut: 60s)
+
+    Returns:
+        SolverOrTools: Instance du solver avec les résultats
+    """
+    solver = SolverOrTools(
+        voyages_disponibles,
+        services,
+        min_pause_geo_ok=min_pause,
+        min_pause_geo_ko=10,
+        max_pause=max_pause
+    )
     solver.construire_modele()
     solver.resoudre(timeout)
-
     return solver

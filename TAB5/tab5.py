@@ -981,216 +981,293 @@ class Interface(ctk.CTkFrame):
     # MÉTHODES PLACEHOLDER
     # ═══════════════════════════════════════════════════════════════════════
     def completer_avec_ortools(self):
-        """Lance l'optimisation OR-Tools pour affecter les voyages aux services"""
+        """Complète les services avec OR-Tools"""
 
-        # Vérifications préalables
         if not self.services:
-            msgbox.showwarning("Attention",
-                               "Aucun service créé.\nCréez d'abord des services avant de lancer l'optimisation.")
+            msgbox.showwarning("Attention", "Créez d'abord au moins un service")
             return
 
-        # Récupérer les voyages non encore affectés
-        voyages_a_affecter = []
+        # Vérifier que les services ont des limites définies
+        services_sans_limites = []
+        for s in self.services:
+            if getattr(s, 'heure_debut', None) is None or getattr(s, 'heure_fin', None) is None:
+                services_sans_limites.append(s.num_service)
+
+        if services_sans_limites:
+            msgbox.showwarning(
+                "Attention",
+                f"Les services suivants n'ont pas de limites définies:\n"
+                f"{', '.join(map(str, services_sans_limites))}\n\n"
+                "Définissez les limites horaires avant d'optimiser."
+            )
+            return
+
+        # Récupérer les voyages non assignés (ceux qui n'ont pas le ✓)
+        voyages_non_assignes = []
         for idx, v in enumerate(self.voyages_disponibles):
             item_id = f"v_{idx}"
             if self.tree_voyages.exists(item_id):
                 values = self.tree_voyages.item(item_id, 'values')
-                # Voyage non encore affecté (pas de ✓)
-                if values[0] != '✓':
-                    voyages_a_affecter.append(v)
+                if values[0] != '✓':  # Pas encore assigné
+                    voyages_non_assignes.append(v)
 
-        if not voyages_a_affecter:
-            msgbox.showwarning("Attention",
-                               "Aucun voyage disponible à affecter.\nTous les voyages sont déjà affectés ou aucun voyage n'a été chargé.")
+        if not voyages_non_assignes:
+            msgbox.showinfo("Info", "Tous les voyages sont déjà assignés !")
             return
 
-        # Vérifier que les services ont des limites définies
-        services_sans_limites = [s for s in self.services if s.heure_debut is None or s.heure_fin is None]
-        if services_sans_limites:
-            nums = ", ".join([str(s.num_service) for s in services_sans_limites])
-            msgbox.showwarning(
-                "Attention",
-                f"Les services suivants n'ont pas de limites horaires définies:\n{nums}\n\n"
-                "Veuillez définir les heures de début et fin pour tous les services."
-            )
-            return
+        # Dialogue de configuration
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("🤖 Optimisation OR-Tools")
+        dialog.geometry("500x500")
+        dialog.transient(self)
+        dialog.grab_set()
 
-        # Vérifier les services coupés
-        for service in self.services:
-            if service.type_service == "coupé":
-                if service.heure_debut_coupure is None or service.heure_fin_coupure is None:
-                    msgbox.showwarning(
-                        "Attention",
-                        f"Le service {service.num_service} est un service coupé mais les heures de coupure ne sont pas définies."
-                    )
-                    return
+        ctk.CTkLabel(
+            dialog, text="🤖 Optimisation avec OR-Tools",
+            font=("Arial", 18, "bold")
+        ).pack(pady=15)
 
-        # Confirmation avant lancement
-        msg = f"Lancer l'optimisation ?\n\n"
-        msg += f"• {len(voyages_a_affecter)} voyages à affecter\n"
-        msg += f"• {len(self.services)} services disponibles\n\n"
-        msg += "Contraintes appliquées:\n"
-        msg += "• Pas de chevauchement\n"
-        msg += "• Minimum 5 min entre voyages\n"
-        msg += "• Maximum 60 min de pause"
+        info_text = f"📊 Services : {len(self.services)}\n"
+        info_text += f"📋 Voyages à affecter : {len(voyages_non_assignes)}\n"
+        info_text += f"📋 Voyages déjà assignés : {len(self.voyages_disponibles) - len(voyages_non_assignes)}\n\n"
+        info_text += "⚙️ Contraintes :\n"
+        info_text += "  • Pause min (géo OK) : configurable\n"
+        info_text += "  • Pause min (géo KO) : 10 min\n"
+        info_text += "  • Pause max : configurable\n"
+        info_text += "  • Répartition équitable entre services\n"
 
-        if not msgbox.askyesno("Optimisation OR-Tools", msg):
-            return
+        ctk.CTkLabel(dialog, text=info_text, font=("Arial", 11), justify="left").pack(pady=10)
 
-        # Lancer l'optimisation
+        frame_config = ctk.CTkFrame(dialog)
+        frame_config.pack(padx=20, pady=10)
+
+        # Pause minimum
+        ctk.CTkLabel(frame_config, text="⏱️ Pause minimum (géo OK) :", font=("Arial", 11)).pack(pady=5)
+        entry_pause_min = ctk.CTkEntry(frame_config, width=200, height=35)
+        entry_pause_min.insert(0, "5")
+        entry_pause_min.pack(pady=5)
+
+        # Pause maximum
+        ctk.CTkLabel(frame_config, text="⏱️ Pause maximum :", font=("Arial", 11)).pack(pady=5)
+        entry_pause_max = ctk.CTkEntry(frame_config, width=200, height=35)
+        entry_pause_max.insert(0, "60")
+        entry_pause_max.pack(pady=5)
+
+        # Timeout
+        ctk.CTkLabel(frame_config, text="⏳ Timeout (secondes) :", font=("Arial", 11)).pack(pady=5)
+        entry_timeout = ctk.CTkEntry(frame_config, width=200, height=35)
+        entry_timeout.insert(0, "60")
+        entry_timeout.pack(pady=5)
+
+        def lancer():
+            try:
+                pause_min = int(entry_pause_min.get())
+                pause_max = int(entry_pause_max.get())
+                timeout = int(entry_timeout.get())
+                dialog.destroy()
+                self._executer_ortools(voyages_non_assignes, pause_min, pause_max, timeout)
+            except ValueError:
+                msgbox.showerror("Erreur", "Valeurs invalides")
+
+        ctk.CTkButton(
+            dialog, text="🚀 Lancer l'optimisation",
+            command=lancer, height=50,
+            fg_color="#9C27B0", hover_color="#7B1FA2",
+            font=("Arial", 14, "bold")
+        ).pack(pady=20)
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # REMPLACER _executer_ortools PAR :
+    # ═══════════════════════════════════════════════════════════════════════════
+    def _executer_ortools(self, voyages_non_assignes, pause_min, pause_max, timeout):
+        """Exécute l'optimisation avec OR-Tools"""
+
         try:
-            # Afficher un message de progression
-            self.label_selection_actif.configure(text="⏳ Optimisation en cours...")
-            self.update()
-
-            # Appeler le solver
-            solver = optimiser_services(
-                voyages_disponibles=voyages_a_affecter,
-                services=self.services,
-                min_pause=5,
-                max_pause=60,
-                timeout=30
+            from solverortool import optimiser_services
+        except ImportError as e:
+            msgbox.showerror(
+                "Erreur",
+                f"Module solverortool non trouvé !\n"
+                f"Assurez-vous que solverortool.py est dans le même dossier.\n\n"
+                f"Erreur: {e}"
             )
+            return
+
+        # Afficher une fenêtre de progression
+        progress = ctk.CTkToplevel(self)
+        progress.title("Optimisation en cours...")
+        progress.geometry("400x150")
+        progress.transient(self)
+
+        ctk.CTkLabel(
+            progress, text="🔄 Optimisation en cours...",
+            font=("Arial", 14, "bold")
+        ).pack(pady=20)
+
+        progress_label = ctk.CTkLabel(progress, text="Veuillez patienter...")
+        progress_label.pack(pady=10)
+
+        progress.update()
+
+        try:
+            # Lancer le solver
+            solver = optimiser_services(
+                voyages_non_assignes,
+                self.services,
+                min_pause=pause_min,
+                max_pause=pause_max,
+                timeout=timeout
+            )
+
+            progress.destroy()
 
             if not solver.solution_trouvee:
                 msgbox.showerror(
-                    "Échec de l'optimisation",
+                    "Erreur",
                     "Aucune solution trouvée.\n\n"
-                    "Causes possibles:\n"
-                    "• Contraintes trop restrictives\n"
-                    "• Voyages incompatibles avec les horaires des services\n"
-                    "• Pas assez de services"
+                    "Essayez de :\n"
+                    "• Augmenter la pause maximum\n"
+                    "• Réduire la pause minimum\n"
+                    "• Élargir les limites horaires des services\n"
+                    "• Ajouter plus de services"
                 )
-                self.label_selection_actif.configure(text="Aucun service sélectionné")
                 return
 
             # Appliquer les résultats
             self._appliquer_resultats_solver(solver)
 
             # Afficher le rapport
-            self._afficher_rapport_optimisation(solver)
+            self._afficher_rapport_ortools(solver)
 
         except Exception as e:
+            progress.destroy()
             msgbox.showerror("Erreur", f"Erreur lors de l'optimisation:\n{str(e)}")
-            self.label_selection_actif.configure(text="Aucun service sélectionné")
+            import traceback
+            traceback.print_exc()
 
+    # ═══════════════════════════════════════════════════════════════════════════
+    # REMPLACER _appliquer_resultats_solver PAR :
+    # ═══════════════════════════════════════════════════════════════════════════
     def _appliquer_resultats_solver(self, solver):
         """Applique les résultats du solver aux services"""
 
-        for service, voyages in solver.voyages_affectes.items():
-            for voyage in voyages:
-                # Vérifier que le voyage n'est pas déjà dans le service
+        # Récupérer uniquement les NOUVEAUX voyages
+        nouveaux_par_service = solver.get_nouveaux_voyages_par_service()
+
+        for service, nouveaux_voyages in nouveaux_par_service.items():
+            for voyage in nouveaux_voyages:
+                # Ajouter au service
                 if voyage not in service.voyages:
                     service.ajout_voyages(voyage)
 
-                    # Marquer le voyage comme affecté dans le treeview
-                    for idx, v in enumerate(self.voyages_disponibles):
-                        if v == voyage:
-                            item_id = f"v_{idx}"
-                            if self.tree_voyages.exists(item_id):
-                                values = list(self.tree_voyages.item(item_id, 'values'))
-                                values[0] = '✓'
-                                self.tree_voyages.item(item_id, values=values, tags=('disabled',))
-                            break
+                # Marquer comme assigné dans le treeview
+                for idx, v in enumerate(self.voyages_disponibles):
+                    if v == voyage:
+                        item_id = f"v_{idx}"
+                        if self.tree_voyages.exists(item_id):
+                            values = list(self.tree_voyages.item(item_id, 'values'))
+                            values[0] = '✓'
+                            self.tree_voyages.item(item_id, values=values, tags=('disabled',))
+                        break
 
-            # Mettre à jour l'affichage du service
+            # Mettre à jour l'affichage du widget service
             self.mettre_a_jour_widget_service(service)
 
-        # Rafraîchir la sélection si un service est actif
+        # Rafraîchir le service actif si sélectionné
         if self.service_actif:
             self.afficher_detail_service(self.service_actif)
 
         self.label_selection_actif.configure(text="✅ Optimisation terminée")
 
-    def _afficher_rapport_optimisation(self, solver):
-        """Affiche une fenêtre avec le rapport d'optimisation"""
+    # ═══════════════════════════════════════════════════════════════════════════
+    # REMPLACER _afficher_rapport_ortools PAR :
+    # ═══════════════════════════════════════════════════════════════════════════
+    def _afficher_rapport_ortools(self, solver):
+        """Affiche le rapport d'optimisation"""
 
-        stats = solver.statistiques
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("📊 Rapport d'optimisation")
+        dialog.geometry("600x550")
+        dialog.transient(self)
+        dialog.grab_set()
 
-        # Construire le message
-        rapport = "═" * 40 + "\n"
-        rapport += "RÉSULTATS DE L'OPTIMISATION\n"
-        rapport += "═" * 40 + "\n\n"
-
-        rapport += f"📊 Statistiques globales:\n"
-        rapport += f"   • Voyages traités: {stats['total_voyages']}\n"
-        rapport += f"   • Voyages affectés: {stats['voyages_affectes']}\n"
-        rapport += f"   • Voyages non affectés: {stats['voyages_non_affectes']}\n"
-        rapport += f"   • Taux d'affectation: {stats['taux_affectation']:.1f}%\n\n"
-
-        rapport += f"📋 Détail par service:\n"
-        for service in self.services:
-            voyages = solver.voyages_affectes.get(service, [])
-            rapport += f"\n   🚌 Service {service.num_service} ({service.type_service}):\n"
-
-            if voyages:
-                if service.num_service in stats.get('par_service', {}):
-                    s_stats = stats['par_service'][service.num_service]
-                    h_debut = f"{s_stats['debut'] // 60:02d}h{s_stats['debut'] % 60:02d}"
-                    h_fin = f"{s_stats['fin'] // 60:02d}h{s_stats['fin'] % 60:02d}"
-                    rapport += f"      • {s_stats['nb_voyages']} voyages\n"
-                    rapport += f"      • Plage: {h_debut} - {h_fin}\n"
-                    rapport += f"      • Temps de pause: {s_stats['temps_pause']} min\n"
-            else:
-                rapport += f"      • Aucun voyage affecté\n"
-
-        if solver.voyages_non_affectes:
-            rapport += f"\n⚠️ Voyages non affectés ({len(solver.voyages_non_affectes)}):\n"
-            for v in solver.voyages_non_affectes[:10]:  # Limiter à 10
-                h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
-                h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
-                rapport += f"   • V{v.num_voyage} ({v.num_ligne}): {h_d}-{h_f}\n"
-            if len(solver.voyages_non_affectes) > 10:
-                rapport += f"   ... et {len(solver.voyages_non_affectes) - 10} autres\n"
-
-        # Afficher dans une fenêtre
-        fenetre_rapport = ctk.CTkToplevel(self)
-        fenetre_rapport.title("Rapport d'optimisation")
-        fenetre_rapport.geometry("500x600")
-        fenetre_rapport.transient(self)
-        fenetre_rapport.grab_set()
-
-        # Titre
         ctk.CTkLabel(
-            fenetre_rapport,
-            text="🎯 Optimisation OR-Tools",
+            dialog, text="📊 Rapport d'optimisation OR-Tools",
             font=("Arial", 18, "bold")
-        ).pack(pady=10)
-
-        # Zone de texte scrollable
-        text_frame = ctk.CTkScrollableFrame(fenetre_rapport)
-        text_frame.pack(fill="both", expand=True, padx=20, pady=10)
-
-        ctk.CTkLabel(
-            text_frame,
-            text=rapport,
-            font=("Courier", 11),
-            justify="left",
-            anchor="nw"
-        ).pack(fill="both", expand=True)
-
-        # Bouton fermer
-        ctk.CTkButton(
-            fenetre_rapport,
-            text="Fermer",
-            command=fenetre_rapport.destroy,
-            width=150,
-            height=40
         ).pack(pady=15)
 
-    def exporter_planning(self):
-        msgbox.showinfo("Info", "Fonction: Exporter planning")
+        # Stats globales
+        stats = solver.statistiques
 
-    def valider_planning(self):
-        msgbox.showinfo("Info", "Fonction: Valider planning")
+        frame_global = ctk.CTkFrame(dialog)
+        frame_global.pack(fill="x", padx=20, pady=10)
 
+        text_global = f"✅ Voyages affectés : {stats['voyages_affectes']} / {stats['total_voyages']}\n"
+        text_global += f"📈 Taux d'affectation : {stats['taux_affectation']:.1f}%\n"
+        text_global += f"⚠️ Non affectés : {stats['voyages_non_affectes']}"
 
-if __name__ == "__main__":
-    app = ctk.CTk()
-    app.title("Test Interface - Tab 5")
-    app.geometry("1920x1080")
+        ctk.CTkLabel(frame_global, text=text_global, font=("Arial", 12), justify="left").pack(pady=10)
 
-    interface = Interface(app)
-    interface.pack(fill="both", expand=True)
+        # Détail par service
+        frame_detail = ctk.CTkScrollableFrame(dialog, height=280)
+        frame_detail.pack(fill="both", expand=True, padx=20, pady=10)
 
-    app.mainloop()
+        ctk.CTkLabel(
+            frame_detail, text="📋 Détail par service",
+            font=("Arial", 14, "bold")
+        ).pack(pady=10)
+
+        for service in solver.services:
+            if service.num_service in stats['par_service']:
+                s = stats['par_service'][service.num_service]
+
+                frame_s = ctk.CTkFrame(frame_detail, fg_color="#2b2b2b", corner_radius=8)
+                frame_s.pack(fill="x", pady=5, padx=5)
+
+                h_deb = f"{s['debut'] // 60:02d}h{s['debut'] % 60:02d}"
+                h_fin = f"{s['fin'] // 60:02d}h{s['fin'] % 60:02d}"
+
+                text_s = f"🚌 Service {service.num_service} ({service.type_service})\n"
+                text_s += f"   📊 Total : {s['nb_voyages']} voyages\n"
+                text_s += f"   ➕ Existants : {s['nb_existants']} | Nouveaux : {s['nb_nouveaux']}\n"
+                text_s += f"   🕐 Plage : {h_deb} - {h_fin}\n"
+                text_s += f"   ⏱️ Pause max : {s['pause_max']} min\n"
+
+                if s['ruptures_geo'] > 0:
+                    text_s += f"   ⚠️ Ruptures géo : {s['ruptures_geo']}"
+                else:
+                    text_s += f"   ✅ Continuité géo parfaite"
+
+                ctk.CTkLabel(frame_s, text=text_s, font=("Arial", 10), justify="left").pack(pady=8, padx=10)
+
+        # Voyages non affectés
+        if solver.voyages_non_affectes:
+            ctk.CTkLabel(
+                frame_detail,
+                text=f"\n⚠️ {len(solver.voyages_non_affectes)} voyage(s) non affecté(s)",
+                font=("Arial", 12, "bold"),
+                text_color="orange"
+            ).pack(pady=5)
+
+            for v in solver.voyages_non_affectes[:10]:
+                h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
+                h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
+                ctk.CTkLabel(
+                    frame_detail,
+                    text=f"   V{v.num_voyage} | {v.num_ligne} | {h_d}-{h_f} | {v.arret_debut[:8]}→{v.arret_fin[:8]}",
+                    font=("Arial", 9)
+                ).pack()
+
+            if len(solver.voyages_non_affectes) > 10:
+                ctk.CTkLabel(
+                    frame_detail,
+                    text=f"   ... et {len(solver.voyages_non_affectes) - 10} autre(s)",
+                    font=("Arial", 9, "italic")
+                ).pack()
+
+        ctk.CTkButton(
+            dialog, text="Fermer",
+            command=dialog.destroy,
+            height=40,
+            width=150
+        ).pack(pady=15)
