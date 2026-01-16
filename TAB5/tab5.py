@@ -2,7 +2,7 @@ from logging import setLogRecordFactory
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
-from solverortool import optimiser_services, SolverOrTools
+
 from objet import voyage, service_agent, proposition
 from tabelauCSV import window_tableau_csv
 
@@ -576,38 +576,18 @@ class Interface(ctk.CTkFrame):
         }
 
     def supprimer_service(self, service):
-        """Supprime un service et remet ses voyages comme disponibles"""
-
-        # Remettre les voyages du service comme disponibles
-        for voyage in service.voyages:
-            for idx, v in enumerate(self.voyages_disponibles):
-                if v == voyage:
-                    item_id = f"v_{idx}"
-                    if self.tree_voyages.exists(item_id):
-                        values = list(self.tree_voyages.item(item_id, 'values'))
-                        values[0] = '☐'
-                        self.tree_voyages.item(item_id, values=values, tags=())
-                    break
-
-        # Supprimer le widget
         if service in self.widgets_service:
             self.widgets_service[service]['frame'].destroy()
             del self.widgets_service[service]
 
-        # Retirer de la liste des services
         if service in self.services:
             self.services.remove(service)
 
-        # Réinitialiser si c'était le service actif
         if self.service_actif == service:
             self.service_actif = None
             self.label_selection_actif.configure(text="Aucun service sélectionné")
             self.label_details.configure(text="Sélectionnez un service\npour voir les détails")
             self.frame_coupure.pack_forget()
-
-            # Vider la liste des voyages dans le panneau droit
-            for widget in self.frame_voyages_liste.winfo_children():
-                widget.destroy()
 
     def selectionner_service(self, service):
         self.service_actif = service
@@ -723,35 +703,18 @@ class Interface(ctk.CTkFrame):
             frame_voyage = ctk.CTkFrame(self.frame_voyages_liste)
             frame_voyage.pack(fill="x", pady=2)
 
-            # Label avec infos du voyage
             ctk.CTkLabel(
                 frame_voyage,
                 text=f"V{v.num_voyage} | {v.num_ligne} | {h_d}-{h_f}",
                 font=("Arial", 10)
             ).pack(side="left", padx=5)
 
-            # Bouton supprimer
-            btn_suppr = ctk.CTkButton(
-                frame_voyage,
-                text="✕",
-                width=25,
-                height=25,
-                fg_color="#f44336",
-                hover_color="#d32f2f",
-                command=lambda voyage=v, srv=service: self.retirer_voyage_du_service(voyage, srv)
-            )
-            btn_suppr.pack(side="right", padx=5)
-
     def mettre_a_jour_widget_service(self, service):
-        """Met à jour l'affichage d'un widget service après modification"""
         if service in self.widgets_service:
             widgets = self.widgets_service[service]
-
-            # Rafraîchir la timeline
             widgets['timeline'].service = service
             widgets['timeline'].rafraichir()
 
-            # Mettre à jour le label info
             nb_voyages = len(service.voyages)
             duree = service.duree_services()
             heures = duree // 60
@@ -759,33 +722,6 @@ class Interface(ctk.CTkFrame):
             widgets['label_info'].configure(
                 text=f"{nb_voyages} voyage(s) - Durée: {heures}h{minutes:02d}"
             )
-
-    def retirer_voyage_du_service(self, voyage, service):
-        """Retire un voyage d'un service et le remet dans la liste disponible"""
-
-        # Retirer le voyage du service
-        if voyage in service.voyages:
-            service.voyages.remove(voyage)
-
-        # Remettre le voyage comme disponible dans le treeview
-        for idx, v in enumerate(self.voyages_disponibles):
-            if v == voyage:
-                item_id = f"v_{idx}"
-                if self.tree_voyages.exists(item_id):
-                    values = list(self.tree_voyages.item(item_id, 'values'))
-                    values[0] = '☐'
-                    self.tree_voyages.item(item_id, values=values, tags=())
-                break
-
-        # Mettre à jour l'affichage
-        self.mettre_a_jour_widget_service(service)
-        self.afficher_detail_service(service)
-
-        # Message de confirmation
-        h_d = f"{voyage.hdebut // 60:02d}h{voyage.hdebut % 60:02d}"
-        h_f = f"{voyage.hfin // 60:02d}h{voyage.hfin % 60:02d}"
-        msgbox.showinfo("Voyage retiré",
-                        f"Voyage V{voyage.num_voyage} ({h_d}-{h_f}) retiré du service {service.num_service}")
 
     # ═══════════════════════════════════════════════════════════════════════
     # MÉTHODES LIMITES
@@ -981,293 +917,21 @@ class Interface(ctk.CTkFrame):
     # MÉTHODES PLACEHOLDER
     # ═══════════════════════════════════════════════════════════════════════
     def completer_avec_ortools(self):
-        """Complète les services avec OR-Tools"""
+        msgbox.showinfo("Info", "Fonction: Optimiser avec OR-Tools")
 
-        if not self.services:
-            msgbox.showwarning("Attention", "Créez d'abord au moins un service")
-            return
+    def exporter_planning(self):
+        msgbox.showinfo("Info", "Fonction: Exporter planning")
 
-        # Vérifier que les services ont des limites définies
-        services_sans_limites = []
-        for s in self.services:
-            if getattr(s, 'heure_debut', None) is None or getattr(s, 'heure_fin', None) is None:
-                services_sans_limites.append(s.num_service)
+    def valider_planning(self):
+        msgbox.showinfo("Info", "Fonction: Valider planning")
 
-        if services_sans_limites:
-            msgbox.showwarning(
-                "Attention",
-                f"Les services suivants n'ont pas de limites définies:\n"
-                f"{', '.join(map(str, services_sans_limites))}\n\n"
-                "Définissez les limites horaires avant d'optimiser."
-            )
-            return
 
-        # Récupérer les voyages non assignés (ceux qui n'ont pas le ✓)
-        voyages_non_assignes = []
-        for idx, v in enumerate(self.voyages_disponibles):
-            item_id = f"v_{idx}"
-            if self.tree_voyages.exists(item_id):
-                values = self.tree_voyages.item(item_id, 'values')
-                if values[0] != '✓':  # Pas encore assigné
-                    voyages_non_assignes.append(v)
+if __name__ == "__main__":
+    app = ctk.CTk()
+    app.title("Test Interface - Tab 5")
+    app.geometry("1920x1080")
 
-        if not voyages_non_assignes:
-            msgbox.showinfo("Info", "Tous les voyages sont déjà assignés !")
-            return
+    interface = Interface(app)
+    interface.pack(fill="both", expand=True)
 
-        # Dialogue de configuration
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("🤖 Optimisation OR-Tools")
-        dialog.geometry("500x500")
-        dialog.transient(self)
-        dialog.grab_set()
-
-        ctk.CTkLabel(
-            dialog, text="🤖 Optimisation avec OR-Tools",
-            font=("Arial", 18, "bold")
-        ).pack(pady=15)
-
-        info_text = f"📊 Services : {len(self.services)}\n"
-        info_text += f"📋 Voyages à affecter : {len(voyages_non_assignes)}\n"
-        info_text += f"📋 Voyages déjà assignés : {len(self.voyages_disponibles) - len(voyages_non_assignes)}\n\n"
-        info_text += "⚙️ Contraintes :\n"
-        info_text += "  • Pause min (géo OK) : configurable\n"
-        info_text += "  • Pause min (géo KO) : 10 min\n"
-        info_text += "  • Pause max : configurable\n"
-        info_text += "  • Répartition équitable entre services\n"
-
-        ctk.CTkLabel(dialog, text=info_text, font=("Arial", 11), justify="left").pack(pady=10)
-
-        frame_config = ctk.CTkFrame(dialog)
-        frame_config.pack(padx=20, pady=10)
-
-        # Pause minimum
-        ctk.CTkLabel(frame_config, text="⏱️ Pause minimum (géo OK) :", font=("Arial", 11)).pack(pady=5)
-        entry_pause_min = ctk.CTkEntry(frame_config, width=200, height=35)
-        entry_pause_min.insert(0, "5")
-        entry_pause_min.pack(pady=5)
-
-        # Pause maximum
-        ctk.CTkLabel(frame_config, text="⏱️ Pause maximum :", font=("Arial", 11)).pack(pady=5)
-        entry_pause_max = ctk.CTkEntry(frame_config, width=200, height=35)
-        entry_pause_max.insert(0, "60")
-        entry_pause_max.pack(pady=5)
-
-        # Timeout
-        ctk.CTkLabel(frame_config, text="⏳ Timeout (secondes) :", font=("Arial", 11)).pack(pady=5)
-        entry_timeout = ctk.CTkEntry(frame_config, width=200, height=35)
-        entry_timeout.insert(0, "60")
-        entry_timeout.pack(pady=5)
-
-        def lancer():
-            try:
-                pause_min = int(entry_pause_min.get())
-                pause_max = int(entry_pause_max.get())
-                timeout = int(entry_timeout.get())
-                dialog.destroy()
-                self._executer_ortools(voyages_non_assignes, pause_min, pause_max, timeout)
-            except ValueError:
-                msgbox.showerror("Erreur", "Valeurs invalides")
-
-        ctk.CTkButton(
-            dialog, text="🚀 Lancer l'optimisation",
-            command=lancer, height=50,
-            fg_color="#9C27B0", hover_color="#7B1FA2",
-            font=("Arial", 14, "bold")
-        ).pack(pady=20)
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # REMPLACER _executer_ortools PAR :
-    # ═══════════════════════════════════════════════════════════════════════════
-    def _executer_ortools(self, voyages_non_assignes, pause_min, pause_max, timeout):
-        """Exécute l'optimisation avec OR-Tools"""
-
-        try:
-            from solverortool import optimiser_services
-        except ImportError as e:
-            msgbox.showerror(
-                "Erreur",
-                f"Module solverortool non trouvé !\n"
-                f"Assurez-vous que solverortool.py est dans le même dossier.\n\n"
-                f"Erreur: {e}"
-            )
-            return
-
-        # Afficher une fenêtre de progression
-        progress = ctk.CTkToplevel(self)
-        progress.title("Optimisation en cours...")
-        progress.geometry("400x150")
-        progress.transient(self)
-
-        ctk.CTkLabel(
-            progress, text="🔄 Optimisation en cours...",
-            font=("Arial", 14, "bold")
-        ).pack(pady=20)
-
-        progress_label = ctk.CTkLabel(progress, text="Veuillez patienter...")
-        progress_label.pack(pady=10)
-
-        progress.update()
-
-        try:
-            # Lancer le solver
-            solver = optimiser_services(
-                voyages_non_assignes,
-                self.services,
-                min_pause=pause_min,
-                max_pause=pause_max,
-                timeout=timeout
-            )
-
-            progress.destroy()
-
-            if not solver.solution_trouvee:
-                msgbox.showerror(
-                    "Erreur",
-                    "Aucune solution trouvée.\n\n"
-                    "Essayez de :\n"
-                    "• Augmenter la pause maximum\n"
-                    "• Réduire la pause minimum\n"
-                    "• Élargir les limites horaires des services\n"
-                    "• Ajouter plus de services"
-                )
-                return
-
-            # Appliquer les résultats
-            self._appliquer_resultats_solver(solver)
-
-            # Afficher le rapport
-            self._afficher_rapport_ortools(solver)
-
-        except Exception as e:
-            progress.destroy()
-            msgbox.showerror("Erreur", f"Erreur lors de l'optimisation:\n{str(e)}")
-            import traceback
-            traceback.print_exc()
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # REMPLACER _appliquer_resultats_solver PAR :
-    # ═══════════════════════════════════════════════════════════════════════════
-    def _appliquer_resultats_solver(self, solver):
-        """Applique les résultats du solver aux services"""
-
-        # Récupérer uniquement les NOUVEAUX voyages
-        nouveaux_par_service = solver.get_nouveaux_voyages_par_service()
-
-        for service, nouveaux_voyages in nouveaux_par_service.items():
-            for voyage in nouveaux_voyages:
-                # Ajouter au service
-                if voyage not in service.voyages:
-                    service.ajout_voyages(voyage)
-
-                # Marquer comme assigné dans le treeview
-                for idx, v in enumerate(self.voyages_disponibles):
-                    if v == voyage:
-                        item_id = f"v_{idx}"
-                        if self.tree_voyages.exists(item_id):
-                            values = list(self.tree_voyages.item(item_id, 'values'))
-                            values[0] = '✓'
-                            self.tree_voyages.item(item_id, values=values, tags=('disabled',))
-                        break
-
-            # Mettre à jour l'affichage du widget service
-            self.mettre_a_jour_widget_service(service)
-
-        # Rafraîchir le service actif si sélectionné
-        if self.service_actif:
-            self.afficher_detail_service(self.service_actif)
-
-        self.label_selection_actif.configure(text="✅ Optimisation terminée")
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # REMPLACER _afficher_rapport_ortools PAR :
-    # ═══════════════════════════════════════════════════════════════════════════
-    def _afficher_rapport_ortools(self, solver):
-        """Affiche le rapport d'optimisation"""
-
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("📊 Rapport d'optimisation")
-        dialog.geometry("600x550")
-        dialog.transient(self)
-        dialog.grab_set()
-
-        ctk.CTkLabel(
-            dialog, text="📊 Rapport d'optimisation OR-Tools",
-            font=("Arial", 18, "bold")
-        ).pack(pady=15)
-
-        # Stats globales
-        stats = solver.statistiques
-
-        frame_global = ctk.CTkFrame(dialog)
-        frame_global.pack(fill="x", padx=20, pady=10)
-
-        text_global = f"✅ Voyages affectés : {stats['voyages_affectes']} / {stats['total_voyages']}\n"
-        text_global += f"📈 Taux d'affectation : {stats['taux_affectation']:.1f}%\n"
-        text_global += f"⚠️ Non affectés : {stats['voyages_non_affectes']}"
-
-        ctk.CTkLabel(frame_global, text=text_global, font=("Arial", 12), justify="left").pack(pady=10)
-
-        # Détail par service
-        frame_detail = ctk.CTkScrollableFrame(dialog, height=280)
-        frame_detail.pack(fill="both", expand=True, padx=20, pady=10)
-
-        ctk.CTkLabel(
-            frame_detail, text="📋 Détail par service",
-            font=("Arial", 14, "bold")
-        ).pack(pady=10)
-
-        for service in solver.services:
-            if service.num_service in stats['par_service']:
-                s = stats['par_service'][service.num_service]
-
-                frame_s = ctk.CTkFrame(frame_detail, fg_color="#2b2b2b", corner_radius=8)
-                frame_s.pack(fill="x", pady=5, padx=5)
-
-                h_deb = f"{s['debut'] // 60:02d}h{s['debut'] % 60:02d}"
-                h_fin = f"{s['fin'] // 60:02d}h{s['fin'] % 60:02d}"
-
-                text_s = f"🚌 Service {service.num_service} ({service.type_service})\n"
-                text_s += f"   📊 Total : {s['nb_voyages']} voyages\n"
-                text_s += f"   ➕ Existants : {s['nb_existants']} | Nouveaux : {s['nb_nouveaux']}\n"
-                text_s += f"   🕐 Plage : {h_deb} - {h_fin}\n"
-                text_s += f"   ⏱️ Pause max : {s['pause_max']} min\n"
-
-                if s['ruptures_geo'] > 0:
-                    text_s += f"   ⚠️ Ruptures géo : {s['ruptures_geo']}"
-                else:
-                    text_s += f"   ✅ Continuité géo parfaite"
-
-                ctk.CTkLabel(frame_s, text=text_s, font=("Arial", 10), justify="left").pack(pady=8, padx=10)
-
-        # Voyages non affectés
-        if solver.voyages_non_affectes:
-            ctk.CTkLabel(
-                frame_detail,
-                text=f"\n⚠️ {len(solver.voyages_non_affectes)} voyage(s) non affecté(s)",
-                font=("Arial", 12, "bold"),
-                text_color="orange"
-            ).pack(pady=5)
-
-            for v in solver.voyages_non_affectes[:10]:
-                h_d = f"{v.hdebut // 60:02d}h{v.hdebut % 60:02d}"
-                h_f = f"{v.hfin // 60:02d}h{v.hfin % 60:02d}"
-                ctk.CTkLabel(
-                    frame_detail,
-                    text=f"   V{v.num_voyage} | {v.num_ligne} | {h_d}-{h_f} | {v.arret_debut[:8]}→{v.arret_fin[:8]}",
-                    font=("Arial", 9)
-                ).pack()
-
-            if len(solver.voyages_non_affectes) > 10:
-                ctk.CTkLabel(
-                    frame_detail,
-                    text=f"   ... et {len(solver.voyages_non_affectes) - 10} autre(s)",
-                    font=("Arial", 9, "italic")
-                ).pack()
-
-        ctk.CTkButton(
-            dialog, text="Fermer",
-            command=dialog.destroy,
-            height=40,
-            width=150
-        ).pack(pady=15)
+    app.mainloop()
