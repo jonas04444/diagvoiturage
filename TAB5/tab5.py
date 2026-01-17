@@ -810,18 +810,22 @@ class Interface(ctk.CTkFrame):
                         voyages_hors_limites.append(f"V{v.num_voyage} ({h_d}-{h_f}) - dans la coupure")
 
             if voyages_hors_limites:
-                message = "⚠️ Ces voyages seront hors des nouvelles limites:\n\n"
+                message = "⚠️ Ces voyages seront supprimés:\n\n"
                 message += "\n".join(voyages_hors_limites)
-                message += "\n\nAppliquer quand même?"
-                if not msgbox.askyesno("Voyages hors limites", message):
+                message += "\n\nContinuer?"
+                if msgbox.askyesno("Voyages hors limites", message):
+                    # Garder seulement les voyages valides
+                    self.service_actif.voyages = [v for v in self.service_actif.voyages
+                                                  if self.service_actif.voyage_dans_limites(v)[0]]
+                else:
                     return
 
-            # Appliquer les limites
+
             self.service_actif.set_limites(limite_debut, limite_fin)
+
             if coupure_debut is not None and coupure_fin is not None:
                 self.service_actif.set_coupure(coupure_debut, coupure_fin)
 
-            # Mettre à jour l'affichage
             self.afficher_detail_service(self.service_actif)
             self.mettre_a_jour_widget_service(self.service_actif)
 
