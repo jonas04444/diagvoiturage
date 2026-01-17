@@ -11,7 +11,10 @@ class service_agent:
         self.heure_debut_coupure = None
         self.heure_fin_coupure = None
 
-    def ajout_voyages(self, voyage):
+    def ajouter_voyage(self, voyage):
+        valide, erreur = self.voyage_dans_limites(voyage)
+        if not valide:
+            raise ValueError(f"Voyage invalide: {erreur}")
         self.voyages.append(voyage)
 
     def get_voyages(self):
@@ -53,6 +56,10 @@ class service_agent:
         if self.heure_debut_coupure is not None and self.heure_fin_coupure is not None:
             return self.heure_fin_coupure - self.heure_debut_coupure
         return 0
+
+    def duree_travail_effective(self):
+        duree_totale = self.duree_services()
+        return duree_totale - self.duree_coupure()
 
     def __str__(self):
         if not self.voyages:
