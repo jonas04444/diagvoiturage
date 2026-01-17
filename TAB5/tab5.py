@@ -845,7 +845,7 @@ class Interface(ctk.CTkFrame):
         return None
 
     def ajouter_voyages_au_service(self):
-        """Ajoute les voyages sélectionnés au service actif"""
+
         if not self.service_actif:
             msgbox.showwarning("Attention", "Veuillez d'abord sélectionner un service")
             return
