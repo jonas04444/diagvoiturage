@@ -19,7 +19,7 @@ class TimeLineWisuelle(ctk.CTkFrame):
         self.canvas = Canvas(
             self,
             bg="#2b2b2b",
-            height=150,
+            height=80,
             width=self.largeur_minimale,
             highlightthickness=1,
             highlightbackground="#555555"
@@ -507,9 +507,7 @@ class Interface(ctk.CTkFrame):
         nb_selectionnes = len(self.voyages_selectionnes)
         self.label_selection.configure(text=f"{nb_selectionnes} voyage(s) sélectionné(s)")
 
-    # ═══════════════════════════════════════════════════════════════════════
-    # MÉTHODES SERVICE
-    # ═══════════════════════════════════════════════════════════════════════
+
     def creer_nouveau_service(self):
         type_service = self.combo_type_service.get()
         nouveau_service = service_agent(
@@ -559,7 +557,7 @@ class Interface(ctk.CTkFrame):
         )
         btn_selectionner.pack(side="right", padx=5)
 
-        timeline = TimeLineWisuelle(frame_service, service=service, height=120)
+        timeline = TimeLineWisuelle(frame_service, service=service, height=60)
         timeline.pack(fill="x", padx=10, pady=5)
 
         label_info = ctk.CTkLabel(
