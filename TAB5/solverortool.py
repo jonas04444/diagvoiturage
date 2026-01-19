@@ -398,37 +398,68 @@ if __name__ == "__main__":
 
     # Créer quelques voyages de test
     voyages_test = [
-        voyage("L1", 1, "GAR-Gare", "CEN-Centre", "06:00", "06:30"),
-        voyage("L1", 2, "CEN-Centre", "MAI-Mairie", "06:35", "07:00"),
-        voyage("L1", 3, "MAI-Mairie", "GAR-Gare", "07:10", "07:40"),
-        voyage("L1", 4, "GAR-Gare", "CEN-Centre", "07:50", "08:20"),
-        voyage("L1", 5, "CEN-Centre", "MAI-Mairie", "08:30", "09:00"),
-        voyage("L1", 6, "MAI-Mairie", "GAR-Gare", "09:10", "09:40"),
-        voyage("L1", 7, "GAR-Gare", "CEN-Centre", "14:00", "14:30"),
-        voyage("L1", 8, "CEN-Centre", "MAI-Mairie", "14:40", "15:10"),
-        voyage("L1", 9, "MAI-Mairie", "GAR-Gare", "15:20", "15:50"),
-    ]
-
+        voyage("C00A1", 1, "GOGAR", "CEN05", "05:00", "05:21"),
+        voyage("C00A1", 2, "CEN18", "GOGAR", "04:30", "04:48"),
+        voyage("C00A1", 3, "GOGAR", "CEN05", "05:30", "05:51"),
+        voyage("C00A1", 4, "CEN18", "GOGAR", "05:00", "05:18"),
+        voyage("C0068", 5, "JUMA2", "CEN05", "16:30", "17:02"),
+        voyage("C00A1", 5, "GOGAR", "CEN05", "06:00", "06:21"),
+        voyage("C00A1", 6, "CEN18", "GOGAR", "05:30", "05:48"),
+        voyage("C00A1", 7, "GOGAR", "CEN05", "06:30", "06:51"),
+        voyage("C00A1", 8, "CEN18", "GOGAR", "06:00", "06:18"),
+        voyage("C00A1", 9, "GOGAR", "CEN05", "07:00", "07:21"),
+        voyage("C00A1", 10, "CEN18", "GOGAR", "06:30", "06:48"),
+        voyage("C00A1", 11, "GOGAR", "CEN05", "07:30", "07:51"),
+        voyage("C00A1", 12, "CEN18", "GOGAR", "07:00", "07:18"),
+        voyage("C00A1", 13, "GOGAR", "CEN05", "08:00", "08:21"),
+        voyage("C00A1", 14, "CEN18", "GOGAR", "07:30", "07:48"),
+        voyage("C00A1", 15, "GOGAR", "CEN05", "08:30", "08:51"),
+        voyage("C00A1", 16, "CEN18", "GOGAR", "08:00", "08:18"),
+        voyage("C00A1", 17, "GOGAR", "CEN05", "09:00", "09:21"),
+        voyage("C00A1", 18, "CEN18", "GOGAR", "08:30", "08:48"),
+        voyage("C00A1", 19, "GOGAR", "CEN05", "09:30", "09:51"),
+        voyage("C00A1", 20, "CEN18", "GOGAR", "09:00", "09:18"),
+        voyage("C00A1", 21, "GOGAR", "CEN05", "10:00", "10:21"),
+        voyage("C00A1", 22, "CEN18", "GOGAR", "09:30", "09:48"),
+        voyage("C00A1", 23, "GOGAR", "CEN05", "10:30", "10:51"),
+        voyage("C00A1", 24, "CEN18", "GOGAR", "10:00", "10:18"),
+        voyage("C00A1", 25, "GOGAR", "CEN05", "11:00", "11:21"),
+        voyage("C00A1", 26, "CEN18", "GOGAR", "10:30", "10:48"),
+        voyage("C00A1", 27, "GOGAR", "CEN05", "11:30", "11:51"),
+        voyage("C00A1", 28, "CEN18", "GOGAR", "11:00", "11:18"),
+        voyage("C00A1", 29, "GOGAR", "CEN05", "12:00", "12:21"),
+        voyage("C00A1", 30, "CEN18", "GOGAR", "11:30", "11:48"),
+        voyage("C00A1", 31, "GOGAR", "CEN05", "12:30", "12:51"),
+        voyage("C00A1", 32, "CEN18", "GOGAR", "12:00", "12:18"),
+        voyage("C00A1", 33, "GOGAR", "CEN05", "13:00", "13:21"),
+        voyage("C00A1", 34, "CEN18", "GOGAR", "12:30", "12:48"),
+        ]
     # Créer les services avec la fonction utilitaire
     configs_services = [
         {
             'num_service': 1,
             'type_service': 'matin',
-            'heure_debut': '06:00',
-            'heure_fin': '10:00'
+            'heure_debut': '04:00',
+            'heure_fin': '23:00'
         },
         {
             'num_service': 2,
             'type_service': 'apres-midi',
-            'heure_debut': '14:00',
-            'heure_fin': '16:00'
+            'heure_debut': '04:00',
+            'heure_fin': '23:00'
+        },
+        {
+            'num_service': 3,
+            'type_service': 'apres-midi',
+            'heure_debut': '04:00',
+            'heure_fin': '23:00'
         }
     ]
     services = creer_services_vides(configs_services)
 
     # Résoudre
     solver = VoyageSolver(voyages_test, services)
-    solutions = solver.resoudre(max_solutions=5)
+    solutions = solver.resoudre(max_solutions=10)
 
     # Afficher les solutions
     for i, prop in enumerate(solutions, 1):
@@ -436,41 +467,3 @@ if __name__ == "__main__":
 
     resumer_propositions(solutions)
 
-    # ============================================================
-    print("\n\n")
-    print("="*60)
-    print("EXEMPLE 2: Service coupé (avec pause déjeuner)")
-    print("="*60)
-
-    voyages_coupe = [
-        voyage("L2", 1, "DEP-Dépôt", "HOP-Hôpital", "07:00", "07:45"),
-        voyage("L2", 2, "HOP-Hôpital", "GAR-Gare", "07:55", "08:30"),
-        voyage("L2", 3, "GAR-Gare", "DEP-Dépôt", "08:40", "09:15"),
-        voyage("L2", 4, "DEP-Dépôt", "HOP-Hôpital", "09:25", "10:00"),
-        voyage("L2", 5, "HOP-Hôpital", "GAR-Gare", "10:10", "10:45"),
-        voyage("L2", 6, "GAR-Gare", "DEP-Dépôt", "10:55", "11:30"),
-        # Après la pause
-        voyage("L2", 7, "DEP-Dépôt", "HOP-Hôpital", "14:00", "14:45"),
-        voyage("L2", 8, "HOP-Hôpital", "GAR-Gare", "14:55", "15:30"),
-        voyage("L2", 9, "GAR-Gare", "DEP-Dépôt", "15:40", "16:15"),
-    ]
-
-    config_coupe = [
-        {
-            'num_service': 1,
-            'type_service': 'coupé',
-            'heure_debut': '07:00',
-            'heure_fin': '17:00',
-            'heure_debut_coupure': '12:00',
-            'heure_fin_coupure': '14:00'
-        }
-    ]
-    services_coupe = creer_services_vides(config_coupe)
-
-    solver2 = VoyageSolver(voyages_coupe, services_coupe)
-    solutions2 = solver2.resoudre(max_solutions=3)
-
-    for i, prop in enumerate(solutions2, 1):
-        afficher_proposition(prop, i)
-
-    resumer_propositions(solutions2)
