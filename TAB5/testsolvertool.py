@@ -32,19 +32,7 @@ Utilisation:
 """
 
 from ortools.sat.python import cp_model
-from objet import service_agent, voyage, proposition
-
-
-class hlp:
-    """Haut Le Pied - trajet à vide entre deux arrêts"""
-
-    def __init__(self, arret_depart, arret_arrivee, duree_minutes):
-        self.arret_depart = arret_depart
-        self.arret_arrivee = arret_arrivee
-        self.duree = duree_minutes
-
-    def __repr__(self):
-        return f"  ⚠ HLP: {self.arret_depart} → {self.arret_arrivee} ({self.duree} min)"
+from objet import service_agent, voyage, proposition,hlp
 
 class SolutionCollector(cp_model.CpSolverSolutionCallback):
     """Collecte toutes les solutions trouvées par le solveur."""
@@ -401,6 +389,145 @@ def resumer_propositions(propositions):
         print(f"  Proposition {i}: {total} voyages - Répartition: {repartition}")
 
 
+# ============================================================
+# GESTION DES HLP (Haut Le Pied)
+# ============================================================
+
+# ============================================================
+# GESTION DES HLP (Haut Le Pied)
+# ============================================================
+
+from objet import hlp
+
+
+def detecter_hlp_necessaires(prop):
+    """
+    Analyse une proposition et détecte les HLP nécessaires.
+
+    Returns:
+        Liste de dictionnaires décrivant chaque HLP nécessaire
+    """
+    hlp_requis = []
+
+    for service in prop.service:
+        voyages = sorted(service.get_voyages(), key=lambda v: v.hdebut)
+
+        for i in range(len(voyages) - 1):
+            v1 = voyages[i]
+            v2 = voyages[i + 1]
+
+            arret_fin = v1.arret_fin_id()
+            arret_debut = v2.arret_debut_id()
+
+            if arret_fin != arret_debut:
+                hlp_requis.append({
+                    'service': service,
+                    'voyage_avant': v1,
+                    'voyage_apres': v2,
+                    'arret_depart': v1.arret_fin,  # ← c'était bon
+                    'arret_arrivee': v2.arret_debut,  # ← CORRIGÉ : arret_debut au lieu de arret_depart
+                    'temps_disponible': v2.hdebut - v1.hfin,
+                    'heure_debut_possible': v1.hfin
+                })
+
+    return hlp_requis
+
+
+def afficher_hlp_requis(hlp_requis):
+    """Affiche les HLP nécessaires."""
+    if not hlp_requis:
+        print("\n✓ Aucun HLP nécessaire.")5
+        return
+
+    print(f"\n⚠ {len(hlp_requis)} HLP nécessaire(s):")
+    print("-" * 50)
+
+    for i, h in enumerate(hlp_requis, 1):
+        v1 = h['voyage_avant']
+        v2 = h['voyage_apres']
+        print(f"\n  HLP #{i} - Service {h['service'].num_service}:")
+        print(f"    Après:  Voyage {v1.num_voyage} finit à {v1.arret_fin} ({voyage.minutes_to_time(v1.hfin)})")
+        print(
+            f"    Avant:  Voyage {v2.num_voyage} part de {v2.arret_debut} ({voyage.minutes_to_time(v2.hdebut)})")  # ← CORRIGÉ
+        print(f"    Trajet: {h['arret_depart']} → {h['arret_arrivee']}")
+        print(f"    Temps disponible: {h['temps_disponible']} min")
+
+def configurer_hlp_interactif(hlp_requis):
+    """
+    Demande à l'utilisateur de configurer les HLP.
+
+    Returns:
+        True si tous les HLP ont été configurés, False sinon
+    """
+    if not hlp_requis:
+        return True
+
+    afficher_hlp_requis(hlp_requis)
+
+    print("\n" + "=" * 50)
+    reponse = input("Voulez-vous configurer ces HLP ? (o/n): ").strip().lower()
+
+    if reponse != 'o':
+        print("Configuration annulée.")
+        return False
+
+    for i, h in enumerate(hlp_requis, 1):
+        print(f"\nHLP #{i}: {h['arret_depart']} → {h['arret_arrivee']}")
+        print(f"  Temps disponible: {h['temps_disponible']} min (5 min de battement recommandées)")
+
+        duree_max = h['temps_disponible'] - 5
+
+        while True:
+            reponse = input(f"  Durée du HLP en minutes (max {duree_max}, 'n' pour ignorer): ").strip()
+
+            if reponse.lower() == 'n':
+                print("  → HLP ignoré")
+                break
+
+            try:
+                duree = int(reponse)
+                if duree <= 0:
+                    print("  ✗ La durée doit être positive")
+                elif duree > duree_max:
+                    print(f"  ✗ Trop long ! Maximum: {duree_max} min")
+                else:
+                    # Créer et ajouter le HLP au service
+                    nouveau_hlp = hlp(
+                        arret_depart=h['arret_depart'],
+                        arret_arrivee=h['arret_arrivee'],
+                        duree=duree,
+                        heure_debut=h['heure_debut_possible']
+                    )
+                    h['service'].ajouter_hlp(nouveau_hlp)
+                    print(f"  ✓ HLP ajouté ({duree} min)")
+                    break
+            except ValueError:
+                print("  ✗ Entrez un nombre valide")
+
+    return True
+
+
+def analyser_et_configurer_proposition(prop, numero=1):
+    """
+    Affiche une proposition, détecte les HLP et permet de les configurer.
+    """
+    afficher_proposition(prop, numero)
+
+    hlp_requis = detecter_hlp_necessaires(prop)
+
+    if hlp_requis:
+        configurer_hlp_interactif(hlp_requis)
+
+        # Réafficher avec les HLP
+        print("\n" + "=" * 60)
+        print("PROPOSITION MISE À JOUR:")
+        print("=" * 60)
+        afficher_proposition(prop, numero)
+    else:
+        print("\n✓ Tous les enchaînements sont valides, aucun HLP nécessaire.")
+
+    return prop
+
 # Exemple d'utilisation
 if __name__ == "__main__":
     print("="*60)
@@ -470,11 +597,21 @@ if __name__ == "__main__":
 
     # Résoudre
     solver = VoyageSolver(voyages_test, services)
-    solutions = solver.resoudre(max_solutions=10)
+    solutions = solver.resoudre(max_solutions=5)
 
-    # Afficher les solutions
-    for i, prop in enumerate(solutions, 1):
-        afficher_proposition(prop, i)
-
+    # Résumé
     resumer_propositions(solutions)
 
+    # Sélection et configuration
+    if solutions:
+        print("\n" + "=" * 60)
+        choix = input(f"Quelle proposition analyser ? (1-{len(solutions)}): ").strip()
+
+        try:
+            idx = int(choix) - 1
+            if 0 <= idx < len(solutions):
+                analyser_et_configurer_proposition(solutions[idx], idx + 1)
+            else:
+                print("Numéro invalide")
+        except ValueError:
+            print("Entrez un numéro valide")
