@@ -436,7 +436,7 @@ def detecter_hlp_necessaires(prop):
 def afficher_hlp_requis(hlp_requis):
     """Affiche les HLP nécessaires."""
     if not hlp_requis:
-        print("\n✓ Aucun HLP nécessaire.")5
+        print("\n✓ Aucun HLP nécessaire.")
         return
 
     print(f"\n⚠ {len(hlp_requis)} HLP nécessaire(s):")
@@ -536,7 +536,7 @@ if __name__ == "__main__":
 
     # Créer quelques voyages de test
     voyages_test = [
-        voyage("C00A1", 1, "GOGAR", "CEN05", "05:00", "05:21"),
+        #voyage("C00A1", 1, "GOGAR", "CEN05", "05:00", "05:21"),
         voyage("C00A1", 2, "CEN18", "GOGAR", "04:30", "04:48"),
         voyage("C00A1", 3, "GOGAR", "CEN05", "05:30", "05:51"),
         voyage("C00A1", 4, "CEN18", "GOGAR", "05:00", "05:18"),
@@ -593,11 +593,17 @@ if __name__ == "__main__":
             'heure_fin': '23:00'
         }
     ]
-    services = creer_services_vides(configs_services)
+    servicetest = service_agent(1,"matin")
+    servicetest.set_limites(voyage.time_to_minutes('04:00'), voyage.time_to_minutes('12:00'))
+    v = voyage("C00A1", 1, "GOGAR", "CEN05", "05:00", "05:21")
+    servicetest.ajouter_voyage(v)
+
+    tous_service = configs_services + [servicetest]
+    services = creer_services_vides(tous_service)
 
     # Résoudre
     solver = VoyageSolver(voyages_test, services)
-    solutions = solver.resoudre(max_solutions=5)
+    solutions = solver.resoudre(max_solutions=10)
 
     # Résumé
     resumer_propositions(solutions)
