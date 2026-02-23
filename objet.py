@@ -2,12 +2,7 @@ from ortools.sat.python import cp_model
 
 
 class hlp:
-    """
-    Haut Le Pied - trajet à vide entre deux arrêts.
 
-    Utilisé quand un chauffeur doit se repositionner entre deux voyages
-    dont les arrêts ne s'enchaînent pas.
-    """
 
     def __init__(self, arret_depart, arret_arrivee, duree, heure_debut=None):
         """
@@ -113,12 +108,6 @@ class service_agent:
         return sum(h.duree for h in self.hlps)
 
     def get_elements_chronologiques(self):
-        """
-        Retourne tous les éléments (voyages et HLP) triés chronologiquement.
-
-        Returns:
-            Liste de tuples (type, element) où type est 'voyage' ou 'hlp'
-        """
         elements = []
 
         for v in self.voyages:
