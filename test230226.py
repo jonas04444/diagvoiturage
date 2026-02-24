@@ -7,16 +7,23 @@ voyages_test = [
         voyage("35", "V4", "Station C", "Station A", "08:15", "09:00"),
     ]
 
-service_agent = []
+servicetest = service_agent(num_service=1, type_service="matin")
+
 for i in range(len(voyages_test)):
     for j in range(i+1, len(voyages_test)):
         voy = voyages_test[i]
         voy2 = voyages_test[j]
 
-        """if voy.num_ligne == voy2.num_ligne:
-            print(voy.num_ligne)"""
-        print (min(voy.hdebut))
-        if voy.hdebut < voy2.hfin and voy.arret_fin == voy2.arret_debut:
-            """print(voy.arret_debut, voy.num_voyage, voy2.num_voyage)
-            service_agent.append(voy)"""
-            pass
+
+        if (voy.hdebut < voy2.hfin
+                and voy.arret_fin == voy2.arret_debut
+                and voy.num_ligne == "25"
+                and voy2.num_ligne == "25"):
+            #print(voy.arret_debut, voy.num_voyage, voy2.num_voyage)
+            servicetest.ajouter_voyage(voy)
+            servicetest.ajouter_voyage(voy2)
+
+for v in servicetest.get_voyages():
+    print(v.arret_fin, v.num_voyage, v.num_ligne)
+
+print(servicetest)
