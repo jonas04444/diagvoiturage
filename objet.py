@@ -152,7 +152,7 @@ class service_agent:
 
 class voyage:
 
-    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin, js_srv=""):
+    def __init__(self, num_ligne, num_voyage, arret_debut, arret_fin, heure_debut, heure_fin, js_srv="", assigned = False):
         self.num_ligne = num_ligne
         self.num_voyage = num_voyage
         self.arret_debut = arret_debut
@@ -161,6 +161,7 @@ class voyage:
         self.hfin = self.time_to_minutes(heure_fin)
         self.js_srv = js_srv
         self.distance = None
+        self.assigned = assigned
 
     def arret_debut_id(self):
         return self.arret_debut[:3]
