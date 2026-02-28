@@ -131,7 +131,9 @@ class service_agent:
         debut_service = min(v.hdebut for v in self.voyages)
         fin_service = max(v.hfin for v in self.voyages)
 
-        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(self.voyages)} voyages"
+        nums_lignes = ", ".join(v.num_ligne for v in self.voyages)
+
+        result = f"Service {self.num_service} ({self.type_service.upper()}): {len(self.voyages)} voyages [lignes{nums_lignes}]\n"
         if self.hlps:
             result += f", {len(self.hlps)} HLP"
         result += "\n"
@@ -141,7 +143,7 @@ class service_agent:
             if type_elem == 'voyage':
                 result += f"  • Voyage {elem.num_voyage}: {elem.arret_debut} → {elem.arret_fin} "
                 result += f"({voyage.minutes_to_time(elem.hdebut)} - {voyage.minutes_to_time(elem.hfin)})\n"
-            else:  # hlp
+            else:
                 result += f"{elem}\n"
 
         if self.hlps:

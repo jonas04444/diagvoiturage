@@ -5,10 +5,10 @@ voyages_test = [
         voyage("25", "V2", "Station B", "Station A", "07:10", "08:00"),
         voyage("35", "V3", "Station A", "Station C", "06:30", "07:30"),
         voyage("35", "V4", "Station C", "Station A", "08:15", "09:00"),
-        voyage("25", "V5", "Station A", "Station B", "06:00", "07:00"),
-        voyage("25", "V6", "Station B", "Station A", "07:10", "08:00"),
-        voyage("35", "V7", "Station A", "Station C", "08:30", "09:30"),
-        voyage("35", "V8", "Station C", "Station A", "10:15", "11:00"),
+        voyage("45", "V5", "Station A", "Station B", "06:00", "07:00"),
+        voyage("45", "V6", "Station B", "Station A", "07:10", "08:00"),
+        voyage("55", "V7", "Station A", "Station C", "08:30", "09:30"),
+        voyage("55", "V8", "Station C", "Station A", "10:15", "11:00"),
     ]
 
 
