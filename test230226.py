@@ -15,12 +15,26 @@ voyages_test = [
         voyage("75", "V8", "Station C", "Station A", "10:15", "11:00"),
     ]
 
+min_pause = 15
+max_pause = 60
 nb_max_lignes = 1
-def chevauche_service(service, nouveau_voyage):
+max_services = 5
+
+def voyage_compatible(service, nouveau_voyage, min_pause, max_pause):
     for v in service.get_voyages():
         if not (nouveau_voyage.hfin <= v.hdebut or nouveau_voyage.hdebut >= v.hfin):
-            return True
-    return False
+            return False
+
+        if nouveau_voyage.hdebut >= v.hfin:
+            pause = nouveau_voyage.hdebut - v.hfin
+            if not (min_pause <= pause <= max_pause):
+                return False
+
+        if v.hdebut >= nouveau_voyage.hfin:
+            pause = v.hdebut - nouveau_voyage.hfin
+            if not (min_pause <= pause <= max_pause):
+                return False
+    return True
 
 def creer_service(num, voy):
     type_s = "matin" if voy.hdebut <= 600 else "après-midi"
@@ -47,21 +61,27 @@ for i in range(len(voyages_test)):
         voy = voyages_test[i]
         voy2 = voyages_test[j]
 
+        pause_entre = voy2.hdebut - voy.hfin
+
         if (voy.hdebut <= voy2.hfin
                 and voy.hfin <= voy2.hdebut
                 and voy.arret_fin == voy2.arret_debut
                 and voy.assigned == False
-                and voy2.assigned == False):
+                and voy2.assigned == False
+                and min_pause <= pause_entre <= max_pause):
 
             service_cible = None
             for s in propo.service:
-                if (not chevauche_service(s, voy)
-                        and not chevauche_service(s, voy2)
+                if (voyage_compatible(s, voy, min_pause, max_pause)
+                        and voyage_compatible(s, voy2, min_pause, max_pause)
                         and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)):
                     service_cible = s
                     break
 
             if service_cible is None:
+                if len(propo.service) >= max_services:
+                    print(f"⚠ Max services ({max_services}) atteint, impossible d'assigner {voy.num_voyage} et {voy2.num_voyage}")
+                    break
                 service_cible = creer_service(len(propo.service) + 1, voy)
                 propo.ajout_service(service_cible)
 
@@ -72,15 +92,35 @@ for i in range(len(voyages_test)):
             voy2.assigned = True
             break
 
+for voy in voyages_test:
+    if not voy.assigned:
+        service_cible = None
+        for s in propo.service:
+            if (voyage_compatible(s, voy, min_pause, max_pause)
+                    and peut_ajouter_lignes(s, voy, voy, nb_max_lignes)):
+                service_cible = s
+                break
+
+        if service_cible is None:
+            if len(propo.service) >= max_services:
+                print(f"⚠ Max services ({max_services}) atteint, impossible d'assigner {voy.num_voyage} seul")
+                continue
+            service_cible = creer_service(len(propo.service) + 1, voy)
+            propo.ajout_service(service_cible)
+
+        service_cible.ajouter_voyage(voy)
+        voy.assigned = True
+
 voyages_non_asignes = [v for v in voyages_test if not v.assigned]
 if voyages_non_asignes:
-    print("voyages non assignés")
+    print(f"\n⚠ {len(voyages_non_asignes)} voyages non assignés (max_services={max_services} atteint) :")
     for v in voyages_non_asignes:
-        print (f"{v.num_voyage} voyages non asignes")
+        print(f"  - {v.num_voyage} ({v.arret_debut} → {v.arret_fin})")
 else:
-    print("voyages asignes")
+    print("\n✅ Tous les voyages sont assignés !")
 
 print(f"\n=== Proposition {propo.num_proposition} ===")
 print(f"Total voyages : {propo.total_voyages()} / {len(voyages_test)}")
+print(f"Nombre de services : {len(propo.service)} / {max_services}")
 for s in propo.service:
     print(f"\n{s}")
