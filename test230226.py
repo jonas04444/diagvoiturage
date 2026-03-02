@@ -52,6 +52,15 @@ def peut_ajouter_lignes(service, voy, voy2, nb_max_lignes):
     lignes_actuelles.add(voy2.num_ligne)
     return len(lignes_actuelles) <= nb_max_lignes
 
+
+def verifier_pause_minimum(service, pause_min=20):
+    voyages_tries = sorted(service.get_voyages(), key=lambda v: v.hdebut)
+    for i in range(len(voyages_tries) - 1):
+        pause = voyages_tries[i + 1].hdebut - voyages_tries[i].hfin
+        if pause >= pause_min:
+            return True
+    return False
+
 service_cible = creer_service(1, voyages_test[0])
 propo = proposition(num_proposition=1)
 propo.ajout_service(service_cible)
