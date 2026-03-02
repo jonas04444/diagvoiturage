@@ -19,6 +19,7 @@ min_pause = 15
 max_pause = 60
 nb_max_lignes = 1
 max_services = 5
+max_propositions = 5
 
 def voyage_compatible(service, nouveau_voyage, min_pause, max_pause):
     for v in service.get_voyages():
@@ -61,75 +62,105 @@ def verifier_pause_minimum(service, pause_min=20):
             return True
     return False
 
-service_cible = creer_service(1, voyages_test[0])
-propo = proposition(num_proposition=1)
-propo.ajout_service(service_cible)
+def tous_services_ont_pause(propo, pause_min=20):
+    for s in propo.service:
+        if not verifier_pause_minimum(s, pause_min):
+            return False
+    return True
 
-for i in range(len(voyages_test)):
-    for j in range(i+1, len(voyages_test)):
-        voy = voyages_test[i]
-        voy2 = voyages_test[j]
+def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_services, num_proposition):
+    # Réinitialiser les voyages
+    for v in voyages:
+        v.assigned = False
 
-        pause_entre = voy2.hdebut - voy.hfin
+    propo = proposition(num_proposition=num_proposition)
+    service_cible = creer_service(1, voyages[0])
+    propo.ajout_service(service_cible)
 
-        if (voy.hdebut <= voy2.hfin
-                and voy.hfin <= voy2.hdebut
-                and voy.arret_fin == voy2.arret_debut
-                and voy.assigned == False
-                and voy2.assigned == False
-                and min_pause <= pause_entre <= max_pause):
+    for i in range(len(voyages)):
+        for j in range(i+1, len(voyages)):
+            voy = voyages[i]
+            voy2 = voyages[j]
+            pause_entre = voy2.hdebut - voy.hfin
 
+            if (voy.hdebut <= voy2.hfin
+                    and voy.hfin <= voy2.hdebut
+                    and voy.arret_fin == voy2.arret_debut
+                    and not voy.assigned
+                    and not voy2.assigned
+                    and min_pause <= pause_entre <= max_pause):
+
+                service_cible = None
+                for s in propo.service:
+                    if (voyage_compatible(s, voy, min_pause, max_pause)
+                            and voyage_compatible(s, voy2, min_pause, max_pause)
+                            and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)):
+                        service_cible = s
+                        break
+
+                if service_cible is None:
+                    if len(propo.service) >= max_services:
+                        break
+                    service_cible = creer_service(len(propo.service) + 1, voy)
+                    propo.ajout_service(service_cible)
+
+                service_cible.ajouter_voyage(voy)
+                service_cible.ajouter_voyage(voy2)
+                voy.assigned = True
+                voy2.assigned = True
+                break
+
+    for voy in voyages:
+        if not voy.assigned:
             service_cible = None
             for s in propo.service:
                 if (voyage_compatible(s, voy, min_pause, max_pause)
-                        and voyage_compatible(s, voy2, min_pause, max_pause)
-                        and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)):
+                        and peut_ajouter_lignes(s, voy, voy, nb_max_lignes)):
                     service_cible = s
                     break
 
             if service_cible is None:
                 if len(propo.service) >= max_services:
-                    print(f"⚠ Max services ({max_services}) atteint, impossible d'assigner {voy.num_voyage} et {voy2.num_voyage}")
-                    break
+                    continue
                 service_cible = creer_service(len(propo.service) + 1, voy)
                 propo.ajout_service(service_cible)
 
-
             service_cible.ajouter_voyage(voy)
-            service_cible.ajouter_voyage(voy2)
             voy.assigned = True
-            voy2.assigned = True
-            break
 
-for voy in voyages_test:
-    if not voy.assigned:
-        service_cible = None
-        for s in propo.service:
-            if (voyage_compatible(s, voy, min_pause, max_pause)
-                    and peut_ajouter_lignes(s, voy, voy, nb_max_lignes)):
-                service_cible = s
-                break
+    return propo
+propositions = []
+num_proposition  = 1
+max_propositions = 5  # nombre max de propositions à générer
 
-        if service_cible is None:
-            if len(propo.service) >= max_services:
-                print(f"⚠ Max services ({max_services}) atteint, impossible d'assigner {voy.num_voyage} seul")
-                continue
-            service_cible = creer_service(len(propo.service) + 1, voy)
-            propo.ajout_service(service_cible)
+while len(propositions) < max_propositions:
+    print(f"\n🔄 Tentative proposition {num_proposition} | min_pause={min_pause} max_pause={max_pause} nb_max_lignes={nb_max_lignes} max_services={max_services}")
 
-        service_cible.ajouter_voyage(voy)
-        voy.assigned = True
+    propo = essayer_proposition(voyages_test, min_pause, max_pause, nb_max_lignes, max_services, num_proposition)
+    voyages_non_assignes = [v for v in voyages_test if not v.assigned]
 
-voyages_non_asignes = [v for v in voyages_test if not v.assigned]
-if voyages_non_asignes:
-    print(f"\n⚠ {len(voyages_non_asignes)} voyages non assignés (max_services={max_services} atteint) :")
-    for v in voyages_non_asignes:
-        print(f"  - {v.num_voyage} ({v.arret_debut} → {v.arret_fin})")
-else:
-    print("\n✅ Tous les voyages sont assignés !")
+    if not voyages_non_assignes:
+        print(f"✅ Proposition {num_proposition} valide !")
+        propositions.append(propo)
+        num_proposition += 1
 
-print(f"\n=== Proposition {propo.num_proposition} ===")
-print(f"Total voyages : {propo.total_voyages()} / {len(voyages_test)}")
-print(f"Nombre de services : {len(propo.service)} / {max_services}")
-for s in propo.service:
-    print(f"\n{s}")
+    # ← Relaxation progressive des paramètres si échec
+    if min_pause > 0:
+        min_pause = max(0, min_pause - 5)       # on réduit la pause minimum
+    elif max_pause < 120:
+        max_pause += 15                          # on augmente la pause maximum
+    elif nb_max_lignes < 3:
+        nb_max_lignes += 1                       # on accepte plus de lignes
+    elif max_services < 10:
+        max_services += 1                        # on autorise plus de services
+    else:
+        print("⚠ Impossible de trouver d'autres solutions même en relaxant les paramètres")
+        break
+
+# ── Affichage des propositions ─────────────────────────────────────────────────
+for p in propositions:
+    print(f"\n=== Proposition {p.num_proposition} ===")
+    print(f"Total voyages : {p.total_voyages()} / {len(voyages_test)}")
+    print(f"Nombre de services : {len(p.service)}")
+    for s in p.service:
+        print(f"\n{s}")
