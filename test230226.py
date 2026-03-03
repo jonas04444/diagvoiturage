@@ -16,7 +16,7 @@ voyages_test = [
 min_pause = 15
 max_pause = 60
 nb_max_lignes = 1
-max_services = 5
+max_services = 10
 max_propositions = 5
 min_duree_service = 6 * 60
 max_duree_service = 8 * 60 + 30
@@ -136,13 +136,17 @@ def creer_petits_services(voyages, propo, max_services, min_pause, max_pause, nb
         voy.assigned = True
         print(f"  ✅ {voy.num_voyage} ajouté au service {service_cible.num_service}")
 
-def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_services, min_duree, max_duree, num_proposition):
+def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_services, num_proposition):
     for v in voyages:
         v.assigned = False
 
     propo = proposition(num_proposition=num_proposition)
     service_cible = creer_service(1, voyages[0])
     propo.ajout_service(service_cible)
+
+    # ── Boucle 1 : services normaux entre 6h et 8h30 ──────────────────────────
+    min_duree = 6 * 60
+    max_duree = 8 * 60 + 30
 
     for i in range(len(voyages)):
         for j in range(i+1, len(voyages)):
@@ -159,6 +163,8 @@ def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_servic
 
                 service_cible = None
                 for s in propo.service:
+                    if s.petit_service:  # ← on ignore les petits services
+                        continue
                     tous_voyages = s.get_voyages() + [voy, voy2]
                     debut_simule = min(v.hdebut for v in tous_voyages)
                     fin_simulee = max(v.hfin for v in tous_voyages)
@@ -166,15 +172,24 @@ def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_servic
                     if (voyage_compatible(s, voy, min_pause, max_pause)
                             and voyage_compatible(s, voy2, min_pause, max_pause)
                             and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)
-                            and min_duree <= duree_simulee <= max_duree):  # ← vérification durée
+                            and min_duree <= duree_simulee <= max_duree):
                         service_cible = s
                         break
 
                 if service_cible is None:
                     if len(propo.service) >= max_services:
                         break
-                    service_cible = creer_service(len(propo.service) + 1, voy)
+
+                    # ← Vérifier que la paire seule respecte déjà min_duree avant de créer un service normal
+                    duree_paire = voy2.hfin - voy.hdebut
+                    if not (min_duree <= duree_paire <= max_duree):
+                        break  # ← paire trop courte, elle ira en boucle 2
+
+                    service_cible = creer_service(len(propo.service) + 1, voy, petit=False)
                     propo.ajout_service(service_cible)
+
+                if service_cible is None:  # ← si toujours None après le check, on passe au i suivant
+                    break
 
                 service_cible.ajouter_voyage(voy)
                 service_cible.ajouter_voyage(voy2)
@@ -182,23 +197,41 @@ def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_servic
                 voy2.assigned = True
                 break
 
-    for voy in voyages:
-        if not voy.assigned:
+    # ── Boucle 2 : petits services < 4h pour les voyages restants ─────────────
+    max_duree_petit = 4 * 60
+    voyages_non_assignes = [v for v in voyages if not v.assigned]
+
+    if voyages_non_assignes:
+        print(f"\n🔧 {len(voyages_non_assignes)} voyages non assignés → création de petits services (max 4h)")
+        for voy in voyages_non_assignes:
             service_cible = None
+
+            # Chercher un petit service existant compatible
             for s in propo.service:
+                if not s.petit_service:  # ← on ne complète que les petits services
+                    continue
+                tous_voyages = s.get_voyages() + [voy]
+                debut_simule = min(v.hdebut for v in tous_voyages)
+                fin_simulee = max(v.hfin for v in tous_voyages)
+                duree_simulee = fin_simulee - debut_simule
                 if (voyage_compatible(s, voy, min_pause, max_pause)
-                        and peut_ajouter_lignes(s, voy, voy, nb_max_lignes)):
+                        and peut_ajouter_lignes(s, voy, voy, nb_max_lignes)
+                        and duree_simulee <= max_duree_petit):
                     service_cible = s
                     break
 
+            # Aucun petit service compatible → en créer un nouveau
             if service_cible is None:
                 if len(propo.service) >= max_services:
+                    print(f"  ⚠ Max services atteint, impossible d'assigner {voy.num_voyage}")
                     continue
-                service_cible = creer_service(len(propo.service) + 1, voy)
+                service_cible = creer_service(len(propo.service) + 1, voy, petit=True)
                 propo.ajout_service(service_cible)
+                print(f"  ➕ Petit service {service_cible.num_service} créé pour {voy.num_voyage}")
 
             service_cible.ajouter_voyage(voy)
             voy.assigned = True
+            print(f"  ✅ {voy.num_voyage} → service {service_cible.num_service}")
 
     return propo
 
@@ -215,9 +248,8 @@ while len(propositions) < max_propositions:
           f"durée=[{min_duree_service//60}h{min_duree_service%60:02d} - {max_duree_service//60}h{max_duree_service%60:02d}]")
 
     propo = essayer_proposition(voyages_test, min_pause, max_pause, nb_max_lignes,
-                                max_services, min_duree_service, max_duree_service, num_proposition)
-    creer_petits_services(voyages_test, propo, max_services, min_pause, max_pause, nb_max_lignes,
-                          max_duree_petit=4 * 60)
+                                max_services, num_proposition)
+
     voyages_non_assignes = [v for v in voyages_test if not v.assigned]
 
     if (not voyages_non_assignes
