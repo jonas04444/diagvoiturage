@@ -11,30 +11,36 @@ voyages_test = [
         voyage("55", "V8", "Station C", "Station A", "10:15", "11:00"),
         voyage("65", "V5", "Station A", "Station B", "06:00", "07:00"),
         voyage("65", "V6", "Station B", "Station A", "07:10", "08:00"),
-        voyage("75", "V7", "Station A", "Station C", "08:30", "09:30"),
-        voyage("75", "V8", "Station C", "Station A", "10:15", "11:00"),
-    ]
+        ]
 
 min_pause = 15
 max_pause = 60
 nb_max_lignes = 1
 max_services = 5
 max_propositions = 5
+min_duree_service = 6 * 60
+max_duree_service = 8 * 60 + 30
+cible_duree = 7 * 60 + 15
+variation = 0
 
 def voyage_compatible(service, nouveau_voyage, min_pause, max_pause):
     for v in service.get_voyages():
         if not (nouveau_voyage.hfin <= v.hdebut or nouveau_voyage.hdebut >= v.hfin):
             return False
 
-        if nouveau_voyage.hdebut >= v.hfin:
-            pause = nouveau_voyage.hdebut - v.hfin
-            if not (min_pause <= pause <= max_pause):
-                return False
+    voyages_tries = sorted(service.get_voyages() + [nouveau_voyage], key=lambda v: v.hdebut)
+    idx = voyages_tries.index(nouveau_voyage)
 
-        if v.hdebut >= nouveau_voyage.hfin:
-            pause = v.hdebut - nouveau_voyage.hfin
-            if not (min_pause <= pause <= max_pause):
-                return False
+    if idx > 0:
+        pause = nouveau_voyage.hdebut - voyages_tries[idx - 1].hfin
+        if not (min_pause <= pause <= max_pause):
+            return False
+
+    if idx < len(voyages_tries) - 1:
+        pause = voyages_tries[idx + 1].hdebut - nouveau_voyage.hfin
+        if not (min_pause <= pause <= max_pause):
+            return False
+
     return True
 
 def creer_service(num, voy):
@@ -53,23 +59,39 @@ def peut_ajouter_lignes(service, voy, voy2, nb_max_lignes):
     lignes_actuelles.add(voy2.num_ligne)
     return len(lignes_actuelles) <= nb_max_lignes
 
-
-def verifier_pause_minimum(service, pause_min=20):
-    voyages_tries = sorted(service.get_voyages(), key=lambda v: v.hdebut)
-    for i in range(len(voyages_tries) - 1):
-        pause = voyages_tries[i + 1].hdebut - voyages_tries[i].hfin
-        if pause >= pause_min:
-            return True
-    return False
-
 def tous_services_ont_pause(propo, pause_min=20):
     for s in propo.service:
         if not verifier_pause_minimum(s, pause_min):
             return False
     return True
 
-def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_services, num_proposition):
-    # Réinitialiser les voyages
+def verifier_duree_service(service, min_duree, max_duree):
+    duree = service.duree_travail_effective()
+    if duree < min_duree:
+        return False, f"Service trop court : {duree} min (min {min_duree} min)"
+    if duree > max_duree:
+        return False, f"Service trop long : {duree} min (max {max_duree} min)"
+    return True, f"OK : {duree} min"
+
+def tous_services_duree_valide(propo, min_duree, max_duree):
+    for s in propo.service:
+        if s.get_voyages():  # on ne vérifie que les services non vides
+            valide, msg = verifier_duree_service(s, min_duree, max_duree)
+            if not valide:
+                return False
+    return True
+
+def verifier_pause_minimum(service, pause_min=20):
+    voyages_tries = sorted(service.get_voyages(), key=lambda v: v.hdebut)
+
+    for i in range(len(voyages_tries) - 1):
+        pause = voyages_tries[i + 1].hdebut - voyages_tries[i].hfin
+        if pause >= pause_min:
+            return True
+
+    return False
+
+def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_services, min_duree, max_duree, num_proposition):
     for v in voyages:
         v.assigned = False
 
@@ -92,9 +114,14 @@ def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_servic
 
                 service_cible = None
                 for s in propo.service:
+                    tous_voyages = s.get_voyages() + [voy, voy2]
+                    debut_simule = min(v.hdebut for v in tous_voyages)
+                    fin_simulee = max(v.hfin for v in tous_voyages)
+                    duree_simulee = fin_simulee - debut_simule
                     if (voyage_compatible(s, voy, min_pause, max_pause)
                             and voyage_compatible(s, voy2, min_pause, max_pause)
-                            and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)):
+                            and peut_ajouter_lignes(s, voy, voy2, nb_max_lignes)
+                            and min_duree <= duree_simulee <= max_duree):  # ← vérification durée
                         service_cible = s
                         break
 
@@ -129,38 +156,48 @@ def essayer_proposition(voyages, min_pause, max_pause, nb_max_lignes, max_servic
             voy.assigned = True
 
     return propo
+
 propositions = []
 num_proposition  = 1
 max_propositions = 5  # nombre max de propositions à générer
 
 while len(propositions) < max_propositions:
-    print(f"\n🔄 Tentative proposition {num_proposition} | min_pause={min_pause} max_pause={max_pause} nb_max_lignes={nb_max_lignes} max_services={max_services}")
+    # ← La fenêtre s'élargit autour de la cible à chaque tentative
+    min_duree_service = max(360, cible_duree - variation)  # plancher à 6h
+    max_duree_service = min(510, cible_duree + variation)  # plafond à 8h30
 
-    propo = essayer_proposition(voyages_test, min_pause, max_pause, nb_max_lignes, max_services, num_proposition)
+    print(f"\n🔄 Tentative {num_proposition} | min_pause={min_pause} max_pause={max_pause} "
+          f"nb_max_lignes={nb_max_lignes} max_services={max_services} "
+          f"durée=[{min_duree_service//60}h{min_duree_service%60:02d} - {max_duree_service//60}h{max_duree_service%60:02d}]")
+
+    propo = essayer_proposition(voyages_test, min_pause, max_pause, nb_max_lignes,
+                                max_services, min_duree_service, max_duree_service, num_proposition)
     voyages_non_assignes = [v for v in voyages_test if not v.assigned]
 
-    if not voyages_non_assignes:
+    if not voyages_non_assignes and tous_services_duree_valide(propo, min_duree_service, max_duree_service):
         print(f"✅ Proposition {num_proposition} valide !")
         propositions.append(propo)
         num_proposition += 1
+        variation += 15  # ← on élargit la fenêtre pour la prochaine proposition
 
-    # ← Relaxation progressive des paramètres si échec
+    # Relaxation si échec
     if min_pause > 0:
-        min_pause = max(0, min_pause - 5)       # on réduit la pause minimum
+        min_pause = max(0, min_pause - 5)
     elif max_pause < 120:
-        max_pause += 15                          # on augmente la pause maximum
-    elif nb_max_lignes < 3:
-        nb_max_lignes += 1                       # on accepte plus de lignes
-    elif max_services < 10:
-        max_services += 1                        # on autorise plus de services
+        max_pause += 15
+    elif nb_max_lignes < 4:
+        nb_max_lignes += 1
+    elif max_services < 15:
+        max_services += 1
     else:
-        print("⚠ Impossible de trouver d'autres solutions même en relaxant les paramètres")
+        print("⚠ Impossible de trouver d'autres solutions")
         break
 
-# ── Affichage des propositions ─────────────────────────────────────────────────
 for p in propositions:
     print(f"\n=== Proposition {p.num_proposition} ===")
     print(f"Total voyages : {p.total_voyages()} / {len(voyages_test)}")
     print(f"Nombre de services : {len(p.service)}")
     for s in p.service:
+        duree = s.duree_travail_effective()
         print(f"\n{s}")
+        print(f"  → Durée effective : {duree//60}h{duree%60:02d}")
