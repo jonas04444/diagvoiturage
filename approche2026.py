@@ -1,6 +1,3 @@
-#from objet import *
-
-#voyage1 = voyage(91,1,"CEN01", "CEN02", "10:00", "11:00", 5)
 
 class voyage:
 
@@ -9,7 +6,7 @@ class voyage:
         self.num_ligne = num_ligne
         self.h_debut = self.time_to_minutes(h_debut)
         self.h_fin = self.time_to_minutes(h_fin)
-        self.h_fin = h_fin
+
 
     @staticmethod
     def time_to_minutes(time_str):
@@ -22,9 +19,20 @@ class voyage:
 
 class service:
 
-    def __init__(self, num_service):
+    def __init__(self, num_service, debut_service, fin_service):
         self.num_service = num_service
+        self.debut_service = self.time_to_minutes(debut_service)
+        self.fin_service = self.time_to_minutes(fin_service)
         self.voyages = []
+
+    @staticmethod
+    def time_to_minutes(time_str):
+        h, m = map(int, time_str.split(":"))
+        return h * 60 + m
+
+    @staticmethod
+    def minutes_to_time(minutes):
+        return h * 60 + m
 
     def add_voyage(self, nouveau_voyage):
         for i in self.voyages:
@@ -35,15 +43,15 @@ class service:
         self.voyages.append(nouveau_voyage)
         print(f"Voyage {nouveau_voyage.num_voyage} ajouté au service")
 
-voyage91= voyage(1,91, 1000, 1030)
-voyage92= voyage(2,91, 1020, 1050)
-voyage93= voyage(3,91, 1040, 1050)
-service1= service(2101)
+    def remove_voyage(self, nouveau_voyage):
+        self.voyages.remove(nouveau_voyage)
 
-listevoyage = [voyage91, voyage92, voyage93]
 
-for v in listevoyage:
-    service1.add_voyage(v)
 
-for v in service1.voyages:
-    print(v.num_ligne, v.num_voyage)
+voyage91= voyage(1,91, "10:00", "10:30")
+voyage92= voyage(2,91, "10:20", "10:50")
+voyage93= voyage(3,91, "10:40", "10:50")
+service1= service(2101,"9:00", "12:00")
+
+listevoyages = [voyage91, voyage92, voyage93]
+
