@@ -47,7 +47,6 @@ class service:
         self.voyages.remove(nouveau_voyage)
 
 
-
 voyage91= voyage(1,91, "10:00", "10:30")
 voyage92= voyage(2,91, "10:20", "10:50")
 voyage93= voyage(3,91, "10:40", "10:50")
