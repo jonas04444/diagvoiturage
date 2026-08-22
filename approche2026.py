@@ -32,25 +32,29 @@ class service:
 
     @staticmethod
     def minutes_to_time(minutes):
-        return h * 60 + m
+        return f"{minutes // 60:02d}:{minutes % 60:02d}"
 
     def add_voyage(self, nouveau_voyage):
-        for i in self.voyages:
-            if nouveau_voyage.h_debut < i.h_fin and nouveau_voyage.h_fin > i.h_debut:
-                print(f"Pas possible d'ajouter le voyage {nouveau_voyage.num_voyage} : chevauchement détecté.")
-                return
+        if nouveau_voyage.h_debut >= self.debut_service and nouveau_voyage.h_fin <= self.fin_service:
+            for i in self.voyages:
+                if nouveau_voyage.h_debut < i.h_fin and nouveau_voyage.h_fin > i.h_debut:
+                    print(f"Pas possible d'ajouter le voyage {nouveau_voyage.num_voyage} : chevauchement détecté.")
+                    return
 
-        self.voyages.append(nouveau_voyage)
-        print(f"Voyage {nouveau_voyage.num_voyage} ajouté au service")
+            self.voyages.append(nouveau_voyage)
+            print(f"Voyage {nouveau_voyage.num_voyage} ajouté au service")
+        else:
+            print("hors horaire")
 
     def remove_voyage(self, nouveau_voyage):
         self.voyages.remove(nouveau_voyage)
 
-
-voyage91= voyage(1,91, "10:00", "10:30")
+voyage91= voyage(1,91, "8:00", "10:30")
 voyage92= voyage(2,91, "10:20", "10:50")
-voyage93= voyage(3,91, "10:40", "10:50")
+voyage93= voyage(3,91, "10:50", "10:51")
 service1= service(2101,"9:00", "12:00")
 
 listevoyages = [voyage91, voyage92, voyage93]
 
+for v in listevoyages:
+    service1.add_voyage(v)
