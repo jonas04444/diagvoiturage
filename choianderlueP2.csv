@@ -1,0 +1,256 @@
+﻿Ligne;Via;Direction;De;Début;Fin;À;Voy.;Voiture;InfPub;Prot.;Régul.;Méthode régulation -Voy;Js srv;Util.;Util.2;Note2;NA;Description;Durée;H_Journée_Voyage;PérAnnéeHor;Horaire;Parcours
+C109b;4;Retour;LBGAR;07:29;07:49;TUBPO;2;109b-  1;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;12
+C109b;3;Aller;TUBPO;07:03;07:23;LBGAR;1;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;9
+C109b;4;Retour;LBGAR;09:09;09:29;TUBPO;4;109b-  1;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;12
+C109b;3;Aller;TUBPO;07:50;08:10;LBGAR;3;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;9
+C109b;3;Aller;TUBPO;09:37;09:57;LBGAR;5;109b-  1;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;9
+C109b;4;Retour;LBGAR;12:09;12:29;TUBPO;6;109b-  2;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;12
+C109b;3;Aller;TUBPO;12:37;12:57;LBGAR;7;109b-  2;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;9
+C109b;3;Aller;TUBPO;13:20;13:40;LBGAR;9;109b-  2;1;1;TUBPO;Lieu d'origine;12345;;;;;;0h20;;;109b Semaine 1 C2026;9
+C0119;2;Retour;BMIND;16:12;17:24;ANJON;13;109b-  3;1;1;BMIND;Lieu d'origine;12*45;;;;;;1h12;;;119 Semaine 1 C2026;34
+C109b;2;Retour;LBGAR;15:14;15:57;BMIND;8;109b-  3;1;1;LBGAR;Lieu d'origine;12*45;Graphiqueur;;;;retardé de 5' suite à une plainte voyageur pour la sortie école de Thuin;0h43;;;109b Semaine 1 C2026;10
+C0091;3;Aller;LBGAR;17:41;18:00;ANJON;63;109b-  4;1;1;ANJON;Lieu spécifié (arrivée);12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h19;;;91 Semaine 1 C2026;313
+C109b;2;Retour;LBGAR;16:09;16:52;BMIND;10;109b-  4;1;1;LBGAR;Lieu d'origine;12345;;;;;;0h43;;;109b Semaine 1 C2026;10
+C109b;1;Aller;BMIND;17:10;17:40;LBGAR;11;109b-  4;1;1;BMIND;Lieu d'origine;12*45;;;;;;0h30;;;109b Semaine 1 C2026;11
+C0119;1;Aller;ANJON;07:01;07:56;BMIND;3;119 -  1;0;1;BMIND;Lieu de destination;12345;;;;;;0h55;;;119 Semaine 1 C2026;32
+C0119;1;Aller;ANJON;07:03;07:58;BMIND;1;119 -  2;1;1;BMIND;Lieu de destination;12345;;;;;;0h55;;;119 Semaine 1 C2026;32
+C0119;2;Retour;BMIND;17:04;17:38;BCTIL;8;119 -  3;1;1;BMIND;Lieu d'origine;12*45;Info. publique;;;;Limité à Biercée Résidence le Tilleul;0h34;;;119 Semaine 1 C2026;33
+C109a;1;Aller;BMIND;15:07;15:43;CEN03;515;119 -  3;0;1;CEN03;Lieu de destination;****5;;;;;;0h36;;;109a Semaine 1 C2026;896
+C0091;2;Retour;CPCEC;08:58;10:13;MYVES;22;173 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h15;;;91 Semaine 1 C2026;324
+C0091;2;Retour;PTPLA;12:09;13:13;MYVES;34;173 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h04;;;91 Semaine 1 C2026;330
+C0091;1;Aller;MYVES;10:38;11:44;PTPLA;27;173 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h06;;;91 Semaine 1 C2026;338
+C0091;1;Aller;MYVES;13:38;14:56;CPCEC;41;173 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;337
+C0173;1;Aller;FOMET;06:03;06:40;CEN05;1;173 -  1;1;1;CEN05;Lieu de destination;12345;;;;;;0h37;;;173 Semaine 1 C2026;69
+C0173;1;Aller;PTSNC;15:55;16:50;CEN05;21;173 -  1;1;1;CEN05;Lieu de destination;12345;;Graphiqueur;C173c;;Sortie écoles à 16h00 + déplacement 10' jusque FOPET;0h55;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;06:54;07:48;PTSNC;2;173 -  1;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0173;2;Retour;CEN07;17:07;18:04;PTSNC;24;173 -  1;1;1;CEN07;Lieu d'origine;12345;;;;;;0h57;;;173 Semaine 1 C2026;64
+C0173;1;Aller;PTSNC;06:40;07:36;CEN05;3;173 -  2;1;1;CEN05;Lieu de destination;12345;;Graphiqueur;C173b;;Correspondance à 7h03 FOMET;0h56;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;07:54;08:50;PTSNC;6;173 -  2;1;1;CEN07;Lieu d'origine;12345;;;;;;0h56;;;173 Semaine 1 C2026;64
+C0173;2;Retour;MMPLA;07:45;08:15;FORPE;4;173 -  3;1;1;MMPLA;Lieu d'origine;12345;Info. publique;;;;Limité à FONTAINE L'EVEQUE Rue du Pétria;0h30;;;173 Semaine 1 C2026;49
+C0173;1;Aller;MYFOY;07:15;07:33;CEN05;29;173 -  3;0;1;CEN05;Lieu de destination;12345;;;;;;0h18;;;173 Semaine 1 C2026;68
+C0091;1;Aller;MYVES;14:34;15:57;CPCEC;43;173 -  4;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h23;;;91 Semaine 1 C2026;337
+C0173;1;Aller;PTSNC;12:46;13:40;CEN05;15;173 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;;;173 Semaine 1 C2026;65
+C0173;1;Aller;PTSNC;16:45;17:40;CEN05;23;173 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h55;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;18:07;19:02;PTSNC;26;173 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h55;;;173 Semaine 1 C2026;64
+C0091;1;Aller;MYVES;17:08;18:26;CPCEC;65;173 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;337
+C0091;2;Retour;PTPLA;15:36;16:45;MYVES;46;173 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h09;;;91 Semaine 1 C2026;330
+C0091;2;Retour;CPCEC;19:11;20:26;MYVES;56;173 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h15;;;91 Semaine 1 C2026;324
+C0091;1;Aller;MYVES;20:26;21:23;PTPLA;73;173 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h57;;;91 Semaine 1 C2026;338
+C0173;2;Retour;CEN07;13:54;14:48;PTSNC;18;173 -  5;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0091;1;Aller;MYVES;18:18;19:22;PTPLA;69;173 -  6;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h04;;;91 Semaine 1 C2026;338
+C0091;2;Retour;PTPLA;16:36;17:43;MYVES;50;173 -  6;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h07;;;91 Semaine 1 C2026;330
+C0173;1;Aller;PTSNC;13:46;14:40;CEN05;17;173 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;14:54;15:51;PTSNC;20;173 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h57;;;173 Semaine 1 C2026;64
+CM1ab;1;Aller;ANMON;20:20;20:57;CEN19;3;173 -  6;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;34
+CM1ab;2;Retour;CEN07;21:15;21:52;ANMON;4;173 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;35
+C0091;2;Retour;PTPLA;20:26;21:26;MYVES;58;173 -  7;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h00;;;91 Semaine 1 C2026;330
+C0091;3;Aller;MYVES;21:26;22:05;ANJON;75;173 -  7;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h39;;;91 Semaine 1 C2026;343
+C0173;1;Aller;PTSNC;17:45;18:40;CEN05;25;173 -  7;1;1;CEN05;Lieu de destination;12345;;;;;;0h55;;;173 Semaine 1 C2026;65
+C0173;1;Aller;PTSNC;14:46;15:40;CEN05;19;173 -  7;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;16:07;17:06;PTSNC;22;173 -  7;1;1;CEN07;Lieu d'origine;12345;;;;;;0h59;;;173 Semaine 1 C2026;64
+C0173;2;Retour;CEN07;19:07;19:44;FOMET;28;173 -  7;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;;;173 Semaine 1 C2026;67
+C0194;1;Aller;THVB1;06:52;08:00;THAT2;1;194 -  1;1;1;THVB1;Lieu d'origine;12345;;;;;;1h08;;;194 Semaine 1 C2026;28
+C0194;3;Aller;THVB1;16:11;17:02;BCEGL;5;194 -  2;1;1;THVB1;Lieu d'origine;12*45;;;;;;0h51;;;194 Semaine 1 C2026;29
+C0063;2;Retour;JUMA2;07:45;08:39;FOMET;18;63 -  5;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés;0h54;;;63 Semaine 2 C2026;81
+C0063;1;Aller;SOFOR;06:53;07:24;JUMA1;71;63 -  5;1;1;SOFOR;Lieu d'origine;12345;;;;;;0h31;;;63 Semaine 2 C2026;71
+C0063;7;Aller;FOMET;06:53;07:53;JUMA1;11;63 -  6;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés et dessert GOSSELIES Athénée;1h00;;;63 Semaine 2 C2026;89
+C0041;1;Aller;CHPA9;11:56;12:44;JUMA1;25;63 -  7;1;1;CHPA9;Lieu d'origine;12345;;;;;;0h48;;;41 Semaine 1 C2026;63
+C0041;2;Retour;JUMA2;11:00;11:51;CHPA0;30;63 -  7;1;1;JUMA2;Lieu d'origine;12345;;;;;;0h51;;;41 Semaine 1 C2026;65
+C0063;3;Aller;FOMET;09:44;10:29;JUMA1;23;63 -  7;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du Pétria;0h45;;;63 Semaine 2 C2026;92
+C0063;1;Aller;FOMET;06:54;07:46;JUMA1;13;63 -  7;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés;0h52;;;63 Semaine 2 C2026;91
+C0063;4;Retour;JUMA2;13:15;14:03;FOMET;42;63 -  7;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du Pétria;0h48;;;63 Semaine 2 C2026;74
+C0063;2;Retour;JUMA2;08:45;09:36;FOMET;22;63 -  7;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés;0h51;;;63 Semaine 2 C2026;81
+C0063;6;Retour;GPCHE;07:28;08:05;FOMET;4;63 -  9;1;1;GPCHE;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du Pétria;0h37;;;63 Semaine 2 C2026;84
+C0041;1;Aller;CHPA9;17:55;18:40;JUMA1;55;63 - 11;1;1;CHPA9;Lieu d'origine;12345;;;;;;0h45;;;41 Semaine 1 C2026;63
+C0041;2;Retour;JUMA2;16:30;17:32;CHPA0;62;63 - 11;1;1;JUMA2;Lieu d'origine;12345;;;;;;1h02;;;41 Semaine 1 C2026;65
+C0063;3;Aller;FOMET;12:44;13:29;JUMA1;37;63 - 11;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du Pétria;0h45;;;63 Semaine 2 C2026;92
+C0063;1;Aller;FOMET;15:09;16:00;JUMA1;47;63 - 11;1;1;FOMET;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés;0h51;;;63 Semaine 2 C2026;91
+C0063;4;Retour;JUMA2;14:15;15:03;FOMET;46;63 - 11;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue du Pétria;0h48;;;63 Semaine 2 C2026;74
+C0063;2;Retour;JUMA2;19:15;20:00;FOMET;68;63 - 11;1;1;JUMA2;Lieu d'origine;12345;Info. publique;;;;Via FONTAINE Rue des Déportés;0h45;;;63 Semaine 2 C2026;81
+C0063;5;Aller;FOMET;16:10;16:46;GPCHE;53;63 - 18;1;1;FOMET;Lieu d'origine;12*45;Info. publique;;;;Via FONTAINE Rue du Pétria et limité à GOUY-LEZ-PIETON Place Chensée;0h36;;;63 Semaine 2 C2026;94
+C0091;2;Retour;CPCEC;13:01;14:16;MYVES;36;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h15;;;91 Semaine 1 C2026;324
+C0091;1;Aller;MYVES;11:41;12:59;CPCEC;33;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;337
+C0091;2;Retour;PTPLA;06:40;07:43;MYVES;8;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h03;;;91 Semaine 1 C2026;330
+C0091;2;Retour;PTPLA;10:09;11:13;MYVES;26;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h04;;;91 Semaine 1 C2026;330
+C0091;1;Aller;MYVES;08:17;09:17;ANMON;17;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination ANDERLUES Monument - Film 91b;1h00;;;91 Semaine 1 C2026;340
+C0091;1;Aller;MYVES;15:06;16:18;PTPLA;45;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h12;;;91 Semaine 1 C2026;338
+C0091;1;Aller;MYVES;05:14;06:12;PTPLA;3;91 -  1;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h58;;;91 Semaine 1 C2026;338
+C0091;1;Aller;MYVES;09:38;10:56;CPCEC;23;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;337
+C0091;1;Aller;MYVES;12:38;13:44;PTPLA;39;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12*45;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h06;;;91 Semaine 1 C2026;338
+C0091;2;Retour;CPCEC;06:58;08:20;MYVES;12;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h22;;;91 Semaine 1 C2026;324
+C0091;2;Retour;CPCEC;10:58;12:13;MYVES;30;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h15;;;91 Semaine 1 C2026;324
+C0091;2;Retour;PTPLA;14:09;15:14;MYVES;38;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12*45;;;;;;1h05;;;91 Semaine 1 C2026;330
+C0091;1;Aller;MYVES;15:59;17:22;CPPLA;51;91 -  2;1;1;THATH;Lieu spécifié (arrivée);12*45;;;;;;1h23;;;91 Semaine 1 C2026;336
+C0091;1;Aller;MYVES;05:44;06:54;CPCEC;5;91 -  2;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h10;;;91 Semaine 1 C2026;337
+C0091;2;Retour;CPCEC;06:00;07:11;MYVES;6;91 -  3;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h11;;;91 Semaine 1 C2026;324
+C0091;1;Aller;ANJON;05:30;05:57;CPCEC;1;91 -  3;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;0h27;;;91 Semaine 1 C2026;311
+C0091;1;Aller;MYVES;07:31;08:56;CPCEC;13;91 -  3;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h25;;;91 Semaine 1 C2026;337
+C0173;2;Retour;CEN07;10:54;11:48;PTSNC;12;91 -  3;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0173;1;Aller;PTSNC;09:44;10:40;CEN05;9;91 -  3;1;1;CEN05;Lieu de destination;12345;;;;;;0h56;;;173 Semaine 1 C2026;65
+C0091;1;Aller;MYVES;06:14;07:13;PTPLA;7;91 -  4;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h59;;;91 Semaine 1 C2026;338
+C0173;1;Aller;PTSNC;07:40;08:40;CEN05;5;91 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;1h00;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;11:54;12:48;PTSNC;14;91 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0173;1;Aller;PTSNC;10:46;11:40;CEN05;11;91 -  4;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;08:54;09:48;PTSNC;8;91 -  4;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0091;2;Retour;CPCEC;07:58;09:16;MYVES;18;91 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;324
+C0091;1;Aller;MYVES;06:40;07:56;CPCEC;9;91 -  5;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h16;;;91 Semaine 1 C2026;337
+C0091;8;Retour;ANJON;05:55;06:26;MYVES;2;91 -  5;1;1;ANJON;Lieu d'origine;12345;;;;;;0h31;;;91 Semaine 1 C2026;328
+C0091;2;Retour;ANJON;05:55;06:39;MYVES;4;91 -  6;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;0h44;;;91 Semaine 1 C2026;329
+C0091;1;Aller;MYVES;07:05;08:14;PTPLA;11;91 -  6;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h09;;;91 Semaine 1 C2026;338
+C0173;1;Aller;PTSNC;08:43;09:40;CEN05;7;91 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h57;;;173 Semaine 1 C2026;65
+C0173;1;Aller;PTSNC;11:46;12:40;CEN05;13;91 -  6;1;1;CEN05;Lieu de destination;12345;;;;;;0h54;;;173 Semaine 1 C2026;65
+C0173;2;Retour;CEN07;09:54;10:48;PTSNC;10;91 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0173;2;Retour;CEN07;12:54;13:48;PTSNC;16;91 -  6;1;1;CEN07;Lieu d'origine;12345;;;;;;0h54;;;173 Semaine 1 C2026;64
+C0091;1;Aller;MYVES;08:33;09:44;PTPLA;19;91 -  7;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;1h11;;;91 Semaine 1 C2026;338
+C0091;2;Retour;ANJON;07:23;07:59;THHTT;14;91 -  7;1;1;THHTT;Lieu de destination;12345;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h36;;;91 Semaine 1 C2026;296
+C0091;2;Retour;ANJON;07:24;08:00;THHTT;112;91 -  8;0;1;THHTT;Lieu de destination;12345;;;;;;0h36;;;91 Semaine 1 C2026;296
+C0091;2;Retour;PTPLA;07:38;08:45;MYVES;16;91 -  9;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h07;;;91 Semaine 1 C2026;330
+C0091;9;Aller;THHTT;08:04;08:37;ANJON;15;91 - 10;1;1;THHTT;Lieu d'origine;12345;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h33;;;91 Semaine 1 C2026;339
+C0091;9;Aller;THVB1;11:48;12:12;ANJON;31;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h24;;;91 Semaine 1 C2026;309
+C0091;10;Retour;LBBO2;10:02;10:12;THVB1;24;91 - 10;1;1;LBBO2;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h10;;;91 Semaine 1 C2026;290
+C0091;9;Aller;THVB1;09:48;09:59;LBBO2;21;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h11;;;91 Semaine 1 C2026;282
+C0091;10;Retour;LBBO2;11:02;11:12;THVB1;28;91 - 10;1;1;LBBO2;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h10;;;91 Semaine 1 C2026;290
+C0091;9;Aller;THVB1;10:48;10:59;LBBO2;25;91 - 10;1;1;THVB1;Lieu d'origine;****5;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h11;;;91 Semaine 1 C2026;282
+C0091;10;Retour;ANJON;08:54;09:13;THVB1;20;91 - 10;1;1;ANJON;Lieu d'origine;****5;Agent;;;;Destination THUIN Ville Basse - Film 91b;0h19;;;91 Semaine 1 C2026;293
+C0091;10;Retour;ANJON;07:34;08:02;THHTT;10;91 - 10;1;1;ANJON;Lieu d'origine;12345;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h28;;;91 Semaine 1 C2026;295
+C0194;2;Retour;THVB1;11:13;11:48;THVB1;4;91 - 10;1;1;THVB1;Lieu d'origine;****5;;;;;;0h35;;;194 Semaine 1 C2026;27
+C0194;2;Retour;THVB1;09:13;09:48;THVB1;2;91 - 10;1;1;THVB1;Lieu d'origine;****5;;;;;;0h35;;;194 Semaine 1 C2026;27
+C0091;2;Retour;CPCEC;14:57;16:15;MYVES;44;91 - 11;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h18;;;91 Semaine 1 C2026;324
+C0091;1;Aller;MYVES;16:45;18:04;CPCEC;61;91 - 11;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h19;;;91 Semaine 1 C2026;337
+C0091;2;Retour;CPCEC;17:55;19:11;MYVES;54;91 - 12;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h16;;;91 Semaine 1 C2026;324
+C0091;2;Retour;PTPLA;21:01;22:01;MYVES;60;91 - 12;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h00;;;91 Semaine 1 C2026;330
+C0091;1;Aller;MYVES;19:23;20:20;PTPLA;71;91 - 12;1;1;ANJON;Lieu spécifié (arrivée);12345;Info. publique;;;;Destination PIETON Place Communale - Film 91b;0h57;;;91 Semaine 1 C2026;338
+C0091;1;Aller;MYVES;16:01;17:27;CPCEC;57;91 - 12;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h26;;;91 Semaine 1 C2026;337
+C0091;2;Retour;ANJON;14:56;15:45;MYVES;40;91 - 12;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;0h49;;;91 Semaine 1 C2026;329
+C0091;1;Aller;THHTT;15:19;15:58;ANJON;393;91 - 13;0;1;THHTT;Lieu d'origine;12*45;;;;;;0h39;;;91 Semaine 1 C2026;335
+C0091;2;Retour;CPCEC;16:58;18:15;MYVES;52;91 - 14;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h17;;;91 Semaine 1 C2026;324
+C0091;1;Aller;MYVES;15:31;16:57;CPCEC;49;91 - 14;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h26;;;91 Semaine 1 C2026;337
+C0091;9;Aller;THHTT;15:47;16:09;LBBO2;47;91 - 15;1;1;THHTT;Lieu d'origine;12*45;Info. publique;;;;Destination LOBBES Bonniers - Film 91b;0h22;;;91 Semaine 1 C2026;342
+C0091;10;Retour;THWAI;15:35;15:47;THHTT;42;91 - 15;1;1;THWAI;Lieu d'origine;12*45;Info. publique;;;;Destination THUIN Hauts Trieux - Film 91b;0h12;;;91 Semaine 1 C2026;292
+C0091;5;Aller;THHTT;16:21;16:55;ANJON;53;91 - 15;1;1;THHTT;Lieu d'origine;12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h34;;;91 Semaine 1 C2026;341
+C0091;1;Aller;MYVES;17:39;18:56;CPCEC;67;91 - 16;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h17;;;91 Semaine 1 C2026;337
+C0091;2;Retour;CPCEC;15:58;17:18;MYVES;48;91 - 16;1;1;ANJON;Lieu spécifié (arrivée);12345;;;;;;1h20;;;91 Semaine 1 C2026;324
+CM1ab;1;Aller;ANMON;21:20;21:57;CEN19;5;91 - 16;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;34
+CM1ab;1;Aller;ANMON;19:40;20:17;CEN19;1;91 - 16;1;1;CEN19;Lieu de destination;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;34
+CM1ab;2;Retour;CEN07;22:15;22:52;ANMON;6;91 - 16;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;35
+CM1ab;2;Retour;CEN07;20:30;21:07;ANMON;2;91 - 16;1;1;CEN07;Lieu d'origine;12345;;;;;;0h37;;;M1ab Semaine 1 C2026;35
+C0091;1;Aller;THHTT;16:14;16:53;ANJON;55;91 - 17;1;1;THATH;Lieu spécifié (arrivée);12*45;Info. publique;;;;Destination ANDERLUES Jonction - Film 91b;0h39;;;91 Semaine 1 C2026;335
+C099b;2;Retour;BMIND;16:13;17:10;NADEP;11;99b-  2;1;1;BMIND;Lieu d'origine;12*45;;;;;;0h57;;;99b Semaine 1 C2026;12
+C00M2;1;Aller;MB009;11:44;12:22;MCE01;55;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;10:14;10:52;MCE01;43;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;13:14;13:52;MCE01;67;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;14:44;15:22;MCE01;79;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;05:24;05:59;MB008;2;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;11:00;11:35;MB008;24;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;12:30;13:05;MB008;30;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;16:29;17:07;MCE01;93;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;14:00;14:35;MB008;36;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;15:30;16:05;MB008;42;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;06:29;07:07;MCE01;13;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;08:29;09:07;MCE01;29;M2 -  1;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;09:14;09:49;MB008;80;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;07:14;07:49;MB008;72;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;17:14;17:49;MB008;112;M2 -  1;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;04:35;05:13;MCE01;1;M2 -  1;1;1;MB009;Lieu d'origine;12345;Graphiqueur;;;;Corresp. SNCB avec train vers BXL, départ 5h24 Central pendant travaux Ouest-Villette;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;05:06;05:44;MCE01;3;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;12:14;12:52;MCE01;59;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;08:44;09:22;MCE01;31;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;15:44;16:22;MCE01;87;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;05:54;06:29;MB008;4;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;09:30;10:05;MB008;18;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;13:00;13:35;MB008;32;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;06:59;07:37;MCE01;17;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;16:30;17:05;MB008;46;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;13:59;14:37;MCE01;73;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;10:29;11:07;MCE01;45;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;07:44;08:19;MB008;74;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;17:29;18:07;MCE01;101;M2 -  2;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;11:14;11:49;MB008;88;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;14:44;15:19;MB008;102;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;18:14;18:49;MB008;116;M2 -  2;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;14:14;14:52;MCE01;75;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;07:14;07:52;MCE01;19;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;10:44;11:22;MCE01;47;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;17:44;18:22;MCE01;103;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;08:00;08:35;MB008;12;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;11:30;12:05;MB008;26;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;08:59;09:37;MCE01;33;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;12:29;13:07;MCE01;61;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;18:30;19:05;MB008;54;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;15:00;15:35;MB008;40;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;15:59;16:37;MCE01;89;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;05:29;06:07;MCE01;5;M2 -  3;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;09:44;10:19;MB008;82;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;06:14;06:49;MB008;68;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;13:14;13:49;MB008;96;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;16:44;17:19;MB008;110;M2 -  3;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;05:44;06:22;MCE01;7;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;16:14;16:52;MCE01;91;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;09:14;09:52;MCE01;35;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;12:44;13:22;MCE01;63;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;06:30;07:05;MB008;6;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;10:00;10:35;MB008;20;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;13:30;14:05;MB008;34;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;10:59;11:37;MCE01;49;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;17:00;17:35;MB008;48;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;07:29;08:07;MCE01;21;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;14:29;15:07;MCE01;77;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;17:59;18:37;MCE01;105;M2 -  4;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;08:14;08:49;MB008;76;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;11:44;12:19;MB008;90;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;15:14;15:49;MB008;104;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;18:44;19:19;MB008;118;M2 -  4;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;07:44;08:22;MCE01;23;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;11:14;11:52;MCE01;51;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;08:30;09:05;MB008;14;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;16:44;17:22;MCE01;95;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;12:00;12:35;MB008;28;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;17:30;18:05;MB008;50;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;09:29;10:07;MCE01;37;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;12:59;13:37;MCE01;65;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;05:59;06:37;MCE01;9;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;14:59;15:37;MCE01;81;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;10:14;10:49;MB008;84;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;06:44;07:19;MB008;70;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;18:25;19:03;MCE01;107;M2 -  5;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;15:44;16:19;MB008;106;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;19:10;19:45;MB008;120;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;13:44;14:19;MB008;98;M2 -  5;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;06:14;06:52;MCE01;11;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;09:44;10:22;MCE01;39;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;15:14;15:52;MCE01;83;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;10:30;11:05;MB008;22;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;07:00;07:35;MB008;8;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;16:00;16:35;MB008;44;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;11:29;12:07;MCE01;53;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;07:59;08:37;MCE01;25;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;13:29;14:07;MCE01;69;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;16:59;17:37;MCE01;97;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;08:44;09:19;MB008;78;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;12:14;12:49;MB008;92;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;18:55;19:33;MCE01;109;M2 -  6;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;14:14;14:49;MB008;100;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;17:44;18:19;MB008;114;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;19:40;20:15;MB008;122;M2 -  6;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;08:14;08:52;MCE01;27;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;06:44;07:22;MCE01;15;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;13:44;14:22;MCE01;71;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;09:00;09:35;MB008;16;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;17:14;17:52;MCE01;99;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;07:30;08:05;MB008;10;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;14:30;15:05;MB008;38;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;09:59;10:37;MCE01;41;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;18:00;18:35;MB008;52;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;11:59;12:37;MCE01;57;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;1;Aller;MB009;15:29;16:07;MCE01;85;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;10:44;11:19;MB008;86;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;12:44;13:19;MB008;94;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;2;Retour;MCE02;20:10;20:45;MB008;124;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MB009;19:25;20:03;MCE01;111;M2 -  7;1;1;MB009;Lieu d'origine;12345;;;;;;0h38;;;M1 Semaine 1 C2026;68
+C00M2;2;Retour;MCE02;16:14;16:49;MB008;108;M2 -  7;1;1;MB008;Lieu de destination;12345;;;;;;0h35;;;M1 Semaine 1 C2026;67
+C00M2;1;Aller;MJONC;07:12;07:47;MCE01;501;M2 -  8;1;1;MJONC;Lieu d'origine;12345;;;;;;0h35;;;M1 Semaine 1 C2026;70
+C00M2;2;Retour;MCE02;07:54;08:26;MJONC;520;M2 -  8;1;1;MJONC;Lieu de destination;12345;;;;;;0h32;;;M1 Semaine 1 C2026;69
+C00M2;2;Retour;MCE02;08:04;08:36;MJONC;400;M2 -  9;1;1;MJONC;Lieu de destination;12345;;;;;;0h32;;;M1 Semaine 1 C2026;69
+C00M2;1;Aller;MJONC;07:22;07:57;MCE01;401;M2 -  9;1;1;MJONC;Lieu d'origine;12345;;;;;;0h35;;;M1 Semaine 1 C2026;70
+C00M2;1;Aller;MJONC;15:38;16:13;MCE01;521;M2 - 10;0;1;MJONC;Lieu d'origine;12*45;;;;;;0h35;;;M1 Semaine 1 C2026;70
+C00M2;2;Retour;MCE02;16:24;16:56;MJONC;522;M2 - 10;0;1;MJONC;Lieu de destination;12*45;;;;;;0h32;;;M1 Semaine 1 C2026;69
