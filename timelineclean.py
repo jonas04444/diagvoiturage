@@ -56,3 +56,40 @@ class TimelineVisuelle(ctk.CTkFrame):
 
         self._creer_canvas()
         self.after(self.DELAI_INITIAL_MS, self._dessiner_initial)
+
+    def _creer_canvas(self) -> None:
+        """
+            Crée le canvas et branche les événements de redimensionnement
+        """
+        self.canvas = Canvas(
+            self,
+            width=self.HAUTEUR_CANVAS,
+            height=self.LARGEUR_MINIMALE,
+            highlightthickness=1,
+            highlightcolor="#555555",
+        )
+        self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
+        self.canvas.bind("<Configure>", self._on_resize)
+
+    def _on_resize(self, event) -> None:
+        """
+            Planifie un redessin après redimensionnement
+        """
+        if self._timer_redraw is not None:
+            self.after_cancel(self._timer_redraw)
+        self._timer_redraw = self.after(self.DELAI_REDESSIN_MS, self.rafraichir)
+
+    def _dessiner_initial(self) -> None:
+        """
+            Déclenche le premier dessin une fois le widgent prêt
+        """
+        self.rafraichir()
+
+    def rafraichir(self) -> None:
+        """
+            Redessine la timeline en fonction de l'état actuel du service
+        """
+        if self.service and self.service.voyages:
+            self._dessiner_service()
+        else:
+            self._dessiner_vide()
