@@ -93,3 +93,34 @@ class TimelineVisuelle(ctk.CTkFrame):
             self._dessiner_service()
         else:
             self._dessiner_vide()
+
+    def set_service(self, service) -> None:
+        """
+            Remplace le service affiché et redessine la timeline
+        Args:
+            service: Nouveau service à afficherr, ou None pour vider timeline
+        """
+        self.service = service
+        self.rafraichir()
+
+    def _dimensions_canvas(self) -> tuple[int, int]:
+        """
+            Retourne la dimension du canvas, avec un minimum garanti
+        """
+        self.canvas.update_idletasks()
+        width = max(self.canvas.winfo_width(), self.LARGEUR_MINIMALE)
+        height = max(self.canvas.winfo_height(), self.HAUTEUR_MINIMALE)
+        return width, height
+
+    def _dessiner_grille_horaire(self, width: int, height: int) -> None:
+        """
+            Dessine les lignes verticales et libéllés d'heure (4h à 24h)
+        """
+        for heure in range(4, 25, 2):
+            x = self._heure_vers_x(heure * 60, width)
+            self.canvas.create_line(
+                x, 20, x, height - 10, fill="#444444", dash=(2, 2)
+            )
+            self.canvas.create_text(
+                x, 10, text=f"{heure:02d}h", fill="white", font=("Arial", 8)
+            )
