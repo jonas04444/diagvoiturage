@@ -124,3 +124,130 @@ class TimelineVisuelle(ctk.CTkFrame):
             self.canvas.create_text(
                 x, 10, text=f"{heure:02d}h", fill="white", font=("Arial", 8)
             )
+
+    def _dessiner_vide(self) -> None:
+        """
+            Dessine une timeline sans voyage, avec un message explicatif
+        """
+        self.canvas.delete("all")
+        width, height = self._dimensions_canvas()
+
+        self._dessiner_grille_horaire(width, height)
+        self.canvas.create_text(
+            width // 2, height //2,
+            text="Service vide - ajouter des voyages",
+            fill="#888888", font=("Arial", 10, "italic")
+        )
+
+    def _dessiner_service(self) -> None:
+        """
+            Dessine tous les voyages du service, répartis pour éviter les chevauchements
+        """
+        self.canvas.delete("all")
+        width, height = self._dimensions_canvas()
+
+        logger.debug("Dessin timeline - Canvas: %dx%d px", width, height)
+        self._dessiner_grille_horaire(width, height)
+
+        if not self.service or not self.service.voyages:
+            self._dessiner_vide()
+            return
+
+        logger.debug("Service avec %d voyage(s)", len(self.service.voyages))
+
+        lignes = self._repartir_voyages_sans_chevauchement(self.service.voyages)
+        logger.debug("Répartition sur %d ligne(s) verticale(s)", len(lignes))
+
+        for idx_ligne, voyages_ligne in enumerate(lignes):
+            y_rect = self.MARGE_HAUTE + idx_ligne * (
+                    self.HAUTEUR_RECTANGLE + self.ESPACE_ENTRE_LIGNES
+            )
+            for voyage in voyages_ligne:
+                self._dessiner_voyage(voyage, y_rect, width)
+
+    @staticmethod
+    def _se_chevauchent(a, b) -> bool:
+        """Indique si deux voyages se chevauchent dans le temps."""
+        return not (a.hfin <= b.hdebut or a.hdebut >= b.hfin)
+
+    def _repartir_voyages_sans_chevauchement(self, voyages) -> List[list]:
+        """Répartit les voyages sur des lignes verticales sans chevauchement.
+
+        Algorithme glouton : chaque voyage est placé sur la première ligne
+        existante où il ne chevauche aucun voyage déjà présent, sinon une
+        nouvelle ligne est créée.
+
+        Args:
+            voyages: Itérable de voyages, chacun avec des attributs `hdebut`/`hfin`.
+
+        Returns:
+            Une liste de lignes, chaque ligne étant une liste de voyages.
+        """
+        voyages_tries = sorted(voyages, key=lambda v: v.hdebut)
+        lignes: List[list] = []
+
+        for voyage in voyages_tries:
+            ligne_disponible = next(
+                (
+                    ligne for ligne in lignes
+                    if not any(self._se_chevauchent(voyage, v) for v in ligne)
+                ),
+                None,
+            )
+            if ligne_disponible is not None:
+                ligne_disponible.append(voyage)
+            else:
+                lignes.append([voyage])
+
+        return lignes
+
+    def _dessiner_voyage(self, voyage, y_rect: float, width: int) -> None:
+        """Dessine le rectangle représentant un voyage unique."""
+        x1 = self._heure_vers_x(voyage.hdebut, width)
+        x2 = self._heure_vers_x(voyage.hfin, width)
+
+        logger.debug(
+            "V%s: %s-%s (%d-%d min) -> x1=%.1f, x2=%.1f y=%.1f",
+            voyage.num_voyage,
+            self._minutes_vers_texte(voyage.hdebut),
+            self._minutes_vers_texte(voyage.hfin),
+            voyage.hdebut, voyage.hfin, x1, x2, y_rect,
+        )
+
+        couleur = self._get_color(voyage.num_ligne)
+        self.canvas.create_rectangle(
+            x1, y_rect, x2, y_rect + self.HAUTEUR_RECTANGLE,
+            fill=couleur, outline="white", width=2,
+        )
+
+        mid_x = (x1 + x2) / 2
+        mid_y = y_rect + self.HAUTEUR_RECTANGLE / 2
+
+        self.canvas.create_text(
+            mid_x, mid_y - 8,
+            text=f"V{voyage.num_voyage}",
+            fill="black", font=("Arial", 9, "bold"),
+        )
+        self.canvas.create_text(
+            mid_x, mid_y + 8,
+            text=f"{voyage.arret_debut[:3]}→{voyage.arret_fin[:3]}",
+            fill="black", font=("Arial", 7),
+        )
+
+    # --- Utilitaires ------------------------------------------------------
+
+    def _heure_vers_x(self, minutes: int, width: int) -> float:
+        """Convertit une heure (en minutes depuis minuit) en coordonnée X."""
+        ratio = (minutes - self.HEURE_DEBUT_MIN) / (
+                self.HEURE_FIN_MIN - self.HEURE_DEBUT_MIN
+        )
+        return self.MARGE_HORIZONTALE + ratio * (width - 2 * self.MARGE_HORIZONTALE)
+
+    @staticmethod
+    def _minutes_vers_texte(minutes: int) -> str:
+        """Formate des minutes depuis minuit en texte 'HHhMM'."""
+        return f"{minutes // 60:02d}h{minutes % 60:02d}"
+
+    def _get_color(self, ligne: str) -> str:
+        """Retourne la couleur associée à une ligne, ou la couleur par défaut."""
+        return self.COULEURS_PAR_LIGNE.get(ligne, self.COULEUR_PAR_DEFAUT)
