@@ -38,7 +38,7 @@ class TimelineVisuelle(ctk.CTkFrame):
         "83": "#98D8C8", "C0083": "#98D8C8",
         "86": "#F7DC6F", "C0086": "#F7DC6F",
     }
-    COULEURS_PAR_DEFAUT = "#CCCCCC"
+    COULEUR_PAR_DEFAUT = "#CCCCCC"
 
     def __init__(self, parent, service=None, **kwargs):
         """
