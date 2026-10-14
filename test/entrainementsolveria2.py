@@ -1,12 +1,10 @@
-import csv
-import tkinter as tk
 from tkinter import messagebox as msgbox, ttk
 import customtkinter as ctk
-from customtkinter import CTkTabview, filedialog
-from objet import voyage, service_agent
+from customtkinter import CTkTabview
+from objet import voyage
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
 from tabelauCSV import window_tableau_csv
-from entrainementsolveria import solvertest
+from test.entrainementsolveria import solvertest
 
 
 class TimelineCanvas:

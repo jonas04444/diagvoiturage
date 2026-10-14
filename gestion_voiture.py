@@ -6,7 +6,7 @@ TAB 5 - VERSION AMÉLIORÉE
 """
 
 import customtkinter as ctk
-from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
+from tkinter import ttk, messagebox as msgbox, filedialog
 from tabelauCSV import window_tableau_csv
 from objet import voyage, service_agent
 import csv
@@ -842,7 +842,7 @@ class Tab5CreationManuelle(ctk.CTkFrame):
         print("="*70)
 
         try:
-            from entrainementsolveria import voyages_compatibles
+            from test.entrainementsolveria import voyages_compatibles
         except ImportError:
             msgbox.showerror("Erreur", "Module entrainementsolveria non trouvé")
             return
