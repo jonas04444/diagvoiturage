@@ -29,11 +29,12 @@ def contraintes_service(service) -> Tuple[Optional[int], Optional[int]]:
     )
 
 def texte_contraintes(service) -> str:
+    """Texte décrivant les contraintes horaires d'un service ('' si aucune)."""
     debut, fin = contraintes_service(service)
-    if debut in None and fin is None:
+    if debut is None and fin is None:
         return ""
-    texte_debut = minutes_vers_texte(debut) if debut is not None else "-"
-    texte_fin = minutes_vers_texte(fin) if fin is not None else "-"
+    texte_debut = minutes_vers_texte(debut) if debut is not None else "\u2014"
+    texte_fin = minutes_vers_texte(fin) if fin is not None else "\u2014"
     return f"\n⏰ Contraintes : {texte_debut} - {texte_fin}"
 
 def se_chevauchent (a,b) -> bool:
