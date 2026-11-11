@@ -21,12 +21,12 @@ logger = logging.getLogger(__name__)
 
 
 def _charger_fonction_compatibilite() -> Callable:
-    """Importe `voyages_compatibles` depuis entrainementsolveria à la demande."""
+    """Importe `voyages_compatibles` depuis solveur.py à la demande."""
     try:
-        from entrainementsolveria import voyages_compatibles
+        from solveur import voyages_compatibles
     except ImportError as erreur:
         raise ImportError(
-            "Impossible d'importer 'voyages_compatibles' depuis entrainementsolveria.py : "
+            "Impossible d'importer 'voyages_compatibles' depuis solveur.py : "
             "vérifiez que cette fonction existe et que son nom est exact."
         ) from erreur
     return voyages_compatibles
