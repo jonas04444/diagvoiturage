@@ -289,10 +289,11 @@ class TableauCSV(ctk.CTkFrame):
 
         msgbox.showinfo("Succès", f"{len(self.donnees_selectionnees)} voyage(s) chargé(s) dans la matrice")
 
-class window_tableau_csv(ctk.CTk):
+class window_tableau_csv(ctk.CTkToplevel):
+    """Fenêtre de sélection de voyages depuis un CSV (fenêtre secondaire)."""
+
     def __init__(self, callback=None):
         super().__init__()
-
         self.title("Affichage CSV")
         self.geometry("1000x700")
         self.callback = callback
@@ -300,4 +301,4 @@ class window_tableau_csv(ctk.CTk):
         self.tableau_widget = TableauCSV(self)
         self.tableau_widget.pack(fill="both", expand=True)
 
-        self.mainloop()
+        self.lift()

@@ -4,8 +4,8 @@ import customtkinter as ctk
 from customtkinter import CTkTabview
 from objet import voyage
 from sqlite import add_line, get_lignes_from_db, add_lieux, get_lieux_from_db, add_trajet, charger_csv
-from tabelauCSV import window_tableau_csv
-from test.entrainementsolveria import solvertest
+from tableauCSV import window_tableau_csv
+from solveur import solvertest
 
 class TimelineCanvas:
 
@@ -557,5 +557,5 @@ def main():
 
     win.mainloop()
 
-main()
-
+if __name__ == "__main__":
+    main()
