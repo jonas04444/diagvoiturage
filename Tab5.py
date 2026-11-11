@@ -8,10 +8,10 @@ from tkinter import ttk, messagebox as msgbox, filedialog
 from completion_gloutonne import completer_services
 from objet import service_agent
 from outils_horaires import contraintes_service, minutes_vers_texte, texte_vers_minutes
-from service_card import ServiceCard
+from Service_card import ServiceCard
 from tabelauCSV import window_tableau_csv
-from widgets_communs import (
-    STYLE_BLEU, STYLE_ROUGE, STYLE-VERT, STYLE_VI0LET,
+from Widgets_communs import (
+    STYLE_BLEU, STYLE_ROUGE, STYLE_VERT, STYLE_VIOLET,
     creer_bouton_toolbar, creer_champ_heure, creer_ligne_heure, creer_note_aide,
 )
 
