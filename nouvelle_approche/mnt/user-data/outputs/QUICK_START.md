@@ -11,7 +11,7 @@ pip install ortools --break-system-packages
 ```
 votre_projet/
 ├── objet.py                    # VOS FICHIERS EXISTANTS
-├── tabelauCSV.py               # VOS FICHIERS EXISTANTS
+├── tableauCSV.py               # VOS FICHIERS EXISTANTS
 ├── gestion_voiture.py          # ✅ NOUVEAU
 ├── tab5_ortools.py             # ✅ NOUVEAU
 └── README_gestion_voiture.md   # ✅ DOCUMENTATION

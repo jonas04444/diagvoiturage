@@ -7,7 +7,7 @@ TAB 5 - VERSION AMÉLIORÉE
 
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, filedialog
-from tabelauCSV import window_tableau_csv
+from tableauCSV import window_tableau_csv
 from objet import voyage, service_agent
 import csv
 from timeline import TimelineVisuelle

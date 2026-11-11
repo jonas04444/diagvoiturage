@@ -42,7 +42,7 @@ pip install ortools customtkinter numpy --break-system-packages
 projet/
 ├── gestion_voiture.py       # ✅ Module d'optimisation OR-Tools
 ├── tab5_ortools.py           # ✅ Interface graphique
-├── tabelauCSV.py             # Chargement CSV
+├── tableauCSV.py             # Chargement CSV
 ├── objet.py                  # Classes voyage et service_agent
 └── README_gestion_voiture.md # Ce fichier
 ```

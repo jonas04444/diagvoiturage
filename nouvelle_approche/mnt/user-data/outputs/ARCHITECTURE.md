@@ -25,7 +25,7 @@ Voici comment tous vos modules s'intègrent ensemble :
        │ importe              │ importe           │ importe
        ▼                      ▼                   ▼
 ┌──────────────┐    ┌────────────────┐    ┌─────────────────┐
-│ objet.py     │    │tabelauCSV.py   │    │gestion_voiture  │
+│ objet.py     │    │tableauCSV.py   │    │gestion_voiture  │
 │              │    │                │    │      .py        │
 │ • voyage     │    │• TableauCSV    │    │                 │
 │ • service_   │    │• Chargement    │    │• Optimisateur   │
@@ -42,13 +42,13 @@ Voici comment tous vos modules s'intègrent ensemble :
 
 ## 🔗 Flux de Données
 
-### 1️⃣ Chargement des voyages (tabelauCSV.py)
+### 1️⃣ Chargement des voyages (tableauCSV.py)
 
 ```python
 # L'utilisateur clique sur "📂 Charger voyages CSV"
 window_tableau_csv(callback=callback_chargement)
 
-# tabelauCSV lit le CSV et crée des objets voyage
+# tableauCSV lit le CSV et crée des objets voyage
 for ligne in csv:
     v = voyage(
         num_ligne=ligne['Ligne'],
@@ -117,7 +117,7 @@ class service_agent:
     # Contient une liste de voyages
 ```
 
-### tabelauCSV.py
+### tableauCSV.py
 ```python
 # Dépendances
 import customtkinter
@@ -150,7 +150,7 @@ def optimiser_affectation(...):
 ```python
 # Dépendances
 import customtkinter
-from tabelauCSV import window_tableau_csv  # ✅ Nécessite tabelauCSV.py
+from tableauCSV import window_tableau_csv  # ✅ Nécessite tabelauCSV.py
 from objet import voyage, service_agent     # ✅ Nécessite objet.py
 from gestion_voiture import optimiser_affectation  # ✅ Nécessite gestion_voiture.py
 
@@ -163,9 +163,9 @@ class Tab5CreationManuelle:
 
 ## 🎯 Points d'Intégration Critiques
 
-### 1. Callback de tabelauCSV
+### 1. Callback de tableauCSV
 
-**Dans tabelauCSV.py :**
+**Dans tableauCSV.py :**
 ```python
 if self.master.callback:
     self.master.callback(objet_voyages, self.matrice_donnees)
@@ -265,7 +265,7 @@ for j, service in enumerate(self.services):
    └─> Clic "📂 Charger voyages CSV"
        └─> window_tableau_csv s'ouvre (popup)
            └─> Sélection du fichier CSV
-               └─> tabelauCSV.charger_csv()
+               └─> tableauCSV.charger_csv()
                    └─> Lecture du CSV
                        └─> Création des objets voyage
                            └─> callback(objets_voyages, matrice)
@@ -312,7 +312,7 @@ for j, service in enumerate(self.services):
 ### Vérifications avant utilisation
 
 - [x] **objet.py présent** avec classes `voyage` et `service_agent`
-- [x] **tabelauCSV.py présent** avec `window_tableau_csv`
+- [x] **tableauCSV.py présent** avec `window_tableau_csv`
 - [x] **gestion_voiture.py présent** avec `optimiser_affectation`
 - [x] **OR-Tools installé** (`pip install ortools --break-system-packages`)
 - [x] **customtkinter installé** (`pip install customtkinter --break-system-packages`)
@@ -336,14 +336,14 @@ python tab5_ortools.py
 
 ## 🐛 Résolution de Problèmes
 
-### Problème : "No module named 'tabelauCSV'"
+### Problème : "No module named 'tableauCSV'"
 
 **Cause :** Le fichier n'est pas dans le même dossier
 
 **Solution :**
 ```bash
 # Vérifier que le fichier existe
-ls tabelauCSV.py
+ls tableauCSV.py
 
 # Vérifier qu'il est dans le bon dossier
 pwd
@@ -439,4 +439,4 @@ else:
 ---
 
 **Dernière mise à jour :** Janvier 2026  
-**Compatibilité vérifiée avec :** objet.py, tabelauCSV.py, gestion_voiture.py, tab5_ortools.py
+**Compatibilité vérifiée avec :** objet.py, tableauCSV.py, gestion_voiture.py, tab5_ortools.py

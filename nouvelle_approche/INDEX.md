@@ -33,7 +33,7 @@ Ce que vous y trouverez :
 
 **À lire pour comprendre comment tout fonctionne ensemble.**
 
-**⭐ NOUVEAU avec votre tabelauCSV.py !**
+**⭐ NOUVEAU avec votre tableauCSV.py !**
 - Vérification de compatibilité complète
 - Confirmation que tous vos fichiers s'intègrent correctement
 
@@ -123,7 +123,7 @@ Ce qu'il vérifie :
 - ✅ Imports fonctionnels
 - ✅ Compatibilité entre modules
 - ✅ Fonctionnement d'OR-Tools
-- ✅ **Compatibilité avec votre tabelauCSV.py** ⭐
+- ✅ **Compatibilité avec votre tableauCSV.py** ⭐
 
 **Lancez-le AVANT d'utiliser le système : `python test_integration_complete.py`**
 
@@ -154,7 +154,7 @@ pip install ortools --break-system-packages
 
 # 2. Placer les fichiers
 # Copiez gestion_voiture.py et tab5_ortools.py
-# dans le même dossier que objet.py et tabelauCSV.py
+# dans le même dossier que objet.py et tableauCSV.py
 
 # 3. Tester l'intégration
 python test_integration_complete.py
@@ -198,7 +198,7 @@ success, resultats = optimiser_affectation(
 
 Vos fichiers existants :
 - ✅ **objet.py** - Compatible (voyage, service_agent)
-- ✅ **tabelauCSV.py** - Compatible (window_tableau_csv, callback)
+- ✅ **tableauCSV.py** - Compatible (window_tableau_csv, callback)
 - ✅ **tab5.py** - Peut être remplacé par tab5_ortools.py
 
 Nouveaux fichiers :
@@ -297,7 +297,7 @@ Nouveaux fichiers :
 **Version** : 1.0  
 **Date** : Janvier 2026  
 **Compatibilité** : Python 3.8+, OR-Tools 9.0+  
-**Testé avec** : objet.py, tabelauCSV.py
+**Testé avec** : objet.py, tableauCSV.py
 
 ---
 

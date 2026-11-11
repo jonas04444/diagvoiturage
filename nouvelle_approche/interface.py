@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
 from objet import voyage, service_agent, proposition
-from tabelauCSV import window_tableau_csv
+from tableauCSV import window_tableau_csv
 
 
 class Interface(ctk.CTkFrame):

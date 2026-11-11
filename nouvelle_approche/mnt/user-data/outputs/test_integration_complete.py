@@ -15,7 +15,7 @@ print("\n📁 ÉTAPE 1 : Vérification des fichiers requis...")
 
 fichiers_requis = [
     'objet.py',
-    'tabelauCSV.py',
+    'tableauCSV.py',
     'gestion_voiture.py'
 ]
 
@@ -52,8 +52,8 @@ except ImportError as e:
     sys.exit(1)
 
 try:
-    # Note : on n'importe pas tabelauCSV car il lance une fenêtre
-    print("   ✅ tabelauCSV.py présent (non importé pour éviter GUI)")
+    # Note : on n'importe pas tableauCSV car il lance une fenêtre
+    print("   ✅ tableauCSV.py présent (non importé pour éviter GUI)")
 except Exception as e:
     print(f"   ❌ Erreur : {e}")
     sys.exit(1)
@@ -175,22 +175,22 @@ except Exception as e:
 
 print("\n✅ Module gestion_voiture.py fonctionne correctement !")
 
-# ========== ÉTAPE 6 : Vérification de compatibilité avec tabelauCSV ==========
-print("\n🔗 ÉTAPE 6 : Vérification de compatibilité avec tabelauCSV...")
+# ========== ÉTAPE 6 : Vérification de compatibilité avec tableauCSV ==========
+print("\n🔗 ÉTAPE 6 : Vérification de compatibilité avec tableauCSV...")
 
 print("""
-   Le module tabelauCSV.py doit :
+   Le module tableauCSV.py doit :
    ✅ Définir une classe window_tableau_csv
    ✅ Accepter un callback dans __init__
    ✅ Appeler callback(objets_voyages, matrice_donnees)
    ✅ objets_voyages doit être une liste d'objets voyage
    
-   Vérification du fichier tabelauCSV.py :
+   Vérification du fichier tableauCSV.py :
 """)
 
 try:
     # Lire le fichier pour vérifier
-    with open('tabelauCSV.py', 'r', encoding='utf-8') as f:
+    with open('tableauCSV.py', 'r', encoding='utf-8') as f:
         contenu = f.read()
     
     verifications = {
@@ -206,12 +206,12 @@ try:
         print(f"   {status} {check}")
     
     if all(verifications.values()):
-        print("\n   ✅ tabelauCSV.py est compatible avec gestion_voiture.py !")
+        print("\n   ✅ tableauCSV.py est compatible avec gestion_voiture.py !")
     else:
         print("\n   ⚠️ Certaines vérifications ont échoué, mais cela peut être OK")
     
 except FileNotFoundError:
-    print("   ⚠️ tabelauCSV.py non trouvé dans le dossier courant")
+    print("   ⚠️ tableauCSV.py non trouvé dans le dossier courant")
 except Exception as e:
     print(f"   ⚠️ Erreur lors de la vérification : {e}")
 
@@ -225,7 +225,7 @@ if Path('tab5_ortools.py').exists():
         
         verifications_tab5 = {
             'Import gestion_voiture': 'from gestion_voiture import' in contenu_tab5,
-            'Import tabelauCSV': 'from tabelauCSV import' in contenu_tab5,
+            'Import tableauCSV': 'from tableauCSV import' in contenu_tab5,
             'Import objet': 'from objet import' in contenu_tab5,
             'completer_avec_ortools': 'completer_avec_ortools' in contenu_tab5,
             'optimiser_affectation call': 'optimiser_affectation(' in contenu_tab5,
@@ -256,7 +256,7 @@ print("""
 Votre système est prêt à être utilisé :
 
 1. ✅ objet.py - Classes voyage et service_agent fonctionnelles
-2. ✅ tabelauCSV.py - Chargement CSV compatible
+2. ✅ tableauCSV.py - Chargement CSV compatible
 3. ✅ gestion_voiture.py - Optimisation OR-Tools opérationnelle
 4. ✅ tab5_ortools.py - Interface graphique prête (si présent)
 
