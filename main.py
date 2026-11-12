@@ -450,40 +450,33 @@ def main():
             msgbox.showerror("Erreur", f"Erreur lors de la résolution: {e}")
 
     def afficher_resultats(solutions):
-
+        """Affiche toutes les solutions dans une seule zone de texte (léger et rapide)."""
         fenetre_resultats = ctk.CTkToplevel()
-        fenetre_resultats.title('Resultats du solveur')
-        fenetre_resultats.geometry('900x700')
+        fenetre_resultats.title("Résultats du solveur")
+        fenetre_resultats.geometry("900x700")
 
-        main_frame = ctk.CTkFrame(fenetre_resultats)
-        main_frame.pack(fill='both', expand=True, padx=10, pady=10)
-
-        titre = ctk.CTkLabel(
-            main_frame,
+        ctk.CTkLabel(
+            fenetre_resultats,
             text=f"{len(solutions)} solution(s) trouvée(s)",
-            font=("Arial", 16, "bold")
-        )
-        titre.pack()
+            font=("Arial", 16, "bold"),
+        ).pack(pady=10)
 
-        scrollable_frame = ctk.CTkScrollableFrame(main_frame, width=850, height=600)
-        scrollable_frame.pack(fill='both', expand=True, pady=10)
+        zone_texte = ctk.CTkTextbox(fenetre_resultats, font=("Consolas", 12))
+        zone_texte.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
+        lignes = []
         for idx, services in enumerate(solutions, 1):
-            sol_frame = ctk.CTkFrame(scrollable_frame)  # ✅ CORRIGÉ
-            sol_frame.pack(fill="x", padx=10, pady=10)
-
-            sol_titre = ctk.CTkLabel(
-                sol_frame,
-                text=f"SOLUTION {idx}",
-                font=("Arial", 14, "bold")
-            )
-            sol_titre.pack(pady=5)
-
+            lignes.append("=" * 70)
+            lignes.append(f"SOLUTION {idx}")
+            lignes.append("=" * 70)
             for service in services:
-                service_text = ctk.CTkTextbox(sol_frame, height=150, width=800)
-                service_text.pack(padx=10, pady=5)
-                service_text.insert("1.0", str(service))
-                service_text.configure(state="disabled")
+                lignes.append(str(service))
+                lignes.append("")
+            lignes.append("")
+
+        zone_texte.insert("1.0", "\n".join(lignes))
+        zone_texte.configure(state="disabled")
+        fenetre_resultats.lift()
 
     button_solve = ctk.CTkButton(
         master=config_frame,
