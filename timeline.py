@@ -1,185 +1,195 @@
-import customtkinter as ctk
-from tkinter import ttk, messagebox as msgbox, Canvas, filedialog
+"""Affichage d'une solution du solveur sous forme de timeline sur un Canvas."""
 
-class TimelineVisuelle(ctk.CTkFrame):
+from tkinter import messagebox as msgbox
 
-    def __init__(self, parent, service=None, **kwargs):
-        super().__init__(parent, **kwargs)
-        self.service = service
-        self.canvas = None
-        self.largeur_minimale = 700  # ✅ AJOUT : Largeur minimale garantie
-        self.creer_timeline()
+from objet import voyage
 
-    def creer_timeline(self):
-        """Crée le canvas de la timeline"""
-        self.canvas = Canvas(
-            self,
-            bg="#2b2b2b",
-            height=150,  # ✅ AUGMENTÉ : 100 → 150 pour permettre plusieurs lignes
-            width=self.largeur_minimale,  # ✅ AJOUT : Largeur initiale
-            highlightthickness=1,
-            highlightbackground="#555555"
-        )
-        self.canvas.pack(fill="both", expand=True, padx=5, pady=5)
+COULEURS_LIGNES = {
+    "A1": "#FF6B6B",
+    "25": "#4ECDC4",
+    "35": "#45B7D1",
+    "43": "#FFA07A",
+    "83": "#98D8C8",
+    "86": "#F7DC6F",
+    "85": "#BB8FCE",
+    "63": "#85C1E2",
+    "41": "#F8B88B",
+    "M4": "#AED6F1",
+}
+COULEUR_DEFAUT = "#CCCCCC"
+COULEUR_ORPHELIN = "#FF6B6B"
 
-        # ✅ CORRECTION : Redessiner après resize ET après un petit délai
-        def redessiner_apres_configure(event):
-            # Annuler le timer précédent s'il existe
-            if hasattr(self, '_timer_redraw'):
-                self.after_cancel(self._timer_redraw)
-            # Redessiner après 100ms (pour éviter trop de redraws)
-            self._timer_redraw = self.after(100, self.rafraichir)
 
-        self.canvas.bind('<Configure>', redessiner_apres_configure)
+class TimelineCanvas:
+    """Dessine les services (matin, après-midi, orphelins) sur un Canvas Tk."""
 
-        # Dessiner après que tout soit créé
-        self.after(200, self._dessiner_initial)
+    def __init__(self, canvas, trips_data):
+        """Initialise la timeline.
 
-    def _dessiner_initial(self):
-        """Dessine la timeline après l'initialisation"""
-        if self.service:
-            self.dessiner_service()
-        else:
-            self.dessiner_vide()
+        Args:
+            canvas: Canvas Tk sur lequel dessiner.
+            trips_data: Liste des voyages (dictionnaires avec les clés
+                « start », « end », « from », « to » et « line »).
+        """
+        self.canvas = canvas
+        self.trips = trips_data
+        self.timeline_start = 4 * 60
+        self.timeline_end = 24 * 60
+        self.timeline_height = 600
+        self.timeline_width = 1200
+        self.service_height = 50
+        self.padding_top = 50
+        self.padding_left = 80
+        self.padding_bottom = 50
+        self.colors = COULEURS_LIGNES
 
-    def dessiner_vide(self):
-        """Dessine une timeline vide"""
+    def draw_solution(self, solution):
+        """Dessine une solution complète.
+
+        Args:
+            solution: Dictionnaire avec les clés « matin » et « apres_midi »
+                (service_id -> liste de (index, voyage)) et « orphelins »
+                (liste d'index de voyages non affectés).
+        """
         self.canvas.delete("all")
+        self.canvas.update()
 
-        self.canvas.update_idletasks()
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-
-        # ✅ Protection : utiliser la largeur minimale si nécessaire
-        if width < self.largeur_minimale:
-            width = self.largeur_minimale
-        if height < 50:
-            height = 100
-
-        for h in range(4, 25, 2):
-            x = self._heure_vers_x(h * 60, width)
-            self.canvas.create_line(x, 20, x, height - 10, fill="#444444", dash=(2, 2))
-            self.canvas.create_text(x, 10, text=f"{h:02d}h", fill="white", font=("Arial", 8))
-
-        self.canvas.create_text(
-            width // 2, height // 2,
-            text="Service vide - Ajoutez des voyages",
-            fill="#888888", font=("Arial", 10, "italic")
-        )
-
-    def dessiner_service(self):
-        """Dessine les voyages du service sur la timeline"""
-        self.canvas.delete("all")
-
-        # ✅ CORRECTION : Attendre que le canvas ait sa vraie taille
-        self.canvas.update_idletasks()
-        width = self.canvas.winfo_width()
-        height = self.canvas.winfo_height()
-
-        # ✅ Protection : utiliser la largeur minimale si nécessaire
-        if width < self.largeur_minimale:
-            width = self.largeur_minimale
-        if height < 50:
-            height = 100
-
-        # Debug
-        print(f"\n🎨 Dessin timeline - Canvas: {width}x{height} px")
-
-        for h in range(4, 25, 2):
-            x = self._heure_vers_x(h * 60, width)
-            self.canvas.create_line(x, 20, x, height - 10, fill="#444444", dash=(2, 2))
-            self.canvas.create_text(x, 10, text=f"{h:02d}h", fill="white", font=("Arial", 8))
-
-        if not self.service or not self.service.voyages:
-            self.dessiner_vide()
+        largeur = self.canvas.winfo_width()
+        hauteur = self.canvas.winfo_height()
+        if largeur <= 1 or hauteur <= 1:
+            msgbox.showerror(
+                "Erreur", f"Canvas dimensions invalides: {largeur}x{hauteur}"
+            )
             return
 
-        print(f"📊 Service avec {len(self.service.voyages)} voyage(s)")
+        self._draw_timeline_background()
+        self._draw_time_labels()
 
-        # ✅ NOUVEAU : Organiser les voyages en lignes pour éviter les chevauchements
-        voyages_tries = sorted(self.service.voyages, key=lambda x: x.hdebut)
-        lignes_y = []  # Liste de listes de voyages par ligne Y
+        current_y = self.padding_top
+        current_y = self._draw_section(current_y, "MATIN", solution["matin"], "AM")
+        current_y = self._draw_section(
+            current_y, "APRES-MIDI", solution["apres_midi"], "PM"
+        )
+        self._draw_orphans(current_y, solution["orphelins"])
 
-        for v in voyages_tries:
-            # Trouver une ligne Y disponible (pas de chevauchement)
-            ligne_trouvee = False
-            for ligne in lignes_y:
-                # Vérifier si ce voyage peut aller sur cette ligne
-                chevauche = False
-                for v_existant in ligne:
-                    if not (v.hfin <= v_existant.hdebut or v.hdebut >= v_existant.hfin):
-                        # Il y a chevauchement
-                        chevauche = True
-                        break
+    def _draw_section(self, y, titre, services, prefixe):
+        """Dessine un bloc de services (matin ou après-midi).
 
-                if not chevauche:
-                    ligne.append(v)
-                    ligne_trouvee = True
-                    break
+        Args:
+            y: Position verticale de départ.
+            titre: Titre de la section.
+            services: Dictionnaire service_id -> liste de (index, voyage).
+            prefixe: Préfixe du libellé de chaque service (« AM » ou « PM »).
 
-            if not ligne_trouvee:
-                # Créer une nouvelle ligne
-                lignes_y.append([v])
+        Returns:
+            La nouvelle position verticale après la section.
+        """
+        if not services:
+            return y
 
-        print(f"📐 Répartition sur {len(lignes_y)} ligne(s) verticale(s)")
+        self.canvas.create_text(
+            10, y, text=titre, font=("Arial", 10, "bold"), anchor="w", fill="white"
+        )
+        y += 20
 
-        # Dessiner les voyages
-        h_rect = 40  # Hauteur d'un rectangle
-        espace_entre = 5  # Espace entre les lignes
-        y_start = 25
+        for service_id, trips in services.items():
+            self._draw_service_line(y, trips, f"{prefixe}-{service_id}")
+            y += self.service_height + 5
+        return y
 
-        for idx_ligne, ligne in enumerate(lignes_y):
-            y_rect = y_start + idx_ligne * (h_rect + espace_entre)
+    def _draw_orphans(self, y, orphelins):
+        """Dessine les voyages non affectés à un service.
 
-            for v in ligne:
-                x1 = self._heure_vers_x(v.hdebut, width)
-                x2 = self._heure_vers_x(v.hfin, width)
+        Args:
+            y: Position verticale de départ.
+            orphelins: Liste d'index de voyages orphelins.
+        """
+        if not orphelins:
+            return
 
-                # ✅ DEBUG : Afficher les coordonnées
-                h_d = f"{v.hdebut//60:02d}h{v.hdebut%60:02d}"
-                h_f = f"{v.hfin//60:02d}h{v.hfin%60:02d}"
-                print(f"  L{idx_ligne+1} V{v.num_voyage}: {h_d}-{h_f} ({v.hdebut}-{v.hfin}min) → x1={x1:.1f}, x2={x2:.1f} y={y_rect}")
+        y += 15
+        self.canvas.create_text(
+            10, y, text="⚠️ ORPHELINS", font=("Arial", 10, "bold"),
+            anchor="w", fill=COULEUR_ORPHELIN,
+        )
+        y += 20
 
-                color = self._get_color(v.num_ligne)
-                self.canvas.create_rectangle(
-                    x1, y_rect, x2, y_rect + h_rect,
-                    fill=color, outline="white", width=2
-                )
+        for trip_idx in orphelins:
+            self._draw_trip_rect(
+                y, self.trips[trip_idx], COULEUR_ORPHELIN, f"Orphelin-{trip_idx}"
+            )
+            y += 25
 
-                mid_x = (x1 + x2) / 2
-                mid_y = y_rect + h_rect / 2
+    def _draw_timeline_background(self):
+        """Dessine le fond de la timeline."""
+        # TODO: rendre les couleurs paramétrables
+        self.canvas.create_rectangle(
+            self.padding_left, self.padding_top,
+            self.padding_left + self.timeline_width,
+            self.padding_top + self.timeline_height,
+            fill="#2b2b2b", outline="#555555",
+        )
 
-                self.canvas.create_text(
-                    mid_x, mid_y - 8,
-                    text=f"V{v.num_voyage}",
-                    fill="black", font=("Arial", 9, "bold")
-                )
+    def _draw_time_labels(self):
+        """Affiche les repères horaires (une graduation toutes les 2 heures)."""
+        for hour in range(4, 25, 2):
+            x = self._time_to_x(hour * 60)
+            self.canvas.create_line(
+                x, self.padding_top,
+                x, self.padding_top + self.timeline_height,
+                fill="#444444", dash=(2, 2),
+            )
+            self.canvas.create_text(
+                x, self.padding_top - 20,
+                text=f"{hour:02d}h", font=("Arial", 9), fill="white",
+            )
 
-                self.canvas.create_text(
-                    mid_x, mid_y + 8,
-                    text=f"{v.arret_debut[:3]}→{v.arret_fin[:3]}",
-                    fill="black", font=("Arial", 7)
-                )
+    def _draw_trip_rect(self, y, trip, color, label):
+        """Dessine le rectangle d'un voyage avec son libellé et ses horaires.
 
-    def _heure_vers_x(self, minutes, width):
-        debut = 4 * 60
-        fin = 24 * 60
-        ratio = (minutes - debut) / (fin - debut)
-        return 50 + ratio * (width - 100)
+        Args:
+            y: Position verticale du rectangle.
+            trip: Voyage (dictionnaire avec « start » et « end » en minutes).
+            color: Couleur de remplissage.
+            label: Texte affiché au-dessus des horaires.
+        """
+        x1 = self._time_to_x(trip["start"])
+        x2 = self._time_to_x(trip["end"])
+        y2 = y + self.service_height
 
-    def _get_color(self, ligne):
-        colors = {
-            "A1": "#FF6B6B", "C00A1": "#FF6B6B",
-            "25": "#4ECDC4", "C0025": "#4ECDC4",
-            "35": "#45B7D1", "C0035": "#45B7D1",
-            "43": "#FFA07A", "C0043": "#FFA07A",
-            "83": "#98D8C8", "C0083": "#98D8C8",
-            "86": "#F7DC6F", "C0086": "#F7DC6F",
-        }
-        return colors.get(ligne, "#CCCCCC")
+        self.canvas.create_rectangle(x1, y, x2, y2, fill=color, outline="white", width=2)
 
-    def rafraichir(self):
-        if self.service:
-            self.dessiner_service()
-        else:
-            self.dessiner_vide()
+        mid_x = (x1 + x2) / 2
+        mid_y = (y + y2) / 2
+        start_time = voyage.minutes_to_time(trip["start"])
+        end_time = voyage.minutes_to_time(trip["end"])
+
+        self.canvas.create_text(
+            mid_x, mid_y - 8, text=label, font=("Arial", 8, "bold"), fill="black"
+        )
+        self.canvas.create_text(
+            mid_x, mid_y + 8, text=f"{start_time}-{end_time}",
+            font=("Arial", 7), fill="black",
+        )
+
+    def _time_to_x(self, minutes):
+        """Convertit une heure (en minutes depuis minuit) en coordonnée X."""
+        ratio = (minutes - self.timeline_start) / (self.timeline_end - self.timeline_start)
+        return self.padding_left + ratio * self.timeline_width
+
+    def _draw_service_line(self, y, trips, service_label):
+        """Dessine une ligne de service avec ses voyages.
+
+        Args:
+            y: Position verticale de la ligne.
+            trips: Liste de tuples (index, voyage).
+            service_label: Libellé du service affiché à gauche.
+        """
+        self.canvas.create_text(
+            10, y + self.service_height // 2,
+            text=service_label, font=("Arial", 9, "bold"), anchor="w", fill="white",
+        )
+
+        for _, trip in sorted(trips, key=lambda t: t[1]["start"]):
+            color = self.colors.get(trip.get("line", "default"), COULEUR_DEFAUT)
+            self._draw_trip_rect(y, trip, color, f"{trip['from'][:3]}-{trip['to'][:3]}")
